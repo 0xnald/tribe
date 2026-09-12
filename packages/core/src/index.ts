@@ -15,3 +15,5 @@ export * from './engine/arena';
 export * from './market/quality';
 export * from './market/fixtures';
 export * from './registry/assets';
+export * from './vectors/codec';
+export { ALL_CATEGORIES, VECTOR_SCHEMA, VECTOR_VERSION } from './vectors/build';

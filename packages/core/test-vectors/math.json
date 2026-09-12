@@ -1,0 +1,280 @@
+{
+  "schema": "tribe-core-vectors",
+  "version": 1,
+  "category": "math",
+  "engine": "@tribe/core reference implementation",
+  "notes": "All integers are decimal strings (bigint). Rust: parse with u128/i128::from_str. Error outcomes are ErrorCode identifiers (see src/engine/errors.ts).",
+  "vectors": [
+    {
+      "name": "toQ8 expo -8 identity",
+      "description": "$365.25 at expo -8",
+      "inputs": {
+        "op": "toQ8",
+        "args": [
+          "36525000000"
+        ],
+        "numArgs": [
+          -8
+        ]
+      },
+      "expected": {
+        "result": "36525000000"
+      }
+    },
+    {
+      "name": "toQ8 expo -2",
+      "description": "$365.25 at expo -2",
+      "inputs": {
+        "op": "toQ8",
+        "args": [
+          "36525"
+        ],
+        "numArgs": [
+          -2
+        ]
+      },
+      "expected": {
+        "result": "36525000000"
+      }
+    },
+    {
+      "name": "toQ8 expo -15 floors",
+      "description": "BONK 2816164455e-15",
+      "inputs": {
+        "op": "toQ8",
+        "args": [
+          "2816164455"
+        ],
+        "numArgs": [
+          -15
+        ]
+      },
+      "expected": {
+        "result": "281"
+      }
+    },
+    {
+      "name": "refPriceQ8 dividend 1.008",
+      "description": "",
+      "inputs": {
+        "op": "refPriceQ8",
+        "args": [
+          "10000000000",
+          "1008000"
+        ]
+      },
+      "expected": {
+        "result": "10080000000"
+      }
+    },
+    {
+      "name": "refPriceQ8 split 4x",
+      "description": "$91.3125 × 4.0 = $365.25",
+      "inputs": {
+        "op": "refPriceQ8",
+        "args": [
+          "9131250000",
+          "4000000"
+        ]
+      },
+      "expected": {
+        "result": "36525000000"
+      }
+    },
+    {
+      "name": "notional TSLAx",
+      "description": "0.27337718 TSLAx at $365.25",
+      "inputs": {
+        "op": "notionalUsdc",
+        "args": [
+          "27337718",
+          "36525000000"
+        ],
+        "numArgs": [
+          8
+        ]
+      },
+      "expected": {
+        "result": "99851014"
+      }
+    },
+    {
+      "name": "notional BONK",
+      "description": "35M BONK at $0.00000281",
+      "inputs": {
+        "op": "notionalUsdc",
+        "args": [
+          "3500000000000",
+          "281"
+        ],
+        "numArgs": [
+          5
+        ]
+      },
+      "expected": {
+        "result": "98350000"
+      }
+    },
+    {
+      "name": "notional dust floors to zero",
+      "description": "",
+      "inputs": {
+        "op": "notionalUsdc",
+        "args": [
+          "1",
+          "1"
+        ],
+        "numArgs": [
+          8
+        ]
+      },
+      "expected": {
+        "result": "0"
+      }
+    },
+    {
+      "name": "perfBps +8.42%",
+      "description": "",
+      "inputs": {
+        "op": "perfBps",
+        "args": [
+          "10000000000",
+          "10842000000"
+        ]
+      },
+      "expected": {
+        "result": "842"
+      }
+    },
+    {
+      "name": "perfBps -2.17%",
+      "description": "",
+      "inputs": {
+        "op": "perfBps",
+        "args": [
+          "10000000000",
+          "9783000000"
+        ]
+      },
+      "expected": {
+        "result": "-217"
+      }
+    },
+    {
+      "name": "perfBps floor negative",
+      "description": "-0.1 bps floors to -1",
+      "inputs": {
+        "op": "perfBps",
+        "args": [
+          "10000000000",
+          "9999900000"
+        ]
+      },
+      "expected": {
+        "result": "-1"
+      }
+    },
+    {
+      "name": "winner A",
+      "description": "+8.42% vs +2.17%",
+      "inputs": {
+        "op": "decideWinner",
+        "args": [
+          "10000000000",
+          "10842000000",
+          "10000000000",
+          "10217000000",
+          "1"
+        ]
+      },
+      "expected": {
+        "result": "A"
+      }
+    },
+    {
+      "name": "winner tie on band",
+      "description": "+1 bps vs flat, band 1 bps",
+      "inputs": {
+        "op": "decideWinner",
+        "args": [
+          "10000000000",
+          "10001000000",
+          "10000000000",
+          "10000000000",
+          "1"
+        ]
+      },
+      "expected": {
+        "result": "TIE"
+      }
+    },
+    {
+      "name": "winner A beyond band",
+      "description": "+1 bps + 1 unit",
+      "inputs": {
+        "op": "decideWinner",
+        "args": [
+          "10000000000",
+          "10001000001",
+          "10000000000",
+          "10000000000",
+          "1"
+        ]
+      },
+      "expected": {
+        "result": "A"
+      }
+    },
+    {
+      "name": "winner across scales",
+      "description": "BONK 281→281 vs TSLA +2 bps",
+      "inputs": {
+        "op": "decideWinner",
+        "args": [
+          "281",
+          "281",
+          "10000000000",
+          "10002000000",
+          "1"
+        ]
+      },
+      "expected": {
+        "result": "B"
+      }
+    },
+    {
+      "name": "winner both down",
+      "description": "A -5% vs B -9% → A",
+      "inputs": {
+        "op": "decideWinner",
+        "args": [
+          "10000000000",
+          "9500000000",
+          "10000000000",
+          "9100000000",
+          "1"
+        ]
+      },
+      "expected": {
+        "result": "A"
+      }
+    },
+    {
+      "name": "winner extreme ratio",
+      "description": "1→2 vs 1e16→1.9e16",
+      "inputs": {
+        "op": "decideWinner",
+        "args": [
+          "1",
+          "2",
+          "10000000000000000",
+          "19000000000000000",
+          "1"
+        ]
+      },
+      "expected": {
+        "result": "A"
+      }
+    }
+  ]
+}

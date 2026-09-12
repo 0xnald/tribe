@@ -1,0 +1,405 @@
+{
+  "schema": "tribe-core-vectors",
+  "version": 1,
+  "category": "underdog",
+  "engine": "@tribe/core reference implementation",
+  "notes": "All integers are decimal strings (bigint). Rust: parse with u128/i128::from_str. Error outcomes are ErrorCode identifiers (see src/engine/errors.ts).",
+  "vectors": [
+    {
+      "name": "first backer is 1.0x",
+      "description": "empty arena",
+      "inputs": {
+        "sides": {
+          "A": {
+            "units": "0",
+            "unitSeconds": "0"
+          },
+          "B": {
+            "units": "0",
+            "unitSeconds": "0"
+          }
+        },
+        "prices": {
+          "A": "281",
+          "B": "36525000000"
+        },
+        "decimals": {
+          "A": 5,
+          "B": 8
+        },
+        "side": "B",
+        "depositUnits": "273785078",
+        "now": "0",
+        "startTs": "0",
+        "endTs": "86400",
+        "policy": {
+          "slope": 2,
+          "capQ4": 20000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "shareInstBps": "10000",
+        "shareTwabBps": null,
+        "shareEffBps": "10000",
+        "rawQ4": "10000",
+        "warmupSecs": "8640",
+        "elapsedSecs": "0",
+        "mQ4": "10000"
+      }
+    },
+    {
+      "name": "balanced instant, no TWAB, t=0",
+      "description": "ramp 0",
+      "inputs": {
+        "sides": {
+          "A": {
+            "units": "35587188612099",
+            "unitSeconds": "0"
+          },
+          "B": {
+            "units": "0",
+            "unitSeconds": "0"
+          }
+        },
+        "prices": {
+          "A": "281",
+          "B": "36525000000"
+        },
+        "decimals": {
+          "A": 5,
+          "B": 8
+        },
+        "side": "B",
+        "depositUnits": "273785078",
+        "now": "0",
+        "startTs": "0",
+        "endTs": "86400",
+        "policy": {
+          "slope": 2,
+          "capQ4": 20000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "shareInstBps": "4999",
+        "shareTwabBps": null,
+        "shareEffBps": "4999",
+        "rawQ4": "10002",
+        "warmupSecs": "8640",
+        "elapsedSecs": "0",
+        "mQ4": "10000"
+      }
+    },
+    {
+      "name": "20% underdog after warm-up",
+      "description": "A 80k, B 20k deposit, instant=TWAB=20%",
+      "inputs": {
+        "sides": {
+          "A": {
+            "units": "2846975088967971",
+            "unitSeconds": "30747330960854086800"
+          },
+          "B": {
+            "units": "0",
+            "unitSeconds": "0"
+          }
+        },
+        "prices": {
+          "A": "281",
+          "B": "36525000000"
+        },
+        "decimals": {
+          "A": 5,
+          "B": 8
+        },
+        "side": "B",
+        "depositUnits": "5475701574",
+        "now": "10800",
+        "startTs": "0",
+        "endTs": "86400",
+        "policy": {
+          "slope": 2,
+          "capQ4": 20000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "shareInstBps": "1999",
+        "shareTwabBps": "0",
+        "shareEffBps": "1999",
+        "rawQ4": "16002",
+        "warmupSecs": "8640",
+        "elapsedSecs": "10800",
+        "mQ4": "16002"
+      }
+    },
+    {
+      "name": "half-way through warm-up",
+      "description": "same as above at 864 s of 8640",
+      "inputs": {
+        "sides": {
+          "A": {
+            "units": "2846975088967971",
+            "unitSeconds": "2459786476868326944"
+          },
+          "B": {
+            "units": "0",
+            "unitSeconds": "0"
+          }
+        },
+        "prices": {
+          "A": "281",
+          "B": "36525000000"
+        },
+        "decimals": {
+          "A": 5,
+          "B": 8
+        },
+        "side": "B",
+        "depositUnits": "5475701574",
+        "now": "864",
+        "startTs": "0",
+        "endTs": "86400",
+        "policy": {
+          "slope": 2,
+          "capQ4": 20000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "shareInstBps": "1999",
+        "shareTwabBps": "0",
+        "shareEffBps": "1999",
+        "rawQ4": "16002",
+        "warmupSecs": "8640",
+        "elapsedSecs": "864",
+        "mQ4": "10600"
+      }
+    },
+    {
+      "name": "max(instant, twab): flash imbalance ignored",
+      "description": "A just got 40k but TWAB says 50/50",
+      "inputs": {
+        "sides": {
+          "A": {
+            "units": "1779359430604982",
+            "unitSeconds": "7686832740213513600"
+          },
+          "B": {
+            "units": "2737850787",
+            "unitSeconds": "59137576999200"
+          }
+        },
+        "prices": {
+          "A": "281",
+          "B": "36525000000"
+        },
+        "decimals": {
+          "A": 5,
+          "B": 8
+        },
+        "side": "B",
+        "depositUnits": "2737850787",
+        "now": "21600",
+        "startTs": "0",
+        "endTs": "86400",
+        "policy": {
+          "slope": 2,
+          "capQ4": 20000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "shareInstBps": "2857",
+        "shareTwabBps": "4999",
+        "shareEffBps": "4999",
+        "rawQ4": "10002",
+        "warmupSecs": "8640",
+        "elapsedSecs": "21600",
+        "mQ4": "10002"
+      }
+    },
+    {
+      "name": "majority side gets 1.0x",
+      "description": "B is 99%",
+      "inputs": {
+        "sides": {
+          "A": {
+            "units": "35587188612099",
+            "unitSeconds": "1537366548042676800"
+          },
+          "B": {
+            "units": "273785078",
+            "unitSeconds": "11827515369600"
+          }
+        },
+        "prices": {
+          "A": "281",
+          "B": "36525000000"
+        },
+        "decimals": {
+          "A": 5,
+          "B": 8
+        },
+        "side": "B",
+        "depositUnits": "27378507871",
+        "now": "43200",
+        "startTs": "0",
+        "endTs": "86400",
+        "policy": {
+          "slope": 2,
+          "capQ4": 20000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "shareInstBps": "9901",
+        "shareTwabBps": "4999",
+        "shareEffBps": "9901",
+        "rawQ4": "10000",
+        "warmupSecs": "8640",
+        "elapsedSecs": "43200",
+        "mQ4": "10000"
+      }
+    },
+    {
+      "name": "cap at 2.0x",
+      "description": "tiny underdog deposit after warm-up",
+      "inputs": {
+        "sides": {
+          "A": {
+            "units": "35587188612099644",
+            "unitSeconds": "1537366548042704620800"
+          },
+          "B": {
+            "units": "0",
+            "unitSeconds": "0"
+          }
+        },
+        "prices": {
+          "A": "281",
+          "B": "36525000000"
+        },
+        "decimals": {
+          "A": 5,
+          "B": 8
+        },
+        "side": "B",
+        "depositUnits": "1642710",
+        "now": "43200",
+        "startTs": "0",
+        "endTs": "86400",
+        "policy": {
+          "slope": 2,
+          "capQ4": 20000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "shareInstBps": "0",
+        "shareTwabBps": "0",
+        "shareEffBps": "0",
+        "rawQ4": "20000",
+        "warmupSecs": "8640",
+        "elapsedSecs": "43200",
+        "mQ4": "20000"
+      }
+    },
+    {
+      "name": "short arena warm-up floor",
+      "description": "1 h arena, 15 min in: ramp 0.5",
+      "inputs": {
+        "sides": {
+          "A": {
+            "units": "284697508896797",
+            "unitSeconds": "256227758007117300"
+          },
+          "B": {
+            "units": "0",
+            "unitSeconds": "0"
+          }
+        },
+        "prices": {
+          "A": "281",
+          "B": "36525000000"
+        },
+        "decimals": {
+          "A": 5,
+          "B": 8
+        },
+        "side": "B",
+        "depositUnits": "547570157",
+        "now": "900",
+        "startTs": "0",
+        "endTs": "3600",
+        "policy": {
+          "slope": 2,
+          "capQ4": 20000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "shareInstBps": "1999",
+        "shareTwabBps": "0",
+        "shareEffBps": "1999",
+        "rawQ4": "16002",
+        "warmupSecs": "1800",
+        "elapsedSecs": "900",
+        "mQ4": "13001"
+      }
+    },
+    {
+      "name": "custom policy slope 4 cap 1.5",
+      "description": "",
+      "inputs": {
+        "sides": {
+          "A": {
+            "units": "2846975088967971",
+            "unitSeconds": "30747330960854086800"
+          },
+          "B": {
+            "units": "0",
+            "unitSeconds": "0"
+          }
+        },
+        "prices": {
+          "A": "281",
+          "B": "36525000000"
+        },
+        "decimals": {
+          "A": 5,
+          "B": 8
+        },
+        "side": "B",
+        "depositUnits": "5475701574",
+        "now": "10800",
+        "startTs": "0",
+        "endTs": "86400",
+        "policy": {
+          "slope": 4,
+          "capQ4": 15000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "shareInstBps": "1999",
+        "shareTwabBps": "0",
+        "shareEffBps": "1999",
+        "rawQ4": "15000",
+        "warmupSecs": "8640",
+        "elapsedSecs": "10800",
+        "mQ4": "15000"
+      }
+    }
+  ]
+}

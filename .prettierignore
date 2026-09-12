@@ -6,3 +6,4 @@ pnpm-lock.yaml
 programs/**/target
 **/*.min.*
 docs/assets
+packages/core/test-vectors/*.json

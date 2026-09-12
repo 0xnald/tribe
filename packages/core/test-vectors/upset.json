@@ -1,0 +1,193 @@
+{
+  "schema": "tribe-core-vectors",
+  "version": 1,
+  "category": "upset",
+  "engine": "@tribe/core reference implementation",
+  "notes": "All integers are decimal strings (bigint). Rust: parse with u128/i128::from_str. Error outcomes are ErrorCode identifiers (see src/engine/errors.ts).",
+  "vectors": [
+    {
+      "name": "favourite wins",
+      "description": "",
+      "inputs": {
+        "winnerTwabShareBps": "7000",
+        "basePool": "4000000000",
+        "reserveBalance": "1000000000000",
+        "reserveDrawBps": 1000,
+        "upsetBonusCapUsdc": "5000000000",
+        "underdog": {
+          "slope": 2,
+          "capQ4": 20000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "mUpsetQ4": "10000",
+        "requested": "0",
+        "bonus": "0",
+        "limitedBy": "formula"
+      }
+    },
+    {
+      "name": "exactly 50%",
+      "description": "",
+      "inputs": {
+        "winnerTwabShareBps": "5000",
+        "basePool": "4000000000",
+        "reserveBalance": "1000000000000",
+        "reserveDrawBps": 1000,
+        "upsetBonusCapUsdc": "5000000000",
+        "underdog": {
+          "slope": 2,
+          "capQ4": 20000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "mUpsetQ4": "10000",
+        "requested": "0",
+        "bonus": "0",
+        "limitedBy": "formula"
+      }
+    },
+    {
+      "name": "20% underdog deep reserve",
+      "description": "+60%",
+      "inputs": {
+        "winnerTwabShareBps": "2000",
+        "basePool": "4000000000",
+        "reserveBalance": "1000000000000",
+        "reserveDrawBps": 1000,
+        "upsetBonusCapUsdc": "5000000000",
+        "underdog": {
+          "slope": 2,
+          "capQ4": 20000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "mUpsetQ4": "16000",
+        "requested": "2400000000",
+        "bonus": "2400000000",
+        "limitedBy": "none"
+      }
+    },
+    {
+      "name": "reserve draw limit",
+      "description": "10% of 10 000 USDC",
+      "inputs": {
+        "winnerTwabShareBps": "2000",
+        "basePool": "4000000000",
+        "reserveBalance": "10000000000",
+        "reserveDrawBps": 1000,
+        "upsetBonusCapUsdc": "5000000000",
+        "underdog": {
+          "slope": 2,
+          "capQ4": 20000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "mUpsetQ4": "16000",
+        "requested": "2400000000",
+        "bonus": "1000000000",
+        "limitedBy": "reserveDraw"
+      }
+    },
+    {
+      "name": "absolute cap",
+      "description": "",
+      "inputs": {
+        "winnerTwabShareBps": "1000",
+        "basePool": "100000000000",
+        "reserveBalance": "10000000000000",
+        "reserveDrawBps": 1000,
+        "upsetBonusCapUsdc": "5000000000",
+        "underdog": {
+          "slope": 2,
+          "capQ4": 20000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "mUpsetQ4": "18000",
+        "requested": "80000000000",
+        "bonus": "5000000000",
+        "limitedBy": "cap"
+      }
+    },
+    {
+      "name": "reserve balance below draw",
+      "description": "draw 100%, balance 5",
+      "inputs": {
+        "winnerTwabShareBps": "2000",
+        "basePool": "4000000000",
+        "reserveBalance": "5",
+        "reserveDrawBps": 10000,
+        "upsetBonusCapUsdc": "5000000000",
+        "underdog": {
+          "slope": 2,
+          "capQ4": 20000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "mUpsetQ4": "16000",
+        "requested": "2400000000",
+        "bonus": "5",
+        "limitedBy": "reserveBalance"
+      }
+    },
+    {
+      "name": "empty reserve",
+      "description": "",
+      "inputs": {
+        "winnerTwabShareBps": "2000",
+        "basePool": "4000000000",
+        "reserveBalance": "0",
+        "reserveDrawBps": 1000,
+        "upsetBonusCapUsdc": "5000000000",
+        "underdog": {
+          "slope": 2,
+          "capQ4": 20000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "mUpsetQ4": "16000",
+        "requested": "2400000000",
+        "bonus": "0",
+        "limitedBy": "reserveBalance"
+      }
+    },
+    {
+      "name": "zero pool",
+      "description": "",
+      "inputs": {
+        "winnerTwabShareBps": "2000",
+        "basePool": "0",
+        "reserveBalance": "1000000000000",
+        "reserveDrawBps": 1000,
+        "upsetBonusCapUsdc": "5000000000",
+        "underdog": {
+          "slope": 2,
+          "capQ4": 20000,
+          "warmupBps": 1000,
+          "warmupFloorSecs": 1800
+        }
+      },
+      "expected": {
+        "mUpsetQ4": "16000",
+        "requested": "0",
+        "bonus": "0",
+        "limitedBy": "formula"
+      }
+    }
+  ]
+}

@@ -1,0 +1,209 @@
+{
+  "schema": "tribe-core-vectors",
+  "version": 1,
+  "category": "settlement",
+  "engine": "@tribe/core reference implementation",
+  "notes": "All integers are decimal strings (bigint). Rust: parse with u128/i128::from_str. Error outcomes are ErrorCode identifiers (see src/engine/errors.ts).",
+  "vectors": [
+    {
+      "name": "equal returns tie",
+      "description": "",
+      "inputs": {
+        "A": {
+          "startQ8": "10000000000",
+          "endQ8": "10000000000"
+        },
+        "B": {
+          "startQ8": "10000000000",
+          "endQ8": "10000000000"
+        },
+        "tieBps": "1"
+      },
+      "expected": {
+        "winner": "TIE",
+        "perfBpsA": "0",
+        "perfBpsB": "0"
+      }
+    },
+    {
+      "name": "+1 bps exactly is tie",
+      "description": "",
+      "inputs": {
+        "A": {
+          "startQ8": "10000000000",
+          "endQ8": "10001000000"
+        },
+        "B": {
+          "startQ8": "10000000000",
+          "endQ8": "10000000000"
+        },
+        "tieBps": "1"
+      },
+      "expected": {
+        "winner": "TIE",
+        "perfBpsA": "1",
+        "perfBpsB": "0"
+      }
+    },
+    {
+      "name": "+1 bps + 1 unit A wins",
+      "description": "",
+      "inputs": {
+        "A": {
+          "startQ8": "10000000000",
+          "endQ8": "10001000001"
+        },
+        "B": {
+          "startQ8": "10000000000",
+          "endQ8": "10000000000"
+        },
+        "tieBps": "1"
+      },
+      "expected": {
+        "winner": "A",
+        "perfBpsA": "1",
+        "perfBpsB": "0"
+      }
+    },
+    {
+      "name": "-1 bps - 1 unit B wins",
+      "description": "",
+      "inputs": {
+        "A": {
+          "startQ8": "10000000000",
+          "endQ8": "9998999999"
+        },
+        "B": {
+          "startQ8": "10000000000",
+          "endQ8": "10000000000"
+        },
+        "tieBps": "1"
+      },
+      "expected": {
+        "winner": "B",
+        "perfBpsA": "-2",
+        "perfBpsB": "0"
+      }
+    },
+    {
+      "name": "zero band",
+      "description": "",
+      "inputs": {
+        "A": {
+          "startQ8": "10000000000",
+          "endQ8": "10000000001"
+        },
+        "B": {
+          "startQ8": "10000000000",
+          "endQ8": "10000000000"
+        },
+        "tieBps": "0"
+      },
+      "expected": {
+        "winner": "A",
+        "perfBpsA": "0",
+        "perfBpsB": "0"
+      }
+    },
+    {
+      "name": "wide band 100 bps",
+      "description": "+0.5% vs flat is a tie",
+      "inputs": {
+        "A": {
+          "startQ8": "10000000000",
+          "endQ8": "10050000000"
+        },
+        "B": {
+          "startQ8": "10000000000",
+          "endQ8": "10000000000"
+        },
+        "tieBps": "100"
+      },
+      "expected": {
+        "winner": "TIE",
+        "perfBpsA": "50",
+        "perfBpsB": "0"
+      }
+    },
+    {
+      "name": "BONK vs TSLAx demo",
+      "description": "BONK 281→300 (+6.76%), TSLAx +2.17%",
+      "inputs": {
+        "A": {
+          "startQ8": "281",
+          "endQ8": "300"
+        },
+        "B": {
+          "startQ8": "36525000000",
+          "endQ8": "37317592500"
+        },
+        "tieBps": "1"
+      },
+      "expected": {
+        "winner": "A",
+        "perfBpsA": "676",
+        "perfBpsB": "217"
+      }
+    },
+    {
+      "name": "split continuity",
+      "description": "TSLAx 4:1 split via multiplier is flat",
+      "inputs": {
+        "A": {
+          "startQ8": "281",
+          "endQ8": "281"
+        },
+        "B": {
+          "startQ8": "36525000000",
+          "endQ8": "36525000000"
+        },
+        "tieBps": "1"
+      },
+      "expected": {
+        "winner": "TIE",
+        "perfBpsA": "0",
+        "perfBpsB": "0"
+      }
+    },
+    {
+      "name": "extreme ratio",
+      "description": "",
+      "inputs": {
+        "A": {
+          "startQ8": "1",
+          "endQ8": "2"
+        },
+        "B": {
+          "startQ8": "10000000000000000",
+          "endQ8": "19000000000000000"
+        },
+        "tieBps": "1"
+      },
+      "expected": {
+        "winner": "A",
+        "perfBpsA": "10000",
+        "perfBpsB": "9000"
+      }
+    },
+    {
+      "name": "both crash A less",
+      "description": "",
+      "inputs": {
+        "A": {
+          "startQ8": "10000000000",
+          "endQ8": "5000000000"
+        },
+        "B": {
+          "startQ8": "10000000000",
+          "endQ8": "4000000000"
+        },
+        "tieBps": "1"
+      },
+      "expected": {
+        "winner": "A",
+        "perfBpsA": "-5000",
+        "perfBpsB": "-6000"
+      }
+    }
+  ]
+}

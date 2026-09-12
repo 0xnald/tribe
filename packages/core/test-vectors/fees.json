@@ -1,0 +1,259 @@
+{
+  "schema": "tribe-core-vectors",
+  "version": 1,
+  "category": "fees",
+  "engine": "@tribe/core reference implementation",
+  "notes": "All integers are decimal strings (bigint). Rust: parse with u128/i128::from_str. Error outcomes are ErrorCode identifiers (see src/engine/errors.ts).",
+  "vectors": [
+    {
+      "name": "100 USDC default",
+      "description": "",
+      "inputs": {
+        "notionalUsdc": "100000000",
+        "policy": {
+          "feeBps": 50,
+          "split": {
+            "rewardPoolBps": 4000,
+            "protocolBps": 4000,
+            "creatorBps": 2000
+          },
+          "creatorShareTarget": "Creator"
+        }
+      },
+      "expected": {
+        "feeRequired": "500000",
+        "split": {
+          "toPool": "200000",
+          "toProtocol": "200000",
+          "toCreator": "100000",
+          "creatorRoutedTo": "Creator"
+        }
+      }
+    },
+    {
+      "name": "99.999999 USDC floors",
+      "description": "",
+      "inputs": {
+        "notionalUsdc": "99999999",
+        "policy": {
+          "feeBps": 50,
+          "split": {
+            "rewardPoolBps": 4000,
+            "protocolBps": 4000,
+            "creatorBps": 2000
+          },
+          "creatorShareTarget": "Creator"
+        }
+      },
+      "expected": {
+        "feeRequired": "499999",
+        "split": {
+          "toPool": "199999",
+          "toProtocol": "200001",
+          "toCreator": "99999",
+          "creatorRoutedTo": "Creator"
+        }
+      }
+    },
+    {
+      "name": "minimum backing 5 USDC",
+      "description": "",
+      "inputs": {
+        "notionalUsdc": "5000000",
+        "policy": {
+          "feeBps": 50,
+          "split": {
+            "rewardPoolBps": 4000,
+            "protocolBps": 4000,
+            "creatorBps": 2000
+          },
+          "creatorShareTarget": "Creator"
+        }
+      },
+      "expected": {
+        "feeRequired": "25000",
+        "split": {
+          "toPool": "10000",
+          "toProtocol": "10000",
+          "toCreator": "5000",
+          "creatorRoutedTo": "Creator"
+        }
+      }
+    },
+    {
+      "name": "tiny 199 micro → zero fee",
+      "description": "",
+      "inputs": {
+        "notionalUsdc": "199",
+        "policy": {
+          "feeBps": 50,
+          "split": {
+            "rewardPoolBps": 4000,
+            "protocolBps": 4000,
+            "creatorBps": 2000
+          },
+          "creatorShareTarget": "Creator"
+        }
+      },
+      "expected": {
+        "feeRequired": "0",
+        "split": {
+          "toPool": "0",
+          "toProtocol": "0",
+          "toCreator": "0",
+          "creatorRoutedTo": "Creator"
+        }
+      }
+    },
+    {
+      "name": "tiny 200 micro → 1",
+      "description": "",
+      "inputs": {
+        "notionalUsdc": "200",
+        "policy": {
+          "feeBps": 50,
+          "split": {
+            "rewardPoolBps": 4000,
+            "protocolBps": 4000,
+            "creatorBps": 2000
+          },
+          "creatorShareTarget": "Creator"
+        }
+      },
+      "expected": {
+        "feeRequired": "1",
+        "split": {
+          "toPool": "0",
+          "toProtocol": "1",
+          "toCreator": "0",
+          "creatorRoutedTo": "Creator"
+        }
+      }
+    },
+    {
+      "name": "odd split 7 micro fee",
+      "description": "protocol absorbs rounding",
+      "inputs": {
+        "notionalUsdc": "1400",
+        "policy": {
+          "feeBps": 50,
+          "split": {
+            "rewardPoolBps": 4000,
+            "protocolBps": 4000,
+            "creatorBps": 2000
+          },
+          "creatorShareTarget": "Creator"
+        }
+      },
+      "expected": {
+        "feeRequired": "7",
+        "split": {
+          "toPool": "2",
+          "toProtocol": "4",
+          "toCreator": "1",
+          "creatorRoutedTo": "Creator"
+        }
+      }
+    },
+    {
+      "name": "first-party creator → RewardPool",
+      "description": "",
+      "inputs": {
+        "notionalUsdc": "100000000",
+        "policy": {
+          "feeBps": 50,
+          "split": {
+            "rewardPoolBps": 4000,
+            "protocolBps": 4000,
+            "creatorBps": 2000
+          },
+          "creatorShareTarget": "RewardPool"
+        }
+      },
+      "expected": {
+        "feeRequired": "500000",
+        "split": {
+          "toPool": "300000",
+          "toProtocol": "200000",
+          "toCreator": "0",
+          "creatorRoutedTo": "RewardPool"
+        }
+      }
+    },
+    {
+      "name": "creator → Protocol",
+      "description": "",
+      "inputs": {
+        "notionalUsdc": "100000000",
+        "policy": {
+          "feeBps": 50,
+          "split": {
+            "rewardPoolBps": 4000,
+            "protocolBps": 4000,
+            "creatorBps": 2000
+          },
+          "creatorShareTarget": "Protocol"
+        }
+      },
+      "expected": {
+        "feeRequired": "500000",
+        "split": {
+          "toPool": "200000",
+          "toProtocol": "300000",
+          "toCreator": "0",
+          "creatorRoutedTo": "Protocol"
+        }
+      }
+    },
+    {
+      "name": "custom 1% fee 50/30/20",
+      "description": "",
+      "inputs": {
+        "notionalUsdc": "12345678",
+        "policy": {
+          "feeBps": 100,
+          "split": {
+            "rewardPoolBps": 5000,
+            "protocolBps": 3000,
+            "creatorBps": 2000
+          },
+          "creatorShareTarget": "Creator"
+        }
+      },
+      "expected": {
+        "feeRequired": "123456",
+        "split": {
+          "toPool": "61728",
+          "toProtocol": "37037",
+          "toCreator": "24691",
+          "creatorRoutedTo": "Creator"
+        }
+      }
+    },
+    {
+      "name": "u64-scale notional",
+      "description": "",
+      "inputs": {
+        "notionalUsdc": "1800000000000000000",
+        "policy": {
+          "feeBps": 50,
+          "split": {
+            "rewardPoolBps": 4000,
+            "protocolBps": 4000,
+            "creatorBps": 2000
+          },
+          "creatorShareTarget": "Creator"
+        }
+      },
+      "expected": {
+        "feeRequired": "9000000000000000",
+        "split": {
+          "toPool": "3600000000000000",
+          "toProtocol": "3600000000000000",
+          "toCreator": "1800000000000000",
+          "creatorRoutedTo": "Creator"
+        }
+      }
+    }
+  ]
+}

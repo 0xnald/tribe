@@ -1,0 +1,735 @@
+{
+  "schema": "tribe-core-vectors",
+  "version": 1,
+  "category": "accrual",
+  "engine": "@tribe/core reference implementation",
+  "notes": "All integers are decimal strings (bigint). Rust: parse with u128/i128::from_str. Error outcomes are ErrorCode identifiers (see src/engine/errors.ts).",
+  "vectors": [
+    {
+      "name": "single deposit held to end",
+      "description": "100 units × 1.0 for the whole window",
+      "inputs": {
+        "startTs": "1000",
+        "endTs": "87400",
+        "ops": [
+          {
+            "op": "deposit",
+            "now": "1000",
+            "units": "100",
+            "mQ4": "10000"
+          },
+          {
+            "op": "accrue",
+            "now": "87400"
+          }
+        ]
+      },
+      "expected": {
+        "steps": [
+          {
+            "op": "deposit",
+            "now": "1000",
+            "position": {
+              "units": "100",
+              "unitSeconds": "0",
+              "effUnits": "1000000",
+              "effUnitSeconds": "0",
+              "forfeited": false
+            },
+            "side": {
+              "units": "100",
+              "unitSeconds": "0",
+              "effUnits": "1000000",
+              "effUnitSeconds": "0",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "accrue",
+            "now": "87400",
+            "position": {
+              "units": "100",
+              "unitSeconds": "8640000",
+              "effUnits": "1000000",
+              "effUnitSeconds": "86400000000",
+              "forfeited": false
+            },
+            "side": {
+              "units": "100",
+              "unitSeconds": "8640000",
+              "effUnits": "1000000",
+              "effUnitSeconds": "86400000000",
+              "participants": "1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "accrual clamps outside the window",
+      "description": "touch before start and after end count nothing",
+      "inputs": {
+        "startTs": "1000",
+        "endTs": "87400",
+        "ops": [
+          {
+            "op": "deposit",
+            "now": "1000",
+            "units": "5",
+            "mQ4": "10000"
+          },
+          {
+            "op": "accrue",
+            "now": "1000"
+          },
+          {
+            "op": "accrue",
+            "now": "87400"
+          },
+          {
+            "op": "accrue",
+            "now": "999999"
+          }
+        ]
+      },
+      "expected": {
+        "steps": [
+          {
+            "op": "deposit",
+            "now": "1000",
+            "position": {
+              "units": "5",
+              "unitSeconds": "0",
+              "effUnits": "50000",
+              "effUnitSeconds": "0",
+              "forfeited": false
+            },
+            "side": {
+              "units": "5",
+              "unitSeconds": "0",
+              "effUnits": "50000",
+              "effUnitSeconds": "0",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "accrue",
+            "now": "1000",
+            "position": {
+              "units": "5",
+              "unitSeconds": "0",
+              "effUnits": "50000",
+              "effUnitSeconds": "0",
+              "forfeited": false
+            },
+            "side": {
+              "units": "5",
+              "unitSeconds": "0",
+              "effUnits": "50000",
+              "effUnitSeconds": "0",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "accrue",
+            "now": "87400",
+            "position": {
+              "units": "5",
+              "unitSeconds": "432000",
+              "effUnits": "50000",
+              "effUnitSeconds": "4320000000",
+              "forfeited": false
+            },
+            "side": {
+              "units": "5",
+              "unitSeconds": "432000",
+              "effUnits": "50000",
+              "effUnitSeconds": "4320000000",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "accrue",
+            "now": "999999",
+            "position": {
+              "units": "5",
+              "unitSeconds": "432000",
+              "effUnits": "50000",
+              "effUnitSeconds": "4320000000",
+              "forfeited": false
+            },
+            "side": {
+              "units": "5",
+              "unitSeconds": "432000",
+              "effUnits": "50000",
+              "effUnitSeconds": "4320000000",
+              "participants": "1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "repeated accrual same timestamp",
+      "description": "no double counting",
+      "inputs": {
+        "startTs": "1000",
+        "endTs": "87400",
+        "ops": [
+          {
+            "op": "deposit",
+            "now": "1000",
+            "units": "100",
+            "mQ4": "10000"
+          },
+          {
+            "op": "accrue",
+            "now": "2000"
+          },
+          {
+            "op": "accrue",
+            "now": "2000"
+          },
+          {
+            "op": "accrue",
+            "now": "2000"
+          }
+        ]
+      },
+      "expected": {
+        "steps": [
+          {
+            "op": "deposit",
+            "now": "1000",
+            "position": {
+              "units": "100",
+              "unitSeconds": "0",
+              "effUnits": "1000000",
+              "effUnitSeconds": "0",
+              "forfeited": false
+            },
+            "side": {
+              "units": "100",
+              "unitSeconds": "0",
+              "effUnits": "1000000",
+              "effUnitSeconds": "0",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "accrue",
+            "now": "2000",
+            "position": {
+              "units": "100",
+              "unitSeconds": "100000",
+              "effUnits": "1000000",
+              "effUnitSeconds": "1000000000",
+              "forfeited": false
+            },
+            "side": {
+              "units": "100",
+              "unitSeconds": "100000",
+              "effUnits": "1000000",
+              "effUnitSeconds": "1000000000",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "accrue",
+            "now": "2000",
+            "position": {
+              "units": "100",
+              "unitSeconds": "100000",
+              "effUnits": "1000000",
+              "effUnitSeconds": "1000000000",
+              "forfeited": false
+            },
+            "side": {
+              "units": "100",
+              "unitSeconds": "100000",
+              "effUnits": "1000000",
+              "effUnitSeconds": "1000000000",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "accrue",
+            "now": "2000",
+            "position": {
+              "units": "100",
+              "unitSeconds": "100000",
+              "effUnits": "1000000",
+              "effUnitSeconds": "1000000000",
+              "forfeited": false
+            },
+            "side": {
+              "units": "100",
+              "unitSeconds": "100000",
+              "effUnits": "1000000",
+              "effUnitSeconds": "1000000000",
+              "participants": "1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "two tranches different multipliers",
+      "description": "10 × 1.0 then 10 × 1.5",
+      "inputs": {
+        "startTs": "1000",
+        "endTs": "87400",
+        "ops": [
+          {
+            "op": "deposit",
+            "now": "1000",
+            "units": "10",
+            "mQ4": "10000"
+          },
+          {
+            "op": "deposit",
+            "now": "11000",
+            "units": "10",
+            "mQ4": "15000"
+          },
+          {
+            "op": "accrue",
+            "now": "21000"
+          }
+        ]
+      },
+      "expected": {
+        "steps": [
+          {
+            "op": "deposit",
+            "now": "1000",
+            "position": {
+              "units": "10",
+              "unitSeconds": "0",
+              "effUnits": "100000",
+              "effUnitSeconds": "0",
+              "forfeited": false
+            },
+            "side": {
+              "units": "10",
+              "unitSeconds": "0",
+              "effUnits": "100000",
+              "effUnitSeconds": "0",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "deposit",
+            "now": "11000",
+            "position": {
+              "units": "20",
+              "unitSeconds": "100000",
+              "effUnits": "250000",
+              "effUnitSeconds": "1000000000",
+              "forfeited": false
+            },
+            "side": {
+              "units": "20",
+              "unitSeconds": "100000",
+              "effUnits": "250000",
+              "effUnitSeconds": "1000000000",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "accrue",
+            "now": "21000",
+            "position": {
+              "units": "20",
+              "unitSeconds": "300000",
+              "effUnits": "250000",
+              "effUnitSeconds": "3500000000",
+              "forfeited": false
+            },
+            "side": {
+              "units": "20",
+              "unitSeconds": "300000",
+              "effUnits": "250000",
+              "effUnitSeconds": "3500000000",
+              "participants": "1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "partial exit proportional forfeiture",
+      "description": "100 held 10 000 s, exit 25 with forfeit",
+      "inputs": {
+        "startTs": "1000",
+        "endTs": "87400",
+        "ops": [
+          {
+            "op": "deposit",
+            "now": "1000",
+            "units": "100",
+            "mQ4": "10000"
+          },
+          {
+            "op": "exit",
+            "now": "11000",
+            "units": "25",
+            "forfeit": true
+          },
+          {
+            "op": "accrue",
+            "now": "21000"
+          }
+        ]
+      },
+      "expected": {
+        "steps": [
+          {
+            "op": "deposit",
+            "now": "1000",
+            "position": {
+              "units": "100",
+              "unitSeconds": "0",
+              "effUnits": "1000000",
+              "effUnitSeconds": "0",
+              "forfeited": false
+            },
+            "side": {
+              "units": "100",
+              "unitSeconds": "0",
+              "effUnits": "1000000",
+              "effUnitSeconds": "0",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "exit",
+            "now": "11000",
+            "position": {
+              "units": "75",
+              "unitSeconds": "750000",
+              "effUnits": "750000",
+              "effUnitSeconds": "7500000000",
+              "forfeited": false
+            },
+            "side": {
+              "units": "75",
+              "unitSeconds": "1000000",
+              "effUnits": "750000",
+              "effUnitSeconds": "7500000000",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "accrue",
+            "now": "21000",
+            "position": {
+              "units": "75",
+              "unitSeconds": "1500000",
+              "effUnits": "750000",
+              "effUnitSeconds": "15000000000",
+              "forfeited": false
+            },
+            "side": {
+              "units": "75",
+              "unitSeconds": "1750000",
+              "effUnits": "750000",
+              "effUnitSeconds": "15000000000",
+              "participants": "1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "full exit before end forfeits all",
+      "description": "",
+      "inputs": {
+        "startTs": "1000",
+        "endTs": "87400",
+        "ops": [
+          {
+            "op": "deposit",
+            "now": "1000",
+            "units": "100",
+            "mQ4": "10000"
+          },
+          {
+            "op": "exit",
+            "now": "11000",
+            "units": "100",
+            "forfeit": true
+          }
+        ]
+      },
+      "expected": {
+        "steps": [
+          {
+            "op": "deposit",
+            "now": "1000",
+            "position": {
+              "units": "100",
+              "unitSeconds": "0",
+              "effUnits": "1000000",
+              "effUnitSeconds": "0",
+              "forfeited": false
+            },
+            "side": {
+              "units": "100",
+              "unitSeconds": "0",
+              "effUnits": "1000000",
+              "effUnitSeconds": "0",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "exit",
+            "now": "11000",
+            "position": {
+              "units": "0",
+              "unitSeconds": "0",
+              "effUnits": "0",
+              "effUnitSeconds": "0",
+              "forfeited": true
+            },
+            "side": {
+              "units": "0",
+              "unitSeconds": "1000000",
+              "effUnits": "0",
+              "effUnitSeconds": "0",
+              "participants": "1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "exit after end keeps weight",
+      "description": "forfeit=false moves units only",
+      "inputs": {
+        "startTs": "1000",
+        "endTs": "87400",
+        "ops": [
+          {
+            "op": "deposit",
+            "now": "1000",
+            "units": "100",
+            "mQ4": "10000"
+          },
+          {
+            "op": "accrue",
+            "now": "87400"
+          },
+          {
+            "op": "exit",
+            "now": "90000",
+            "units": "100",
+            "forfeit": false
+          }
+        ]
+      },
+      "expected": {
+        "steps": [
+          {
+            "op": "deposit",
+            "now": "1000",
+            "position": {
+              "units": "100",
+              "unitSeconds": "0",
+              "effUnits": "1000000",
+              "effUnitSeconds": "0",
+              "forfeited": false
+            },
+            "side": {
+              "units": "100",
+              "unitSeconds": "0",
+              "effUnits": "1000000",
+              "effUnitSeconds": "0",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "accrue",
+            "now": "87400",
+            "position": {
+              "units": "100",
+              "unitSeconds": "8640000",
+              "effUnits": "1000000",
+              "effUnitSeconds": "86400000000",
+              "forfeited": false
+            },
+            "side": {
+              "units": "100",
+              "unitSeconds": "8640000",
+              "effUnits": "1000000",
+              "effUnitSeconds": "86400000000",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "exit",
+            "now": "90000",
+            "position": {
+              "units": "0",
+              "unitSeconds": "8640000",
+              "effUnits": "1000000",
+              "effUnitSeconds": "86400000000",
+              "forfeited": false
+            },
+            "side": {
+              "units": "0",
+              "unitSeconds": "8640000",
+              "effUnits": "1000000",
+              "effUnitSeconds": "86400000000",
+              "participants": "1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "exit rounding favours the pool",
+      "description": "3 units, 7 unit-seconds, exit 1 → keep floor(7×2/3)=4",
+      "inputs": {
+        "startTs": "1000",
+        "endTs": "87400",
+        "ops": [
+          {
+            "op": "deposit",
+            "now": "1000",
+            "units": "3",
+            "mQ4": "10000"
+          },
+          {
+            "op": "accrue",
+            "now": "1000"
+          },
+          {
+            "op": "exit",
+            "now": "1000",
+            "units": "1",
+            "forfeit": true
+          }
+        ]
+      },
+      "expected": {
+        "steps": [
+          {
+            "op": "deposit",
+            "now": "1000",
+            "position": {
+              "units": "3",
+              "unitSeconds": "0",
+              "effUnits": "30000",
+              "effUnitSeconds": "0",
+              "forfeited": false
+            },
+            "side": {
+              "units": "3",
+              "unitSeconds": "0",
+              "effUnits": "30000",
+              "effUnitSeconds": "0",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "accrue",
+            "now": "1000",
+            "position": {
+              "units": "3",
+              "unitSeconds": "0",
+              "effUnits": "30000",
+              "effUnitSeconds": "0",
+              "forfeited": false
+            },
+            "side": {
+              "units": "3",
+              "unitSeconds": "0",
+              "effUnits": "30000",
+              "effUnitSeconds": "0",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "exit",
+            "now": "1000",
+            "position": {
+              "units": "2",
+              "unitSeconds": "0",
+              "effUnits": "20000",
+              "effUnitSeconds": "0",
+              "forfeited": false
+            },
+            "side": {
+              "units": "2",
+              "unitSeconds": "0",
+              "effUnits": "20000",
+              "effUnitSeconds": "0",
+              "participants": "1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "large values near u64 units for 30 days",
+      "description": "overflow boundary: 1e18 units × 2.0× × 2 592 000 s fits u128",
+      "inputs": {
+        "startTs": "0",
+        "endTs": "2592000",
+        "ops": [
+          {
+            "op": "deposit",
+            "now": "0",
+            "units": "1000000000000000000",
+            "mQ4": "20000"
+          },
+          {
+            "op": "accrue",
+            "now": "2592000"
+          }
+        ]
+      },
+      "expected": {
+        "steps": [
+          {
+            "op": "deposit",
+            "now": "0",
+            "position": {
+              "units": "1000000000000000000",
+              "unitSeconds": "0",
+              "effUnits": "20000000000000000000000",
+              "effUnitSeconds": "0",
+              "forfeited": false
+            },
+            "side": {
+              "units": "1000000000000000000",
+              "unitSeconds": "0",
+              "effUnits": "20000000000000000000000",
+              "effUnitSeconds": "0",
+              "participants": "1"
+            }
+          },
+          {
+            "op": "accrue",
+            "now": "2592000",
+            "position": {
+              "units": "1000000000000000000",
+              "unitSeconds": "2592000000000000000000000",
+              "effUnits": "20000000000000000000000",
+              "effUnitSeconds": "51840000000000000000000000000",
+              "forfeited": false
+            },
+            "side": {
+              "units": "1000000000000000000",
+              "unitSeconds": "2592000000000000000000000",
+              "effUnits": "20000000000000000000000",
+              "effUnitSeconds": "51840000000000000000000000000",
+              "participants": "1"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

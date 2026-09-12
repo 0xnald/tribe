@@ -1,0 +1,612 @@
+{
+  "schema": "tribe-core-vectors",
+  "version": 1,
+  "category": "distribution",
+  "engine": "@tribe/core reference implementation",
+  "notes": "All integers are decimal strings (bigint). Rust: parse with u128/i128::from_str. Error outcomes are ErrorCode identifiers (see src/engine/errors.ts).",
+  "vectors": [
+    {
+      "name": "HardCap worked example",
+      "description": "ECONOMICS §6.5",
+      "inputs": {
+        "mode": "HardCap",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "alice",
+            "weight": "86400000"
+          },
+          {
+            "key": "bob",
+            "weight": "144000000"
+          },
+          {
+            "key": "erin",
+            "weight": "432000000"
+          },
+          {
+            "key": "frank",
+            "weight": "57600000"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "alice": "480000000",
+          "bob": "800000000",
+          "erin": "1000000000",
+          "frank": "320000000"
+        },
+        "distributed": "2600000000",
+        "remainder": "1400000000",
+        "effectiveCapBps": "2500"
+      }
+    },
+    {
+      "name": "WaterFill worked example",
+      "description": "ECONOMICS §6.5",
+      "inputs": {
+        "mode": "WaterFill",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "alice",
+            "weight": "86400000"
+          },
+          {
+            "key": "bob",
+            "weight": "144000000"
+          },
+          {
+            "key": "erin",
+            "weight": "432000000"
+          },
+          {
+            "key": "frank",
+            "weight": "57600000"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "erin": "1000000000",
+          "bob": "1000000000",
+          "alice": "1000000000",
+          "frank": "1000000000"
+        },
+        "distributed": "4000000000",
+        "remainder": "0",
+        "effectiveCapBps": "2500"
+      }
+    },
+    {
+      "name": "ConditionalCap worked example",
+      "description": "ECONOMICS §6.5",
+      "inputs": {
+        "mode": "ConditionalCap",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "alice",
+            "weight": "86400000"
+          },
+          {
+            "key": "bob",
+            "weight": "144000000"
+          },
+          {
+            "key": "erin",
+            "weight": "432000000"
+          },
+          {
+            "key": "frank",
+            "weight": "57600000"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "alice": "480000000",
+          "bob": "800000000",
+          "erin": "1000000000",
+          "frank": "320000000"
+        },
+        "distributed": "2600000000",
+        "remainder": "1400000000",
+        "effectiveCapBps": "2500"
+      }
+    },
+    {
+      "name": "Proportional worked example",
+      "description": "ECONOMICS §6.5",
+      "inputs": {
+        "mode": "Proportional",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "alice",
+            "weight": "86400000"
+          },
+          {
+            "key": "bob",
+            "weight": "144000000"
+          },
+          {
+            "key": "erin",
+            "weight": "432000000"
+          },
+          {
+            "key": "frank",
+            "weight": "57600000"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "alice": "480000000",
+          "bob": "800000000",
+          "erin": "2400000000",
+          "frank": "320000000"
+        },
+        "distributed": "4000000000",
+        "remainder": "0",
+        "effectiveCapBps": "10000"
+      }
+    },
+    {
+      "name": "HardCap lone winner",
+      "description": "",
+      "inputs": {
+        "mode": "HardCap",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "solo",
+            "weight": "7"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "solo": "1000000000"
+        },
+        "distributed": "1000000000",
+        "remainder": "3000000000",
+        "effectiveCapBps": "2500"
+      }
+    },
+    {
+      "name": "WaterFill lone winner",
+      "description": "",
+      "inputs": {
+        "mode": "WaterFill",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "solo",
+            "weight": "7"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "solo": "1000000000"
+        },
+        "distributed": "1000000000",
+        "remainder": "3000000000",
+        "effectiveCapBps": "2500"
+      }
+    },
+    {
+      "name": "ConditionalCap lone winner",
+      "description": "",
+      "inputs": {
+        "mode": "ConditionalCap",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "solo",
+            "weight": "7"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "solo": "4000000000"
+        },
+        "distributed": "4000000000",
+        "remainder": "0",
+        "effectiveCapBps": "10000"
+      }
+    },
+    {
+      "name": "Proportional lone winner",
+      "description": "",
+      "inputs": {
+        "mode": "Proportional",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "solo",
+            "weight": "7"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "solo": "4000000000"
+        },
+        "distributed": "4000000000",
+        "remainder": "0",
+        "effectiveCapBps": "10000"
+      }
+    },
+    {
+      "name": "HardCap two equal",
+      "description": "",
+      "inputs": {
+        "mode": "HardCap",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "a",
+            "weight": "1"
+          },
+          {
+            "key": "b",
+            "weight": "1"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "a": "1000000000",
+          "b": "1000000000"
+        },
+        "distributed": "2000000000",
+        "remainder": "2000000000",
+        "effectiveCapBps": "2500"
+      }
+    },
+    {
+      "name": "WaterFill two equal",
+      "description": "",
+      "inputs": {
+        "mode": "WaterFill",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "a",
+            "weight": "1"
+          },
+          {
+            "key": "b",
+            "weight": "1"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "a": "1000000000",
+          "b": "1000000000"
+        },
+        "distributed": "2000000000",
+        "remainder": "2000000000",
+        "effectiveCapBps": "2500"
+      }
+    },
+    {
+      "name": "ConditionalCap two equal",
+      "description": "",
+      "inputs": {
+        "mode": "ConditionalCap",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "a",
+            "weight": "1"
+          },
+          {
+            "key": "b",
+            "weight": "1"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "a": "2000000000",
+          "b": "2000000000"
+        },
+        "distributed": "4000000000",
+        "remainder": "0",
+        "effectiveCapBps": "5000"
+      }
+    },
+    {
+      "name": "Proportional two equal",
+      "description": "",
+      "inputs": {
+        "mode": "Proportional",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "a",
+            "weight": "1"
+          },
+          {
+            "key": "b",
+            "weight": "1"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "a": "2000000000",
+          "b": "2000000000"
+        },
+        "distributed": "4000000000",
+        "remainder": "0",
+        "effectiveCapBps": "10000"
+      }
+    },
+    {
+      "name": "HardCap whale 90 + 5 + 5",
+      "description": "",
+      "inputs": {
+        "mode": "HardCap",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "whale",
+            "weight": "90"
+          },
+          {
+            "key": "x",
+            "weight": "5"
+          },
+          {
+            "key": "y",
+            "weight": "5"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "whale": "1000000000",
+          "x": "200000000",
+          "y": "200000000"
+        },
+        "distributed": "1400000000",
+        "remainder": "2600000000",
+        "effectiveCapBps": "2500"
+      }
+    },
+    {
+      "name": "WaterFill whale 90 + 5 + 5",
+      "description": "",
+      "inputs": {
+        "mode": "WaterFill",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "whale",
+            "weight": "90"
+          },
+          {
+            "key": "x",
+            "weight": "5"
+          },
+          {
+            "key": "y",
+            "weight": "5"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "whale": "1000000000",
+          "x": "1000000000",
+          "y": "1000000000"
+        },
+        "distributed": "3000000000",
+        "remainder": "1000000000",
+        "effectiveCapBps": "2500"
+      }
+    },
+    {
+      "name": "ConditionalCap whale 90 + 5 + 5",
+      "description": "",
+      "inputs": {
+        "mode": "ConditionalCap",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "whale",
+            "weight": "90"
+          },
+          {
+            "key": "x",
+            "weight": "5"
+          },
+          {
+            "key": "y",
+            "weight": "5"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "whale": "1333600000",
+          "x": "200000000",
+          "y": "200000000"
+        },
+        "distributed": "1733600000",
+        "remainder": "2266400000",
+        "effectiveCapBps": "3334"
+      }
+    },
+    {
+      "name": "Proportional whale 90 + 5 + 5",
+      "description": "",
+      "inputs": {
+        "mode": "Proportional",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "whale",
+            "weight": "90"
+          },
+          {
+            "key": "x",
+            "weight": "5"
+          },
+          {
+            "key": "y",
+            "weight": "5"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "whale": "3600000000",
+          "x": "200000000",
+          "y": "200000000"
+        },
+        "distributed": "4000000000",
+        "remainder": "0",
+        "effectiveCapBps": "10000"
+      }
+    },
+    {
+      "name": "WaterFill cascade 60/30/5/5",
+      "description": "",
+      "inputs": {
+        "mode": "WaterFill",
+        "pool": "4000000000",
+        "capBps": "2500",
+        "weights": [
+          {
+            "key": "w",
+            "weight": "60"
+          },
+          {
+            "key": "b",
+            "weight": "30"
+          },
+          {
+            "key": "c",
+            "weight": "5"
+          },
+          {
+            "key": "d",
+            "weight": "5"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "w": "1000000000",
+          "b": "1000000000",
+          "c": "1000000000",
+          "d": "1000000000"
+        },
+        "distributed": "4000000000",
+        "remainder": "0",
+        "effectiveCapBps": "2500"
+      }
+    },
+    {
+      "name": "HardCap zero weight and dust",
+      "description": "pool 7, weights 3/0/4",
+      "inputs": {
+        "mode": "HardCap",
+        "pool": "7",
+        "capBps": "10000",
+        "weights": [
+          {
+            "key": "a",
+            "weight": "3"
+          },
+          {
+            "key": "z",
+            "weight": "0"
+          },
+          {
+            "key": "b",
+            "weight": "4"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "a": "3",
+          "z": "0",
+          "b": "4"
+        },
+        "distributed": "7",
+        "remainder": "0",
+        "effectiveCapBps": "10000"
+      }
+    },
+    {
+      "name": "Proportional u128-scale weights",
+      "description": "",
+      "inputs": {
+        "mode": "Proportional",
+        "pool": "123456789012",
+        "capBps": "10000",
+        "weights": [
+          {
+            "key": "a",
+            "weight": "1000000000000000000000000000000"
+          },
+          {
+            "key": "b",
+            "weight": "300000000000000000000000000000"
+          }
+        ]
+      },
+      "expected": {
+        "payouts": {
+          "a": "94966760778",
+          "b": "28490028233"
+        },
+        "distributed": "123456789011",
+        "remainder": "1",
+        "effectiveCapBps": "10000"
+      }
+    },
+    {
+      "name": "empty winners",
+      "description": "",
+      "inputs": {
+        "mode": "HardCap",
+        "pool": "1000",
+        "capBps": "2500",
+        "weights": []
+      },
+      "expected": {
+        "payouts": {},
+        "distributed": "0",
+        "remainder": "1000",
+        "effectiveCapBps": "2500"
+      }
+    }
+  ]
+}

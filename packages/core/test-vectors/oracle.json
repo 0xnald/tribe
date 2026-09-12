@@ -1,0 +1,588 @@
+{
+  "schema": "tribe-core-vectors",
+  "version": 1,
+  "category": "oracle",
+  "engine": "@tribe/core reference implementation",
+  "notes": "All integers are decimal strings (bigint). Rust: parse with u128/i128::from_str. Error outcomes are ErrorCode identifiers (see src/engine/errors.ts).",
+  "vectors": [
+    {
+      "name": "exact window ok",
+      "description": "",
+      "inputs": {
+        "input": {
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "price": "281",
+          "expo": -8,
+          "conf": "0",
+          "publishTime": "1760000059",
+          "verificationLevel": "Full"
+        },
+        "asset": {
+          "mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+          "decimals": 5,
+          "assetClass": "Crypto",
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "scaledUi": false,
+          "toleranceSecs": "60",
+          "maxClosedStalenessSecs": "0",
+          "maxConfBps": "100"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": false
+      },
+      "expected": {
+        "ok": true,
+        "snapshot": {
+          "priceQ8": "281",
+          "oraclePriceQ8": "281",
+          "publishTime": "1760000059",
+          "mode": "Exact",
+          "multQ6": "1000000"
+        }
+      }
+    },
+    {
+      "name": "expo normalisation",
+      "description": "expo -11",
+      "inputs": {
+        "input": {
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "price": "281000",
+          "expo": -11,
+          "conf": "0",
+          "publishTime": "1760000000",
+          "verificationLevel": "Full"
+        },
+        "asset": {
+          "mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+          "decimals": 5,
+          "assetClass": "Crypto",
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "scaledUi": false,
+          "toleranceSecs": "60",
+          "maxClosedStalenessSecs": "0",
+          "maxConfBps": "100"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": false
+      },
+      "expected": {
+        "ok": true,
+        "snapshot": {
+          "priceQ8": "281",
+          "oraclePriceQ8": "281",
+          "publishTime": "1760000000",
+          "mode": "Exact",
+          "multQ6": "1000000"
+        }
+      }
+    },
+    {
+      "name": "feed mismatch",
+      "description": "",
+      "inputs": {
+        "input": {
+          "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
+          "price": "281",
+          "expo": -8,
+          "conf": "0",
+          "publishTime": "1760000000",
+          "verificationLevel": "Full"
+        },
+        "asset": {
+          "mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+          "decimals": 5,
+          "assetClass": "Crypto",
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "scaledUi": false,
+          "toleranceSecs": "60",
+          "maxClosedStalenessSecs": "0",
+          "maxConfBps": "100"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": false
+      },
+      "expected": {
+        "ok": false,
+        "code": "OracleFeedMismatch"
+      }
+    },
+    {
+      "name": "partial verification",
+      "description": "",
+      "inputs": {
+        "input": {
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "price": "281",
+          "expo": -8,
+          "conf": "0",
+          "publishTime": "1760000000",
+          "verificationLevel": "Partial"
+        },
+        "asset": {
+          "mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+          "decimals": 5,
+          "assetClass": "Crypto",
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "scaledUi": false,
+          "toleranceSecs": "60",
+          "maxClosedStalenessSecs": "0",
+          "maxConfBps": "100"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": false
+      },
+      "expected": {
+        "ok": false,
+        "code": "OracleNotFullyVerified"
+      }
+    },
+    {
+      "name": "zero price",
+      "description": "",
+      "inputs": {
+        "input": {
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "price": "0",
+          "expo": -8,
+          "conf": "0",
+          "publishTime": "1760000000",
+          "verificationLevel": "Full"
+        },
+        "asset": {
+          "mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+          "decimals": 5,
+          "assetClass": "Crypto",
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "scaledUi": false,
+          "toleranceSecs": "60",
+          "maxClosedStalenessSecs": "0",
+          "maxConfBps": "100"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": false
+      },
+      "expected": {
+        "ok": false,
+        "code": "OracleNonPositivePrice"
+      }
+    },
+    {
+      "name": "negative price",
+      "description": "",
+      "inputs": {
+        "input": {
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "price": "-5",
+          "expo": -8,
+          "conf": "0",
+          "publishTime": "1760000000",
+          "verificationLevel": "Full"
+        },
+        "asset": {
+          "mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+          "decimals": 5,
+          "assetClass": "Crypto",
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "scaledUi": false,
+          "toleranceSecs": "60",
+          "maxClosedStalenessSecs": "0",
+          "maxConfBps": "100"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": false
+      },
+      "expected": {
+        "ok": false,
+        "code": "OracleNonPositivePrice"
+      }
+    },
+    {
+      "name": "confidence at limit ok",
+      "description": "100 bps",
+      "inputs": {
+        "input": {
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "price": "10000",
+          "expo": -8,
+          "conf": "100",
+          "publishTime": "1760000000",
+          "verificationLevel": "Full"
+        },
+        "asset": {
+          "mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+          "decimals": 5,
+          "assetClass": "Crypto",
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "scaledUi": false,
+          "toleranceSecs": "60",
+          "maxClosedStalenessSecs": "0",
+          "maxConfBps": "100"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": false
+      },
+      "expected": {
+        "ok": true,
+        "snapshot": {
+          "priceQ8": "10000",
+          "oraclePriceQ8": "10000",
+          "publishTime": "1760000000",
+          "mode": "Exact",
+          "multQ6": "1000000"
+        }
+      }
+    },
+    {
+      "name": "confidence too wide",
+      "description": "101 bps",
+      "inputs": {
+        "input": {
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "price": "10000",
+          "expo": -8,
+          "conf": "101",
+          "publishTime": "1760000000",
+          "verificationLevel": "Full"
+        },
+        "asset": {
+          "mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+          "decimals": 5,
+          "assetClass": "Crypto",
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "scaledUi": false,
+          "toleranceSecs": "60",
+          "maxClosedStalenessSecs": "0",
+          "maxConfBps": "100"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": false
+      },
+      "expected": {
+        "ok": false,
+        "code": "OracleConfidenceTooWide"
+      }
+    },
+    {
+      "name": "future print rejected",
+      "description": "+61 s",
+      "inputs": {
+        "input": {
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "price": "281",
+          "expo": -8,
+          "conf": "0",
+          "publishTime": "1760000061",
+          "verificationLevel": "Full"
+        },
+        "asset": {
+          "mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+          "decimals": 5,
+          "assetClass": "Crypto",
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "scaledUi": false,
+          "toleranceSecs": "60",
+          "maxClosedStalenessSecs": "0",
+          "maxConfBps": "100"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": false
+      },
+      "expected": {
+        "ok": false,
+        "code": "OracleTooEarly"
+      }
+    },
+    {
+      "name": "stale crypto rejected",
+      "description": "-61 s",
+      "inputs": {
+        "input": {
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "price": "281",
+          "expo": -8,
+          "conf": "0",
+          "publishTime": "1759999939",
+          "verificationLevel": "Full"
+        },
+        "asset": {
+          "mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+          "decimals": 5,
+          "assetClass": "Crypto",
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "scaledUi": false,
+          "toleranceSecs": "60",
+          "maxClosedStalenessSecs": "0",
+          "maxConfBps": "100"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": false
+      },
+      "expected": {
+        "ok": false,
+        "code": "OracleStale"
+      }
+    },
+    {
+      "name": "equity last-known not allowed",
+      "description": "",
+      "inputs": {
+        "input": {
+          "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
+          "price": "36525000000",
+          "expo": -8,
+          "conf": "0",
+          "publishTime": "1759820000",
+          "verificationLevel": "Full"
+        },
+        "asset": {
+          "mint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
+          "decimals": 8,
+          "assetClass": "Equity",
+          "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
+          "scaledUi": true,
+          "toleranceSecs": "120",
+          "maxClosedStalenessSecs": "259200",
+          "maxConfBps": "50"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": false
+      },
+      "expected": {
+        "ok": false,
+        "code": "OracleStale"
+      }
+    },
+    {
+      "name": "equity last-known allowed",
+      "description": "",
+      "inputs": {
+        "input": {
+          "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
+          "price": "36525000000",
+          "expo": -8,
+          "conf": "0",
+          "publishTime": "1759820000",
+          "verificationLevel": "Full"
+        },
+        "asset": {
+          "mint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
+          "decimals": 8,
+          "assetClass": "Equity",
+          "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
+          "scaledUi": true,
+          "toleranceSecs": "120",
+          "maxClosedStalenessSecs": "259200",
+          "maxConfBps": "50"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": true
+      },
+      "expected": {
+        "ok": true,
+        "snapshot": {
+          "priceQ8": "36525000000",
+          "oraclePriceQ8": "36525000000",
+          "publishTime": "1759820000",
+          "mode": "LastKnown",
+          "multQ6": "1000000"
+        }
+      }
+    },
+    {
+      "name": "equity beyond 72h",
+      "description": "",
+      "inputs": {
+        "input": {
+          "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
+          "price": "36525000000",
+          "expo": -8,
+          "conf": "0",
+          "publishTime": "1759737200",
+          "verificationLevel": "Full"
+        },
+        "asset": {
+          "mint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
+          "decimals": 8,
+          "assetClass": "Equity",
+          "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
+          "scaledUi": true,
+          "toleranceSecs": "120",
+          "maxClosedStalenessSecs": "259200",
+          "maxConfBps": "50"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": true
+      },
+      "expected": {
+        "ok": false,
+        "code": "OracleStale"
+      }
+    },
+    {
+      "name": "scaled multiplier applied",
+      "description": "4.032×",
+      "inputs": {
+        "input": {
+          "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
+          "price": "36525000000",
+          "expo": -8,
+          "conf": "0",
+          "publishTime": "1760000000",
+          "verificationLevel": "Full",
+          "multQ6": "4032000"
+        },
+        "asset": {
+          "mint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
+          "decimals": 8,
+          "assetClass": "Equity",
+          "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
+          "scaledUi": true,
+          "toleranceSecs": "120",
+          "maxClosedStalenessSecs": "259200",
+          "maxConfBps": "50"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": false
+      },
+      "expected": {
+        "ok": true,
+        "snapshot": {
+          "priceQ8": "147268800000",
+          "oraclePriceQ8": "36525000000",
+          "publishTime": "1760000000",
+          "mode": "Exact",
+          "multQ6": "4032000"
+        }
+      }
+    },
+    {
+      "name": "multiplier ignored for non-scaled",
+      "description": "",
+      "inputs": {
+        "input": {
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "price": "281",
+          "expo": -8,
+          "conf": "0",
+          "publishTime": "1760000000",
+          "verificationLevel": "Full",
+          "multQ6": "4000000"
+        },
+        "asset": {
+          "mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+          "decimals": 5,
+          "assetClass": "Crypto",
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "scaledUi": false,
+          "toleranceSecs": "60",
+          "maxClosedStalenessSecs": "0",
+          "maxConfBps": "100"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": false
+      },
+      "expected": {
+        "ok": true,
+        "snapshot": {
+          "priceQ8": "281",
+          "oraclePriceQ8": "281",
+          "publishTime": "1760000000",
+          "mode": "Exact",
+          "multQ6": "1000000"
+        }
+      }
+    },
+    {
+      "name": "zero multiplier rejected",
+      "description": "",
+      "inputs": {
+        "input": {
+          "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
+          "price": "36525000000",
+          "expo": -8,
+          "conf": "0",
+          "publishTime": "1760000000",
+          "verificationLevel": "Full",
+          "multQ6": "0"
+        },
+        "asset": {
+          "mint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
+          "decimals": 8,
+          "assetClass": "Equity",
+          "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
+          "scaledUi": true,
+          "toleranceSecs": "120",
+          "maxClosedStalenessSecs": "259200",
+          "maxConfBps": "50"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": false
+      },
+      "expected": {
+        "ok": false,
+        "code": "InvalidParams"
+      }
+    },
+    {
+      "name": "unsupported exponent",
+      "description": "expo -20",
+      "inputs": {
+        "input": {
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "price": "281",
+          "expo": -20,
+          "conf": "0",
+          "publishTime": "1760000000",
+          "verificationLevel": "Full"
+        },
+        "asset": {
+          "mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+          "decimals": 5,
+          "assetClass": "Crypto",
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "scaledUi": false,
+          "toleranceSecs": "60",
+          "maxClosedStalenessSecs": "0",
+          "maxConfBps": "100"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": false
+      },
+      "expected": {
+        "ok": false,
+        "code": "OracleUnsupportedExponent"
+      }
+    },
+    {
+      "name": "overflow boundary",
+      "description": "2^63 at expo +8",
+      "inputs": {
+        "input": {
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "price": "9223372036854775808",
+          "expo": 8,
+          "conf": "0",
+          "publishTime": "1760000000",
+          "verificationLevel": "Full"
+        },
+        "asset": {
+          "mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+          "decimals": 5,
+          "assetClass": "Crypto",
+          "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
+          "scaledUi": false,
+          "toleranceSecs": "60",
+          "maxClosedStalenessSecs": "0",
+          "maxConfBps": "100"
+        },
+        "targetTs": "1760000000",
+        "allowClosed": false
+      },
+      "expected": {
+        "ok": false,
+        "code": "OracleUnsupportedExponent"
+      }
+    }
+  ]
+}

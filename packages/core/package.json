@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "vectors": "tsx src/vectors/generate.ts"
   },
   "dependencies": {
     "zod": "^4.6.2"
