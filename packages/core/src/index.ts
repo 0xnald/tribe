@@ -12,3 +12,6 @@ export * from './engine/settlement';
 export * from './engine/distribution';
 export * from './engine/upset';
 export * from './engine/arena';
+export * from './market/quality';
+export * from './market/fixtures';
+export * from './registry/assets';
