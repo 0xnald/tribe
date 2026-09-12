@@ -5,6 +5,7 @@ packages:
 # pnpm blocks postinstall scripts by default; allow only what we have reviewed.
 allowBuilds:
   unrs-resolver: true
+  esbuild: true
 
 # Written by create-next-app: exempt the pinned Next.js release from pnpm's
 # minimum-release-age quarantine so the exact version resolves.

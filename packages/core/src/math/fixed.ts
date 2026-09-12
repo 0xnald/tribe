@@ -66,7 +66,7 @@ export function perfBps(startQ8: bigint, endQ8: bigint): bigint {
   return num < 0n && q * startQ8 !== num ? q - 1n : q;
 }
 
-export type Winner = 'A' | 'B' | 'TIE';
+export type WinnerSide = 'A' | 'B' | 'TIE';
 
 /** Division-free winner rule with a tie band — docs/ECONOMICS.md §2. */
 export function decideWinner(
@@ -75,7 +75,7 @@ export function decideWinner(
   startB: bigint,
   endB: bigint,
   tieBps: bigint,
-): Winner {
+): WinnerSide {
   const prices: ReadonlyArray<readonly [bigint, string]> = [
     [startA, 'startA'],
     [endA, 'endA'],
@@ -92,4 +92,32 @@ export function decideWinner(
   const diff = lhs > rhs ? lhs - rhs : rhs - lhs;
   if (diff <= band) return 'TIE';
   return lhs > rhs ? 'A' : 'B';
+}
+
+/** Saturating-free helpers mirroring Rust `checked_*` semantics (throw instead of wrap). */
+export function clampBig(x: bigint, lo: bigint, hi: bigint): bigint {
+  if (lo > hi) throw new MathError(`clamp bounds inverted: ${lo} > ${hi}`);
+  return x < lo ? lo : x > hi ? hi : x;
+}
+
+export function maxBig(a: bigint, b: bigint): bigint {
+  return a > b ? a : b;
+}
+
+export function minBig(a: bigint, b: bigint): bigint {
+  return a < b ? a : b;
+}
+
+/** floor(a × b / d) in u128 with an explicit zero-divisor error. */
+export function mulDiv(a: bigint, b: bigint, d: bigint): bigint {
+  if (d === 0n) throw new MathError('division by zero');
+  return assertU128((a * b) / d, 'mul_div');
+}
+
+const I64_MIN = -(1n << 63n);
+const I64_MAX = (1n << 63n) - 1n;
+
+export function assertI64(x: bigint, label = 'value'): bigint {
+  if (x < I64_MIN || x > I64_MAX) throw new MathError(`${label} out of i64 range: ${x}`);
+  return x;
 }
