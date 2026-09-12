@@ -170,7 +170,8 @@ transactions), **DEMO** (seeded, simulated prices, no transactions), or
 
 ## Status
 
-Phase 0 (architecture and product lock) complete. See
+Phase 0 (architecture and product lock) and Phase 1 (core economic engine:
+`packages/core`, 272 tests, 110 shared test vectors) complete. See
 [STOCKLANA_PLAN](docs/STOCKLANA_PLAN.md) for phases, the demo script, and
 open decisions. Known limitations are listed in
 [SECURITY §6](docs/SECURITY.md#6-known-limitations-documented-in-readme).

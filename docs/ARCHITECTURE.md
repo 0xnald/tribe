@@ -172,17 +172,20 @@ requires both entries `Active`. Admission additionally rejects mints with a
 from Jupiter Tokens v2, Jupiter Price v3, xStocks API and, for xStocks, the
 DN Institute wash-trading methodology:
 
-| Signal              | Threshold (initial)                                                                               | Source                                                       |
-| ------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| Oracle availability | Pyth feed exists and published in last 24 h (or last session for equities)                        | Pyth                                                         |
-| Liquidity           | ≥ $250k Jupiter-reported liquidity                                                                | Price v3 `liquidity`                                         |
-| Market age          | mint `createdAt` ≥ 30 days                                                                        | Tokens v2                                                    |
-| Organic volume      | `buyOrganicVolume + sellOrganicVolume ≥ 20%` of 24 h volume, or Jupiter `organicScoreLabel ≠ low` | Tokens v2                                                    |
-| Verification        | Jupiter `isVerified`, no `audit.isSus`                                                            | Tokens v2                                                    |
-| Issuer status       | not `isTradingHalted`; no unsupported corporate action pending                                    | xStocks                                                      |
-| Wash signature      | pool-level round-trip share below the DN-Institute flag threshold on the primary route            | scheduled job (post-MVP automation; manual for the seed set) |
+| Signal              | Threshold (initial)                                                                                                                                                                 | Source                                                       |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Oracle availability | Pyth feed exists and published in last 24 h (or last session for equities)                                                                                                          | Pyth                                                         |
+| Liquidity           | ≥ $250k Jupiter-reported liquidity                                                                                                                                                  | Price v3 `liquidity`                                         |
+| Market age          | mint `createdAt` ≥ 30 days                                                                                                                                                          | Tokens v2                                                    |
+| Organic volume      | Jupiter `organicScore ≥ 40` (and `organicScoreLabel ≠ low`); the organic-volume _ratio_ is only a 1 % sanity floor because Jupiter reports ~1–25 % organic even for SOL and xStocks | Tokens v2                                                    |
+| Verification        | Jupiter `isVerified`, no `audit.isSus`                                                                                                                                              | Tokens v2                                                    |
+| Issuer status       | not `isTradingHalted`; no unsupported corporate action pending                                                                                                                      | xStocks                                                      |
+| Wash signature      | pool-level round-trip share below the DN-Institute flag threshold on the primary route                                                                                              | scheduled job (post-MVP automation; manual for the seed set) |
 
-Only assets passing all gates are proposed for registry activation. Because
+Only assets passing all gates are proposed for registry activation. The model is
+implemented in `packages/core/src/market/quality.ts` (`evaluateAssetQuality` →
+`ELIGIBLE | WARNING | REJECTED` with reason codes; thresholds are a config
+object) and the seed registry in `packages/core/src/registry/assets.ts`. Because
 settlement uses oracle prices, low-liquidity manipulation affects a user's
 _execution_ (visible slippage in the preview) but not the Arena result; the
 liquidity gate exists to protect execution quality and to keep the

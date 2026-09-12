@@ -48,7 +48,7 @@
 | Phase                                            | When                 | Output                                                                                        | Commits (approx.) |
 | ------------------------------------------------ | -------------------- | --------------------------------------------------------------------------------------------- | ----------------- |
 | **0 — Architecture & product lock**              | Sat 12 Sept          | Seven docs, research notes, workspace + tooling scaffold, core package skeleton               | 8                 |
-| **1 — Core engine**                              | Sat 12 → Sun 13      | `packages/core` complete with vectors; asset registry data (seed set); config schemas         | 5                 |
+| **1 — Core engine** ✅                           | Sat 12               | `packages/core` complete with 110 vectors, 272 tests; seed registry; market-quality model     | 6                 |
 | **2 — Program**                                  | Sun 13 → Mon 14      | Anchor program + tests in WSL; devnet deploy; IDL client package                              | 6                 |
 | **3 — Web foundation & Arena UI**                | Mon 14 → Tue 15      | Design tokens, layout, ArenaCard/Hero, Home, Arena page in demo mode                          | 6                 |
 | **4 — Live wiring**                              | Tue 15 → Wed 16      | Wallet, indexer, Pyth proxy + SSE, Jupiter quote/build, Back flow, My Arenas, crank           | 6                 |

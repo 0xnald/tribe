@@ -197,6 +197,7 @@ over time**, so weight is proportional to _how much_ × _for how long_.
 ```
 Position {
   units             u64    // raw units currently in the vault
+  unit_seconds      u128   // ∫ units dt (raw, un-multiplied) — hold fraction and §7.4
   eff_units         u128   // Σ units_t × m_t over tranches (Q4 multiplier baked in)
   eff_unit_seconds  u128   // ∫ eff_units dt, accrued only inside [start_ts, end_ts]
   last_touch_ts     i64
@@ -328,6 +329,8 @@ is O(1). The un-distributed remainder rolls over (§6.4).
 
 ```
 require state == SETTLED and winner == position.side and !position.claimed
+accrue(position, max(end_ts, position.last_touch_ts))   // frozen at end_ts; tolerant of post-end exits
+require W_i > 0
 position.claimed = true                    // set BEFORE transfer
 transfer payout_i reward_vault -> user USDC account
 emit RewardClaimed
@@ -367,6 +370,44 @@ BONK vs TSLAx, 24 h, BONK wins. `pool_at_settlement = 4 000 USDC`.
 
 1 400 USDC rolls over to the next BONK vs TSLAx Arena.
 
+### 6.6 Cap behaviour comparison (Phase 1 findings; normative rule unchanged pending approval)
+
+`packages/core/src/engine/distribution.ts` implements four behaviours on
+identical inputs; `distribution.test.ts` and `distribution.json` record the
+results. Rollover in USDC from a 4 000 USDC pool:
+
+| Winners (weights)                      | A. HardCap 25 % | B. WaterFill 25 % | C. ConditionalCap | D. Proportional |
+| -------------------------------------- | --------------- | ----------------- | ----------------- | --------------- |
+| §6.5 example (86.4 / 144 / 432 / 57.6) | 1 400           | 0                 | 1 400             | 0               |
+| lone winner                            | 3 000           | 3 000             | 0                 | 0               |
+| two equal                              | 2 000           | 2 000             | 0                 | 0               |
+| whale 90 + 5 + 5                       | 2 600           | 1 000             | 2 266             | 0               |
+| twenty equal                           | 0               | 0                 | 0                 | 0               |
+
+Findings:
+
+1. **No per-position cap resists Sybil splitting.** Splitting a whale into
+   four wallets defeats A, B and C alike (the wallets collectively receive
+   more than the un-split whale). Proportional payout is split-neutral. A
+   cap therefore only penalises honest single-wallet whales.
+2. **A (Phase 0 default) causes unnecessary rollover** whenever there are
+   fewer than four comparable winners — including the happy-path vector
+   (46 % rolls) and a lone winner (75 % rolls).
+3. **B pays out in full whenever it can** and is order-independent, but
+   needs an O(n) pass over winners (fine off-chain and in the TS engine;
+   not an O(1) on-chain `claim` without a settlement-time precomputation).
+4. **C** fixes the lone-/two-winner cases but still rolls whenever one
+   position dominates among ≥ 4 winners.
+
+**Recommendation (pending approval):** set `max_share_bps = 10_000`
+(proportional, D) as the default — it is the only split-neutral option,
+has zero avoidable rollover, keeps `claim` O(1) on-chain, and the
+time-weighting already limits late whales. Keep `max_share_bps` as a
+creator-configurable knob for Arenas that want a visible "no single
+winner takes more than X %" rule, implemented as B (WaterFill) computed by
+the crank at settlement and stored per position. Until approved, the
+engine default remains **A with 2 500 bps**.
+
 ---
 
 ## 7. Underdog multiplier
@@ -386,7 +427,14 @@ share_twab_bps = usd_sec(this) * 10_000 / (usd_sec(A) + usd_sec(B))     // BEFOR
 share_eff_bps  = max(share_inst_bps, share_twab_bps)
 ```
 
-If both totals are zero (first backer of the Arena) `share_eff_bps = 5000`.
+When no time has accrued on either side yet (`usd_sec(A) + usd_sec(B) == 0`)
+the TWAB is undefined and `share_eff_bps = share_inst_bps` alone; the
+warm-up ramp (§7.2) then neutralises it. The first backer of an Arena has
+`share_inst = 100 %` and therefore `1.0×`.
+
+Exits do **not** rewrite the side's `unit_seconds` history: the TWAB is
+the true integral of backing over time. Exits only reduce the _reward_
+accumulators (`eff_units`, `eff_unit_seconds`) per §5.5.
 
 The multiplier of a tranche is:
 
@@ -445,11 +493,37 @@ upset_bonus           = min( base_pool * (m_upset_q4 - 10_000) / 10_000,
                              upset_bonus_cap_usdc )
 ```
 
+Limits are applied in the order: reserve balance, reserve draw, absolute
+cap — so the bonus can never exceed what the reserve actually holds, and a
+zero reserve yields a zero bonus explicitly (`limited_by = reserve_balance`).
+
 The bonus is transferred from the protocol **Upset Reserve** (funded from the
 protocol fee share) into the Arena reward vault before `pool_at_settlement`
 is frozen. When the crowd is wrong, the pool gets bigger; when the favourite
 wins, nothing changes. Distorting a whole-Arena integral is the most
 expensive manipulation in the system.
+
+### 7.4 Proposal (not yet adopted): settlement clamp on entry-time boosts
+
+Phase 1 simulation S12 (SECURITY §3) shows that in long Arenas an attacker
+holding 10× the honest backing on the opposite side for one day can still
+lock in ≈1.31× on a later tranche. A deterministic, O(1) hardening is
+implemented in `packages/core` behind `ArenaConfig.underdogSettlementClamp`
+(default **off**, i.e. Phase 0 behaviour):
+
+```
+m_settle_q4 = clamp(10_000 + slope * (5_000 - twab_share_winner_bps), 10_000, cap_q4)   // same as m_upset
+W_i         = min( eff_unit_seconds_i , unit_seconds_i * m_settle_q4 )
+```
+
+A tranche can never earn more boost than the whole-Arena underdog status of
+its side justifies; honest 1.0× positions are unaffected (up to exit-rounding
+dust < 10⁴ unit-seconds). On-chain cost: one extra `u128` per position
+(`unit_seconds`, already added). The denominator `W_total` under the clamp
+is `Σ_i W_i`, which requires either an O(n) pass at settlement or the safe
+approximation `min(side.eff_unit_seconds, side.unit_seconds × m_settle)`
+(≥ the true sum ⇒ payouts still sum to ≤ pool, remainder rolls over).
+**Adoption requires approval; see the Phase 1 report.**
 
 ---
 

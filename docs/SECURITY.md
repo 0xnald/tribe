@@ -48,27 +48,69 @@
 | 22  | Sybil on leaderboards                                              | Minimum participation thresholds; capital tiers are log-scaled; creator boards need ≥ 10 distinct participants                                        | indexer                           | leaderboard eligibility tests                                                                                  |
 | 23  | Clock drift                                                        | ≥ 60 s tolerances; derived states from timestamps                                                                                                     | program                           | boundary tests                                                                                                 |
 
-## 3. Underdog manipulation — cost/benefit record
+## 3. Underdog manipulation — findings from the Phase 1 simulations
 
-Attacker goal: obtain multiplier `m` on capital `C` on side B by inflating
-side A.
+The scenarios below are executed by `packages/core/src/engine/underdog.test.ts`
+(S1–S13) and the fast-check properties in `properties.test.ts`. Numbers are
+from the tests, not estimates. Attacker goal throughout: obtain multiplier
+`m > 1` on capital `C` on side B by inflating side A. Honest backing is `X`
+per side unless stated.
 
-- Warm-up phase (first `max(10%, 30 min)`): ramp makes `m ≈ 1.00`. Cost:
-  fee on both deposits. Benefit ≈ 0. **Unprofitable.**
-- Mid-Arena, existing backing `X` per side at elapsed `e`: to reach share
-  20% on B via TWAB, hold `4X` on A for `T` with
-  `(e + T) / (2e + 6T) ≤ 0.2` ⇒ `T ≥ 3e` (e.g. `e = 6 h` ⇒ `T ≥ 18 h`).
-  Meanwhile the attacker's B tranche, deposited at `e + T`, has at most
-  `duration − e − T` of accrual (≤ 0 in the example) — the multiplier
-  multiplies almost nothing. **Self-defeating.**
-- Instantaneous-only attack (flash deposit, deposit on B, exit A): blocked
-  by `max(instant, TWAB)` — instant drops, TWAB does not; the max is the
-  TWAB. Benefit ≈ 0. Cost: fee on `4X`.
-- Residual: an attacker who is _also_ the majority of backing can shape both
-  integrals. Bounded by the 25% per-position cap and by the fact that the
-  multiplier only redistributes within the winning side. Accepted for MVP;
-  post-MVP: per-wallet cap on multiplier-weighted share and cross-wallet
-  clustering in the indexer.
+| #      | Scenario                                                            | Result (measured)                                                                                                                                                                      | Classification                                                                         |
+| ------ | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| S1     | Back 4X on A at `t0+30s`, back B at `t0+60s` (24 h Arena)           | `m ≤ 1.005×` — warm-up ramp is 60/8640                                                                                                                                                 | **Prevented**                                                                          |
+| S2     | Mid-Arena (6 h in): back 4X on A, back B one second later, exit A   | `m ≤ 1.001×` (TWAB 4999 bps); A leg forfeits all weight                                                                                                                                | **Prevented**                                                                          |
+| S3     | Hold 4X on A from `t0`, back B at 18 h                              | `m = 1.43×` (instant share after own deposit caps it), tranche has 6 h left: attacker weight < ½ of an honest 24 h backer of equal size, while holding $40k of the losing side all day | **Economically mitigated** (self-defeating)                                            |
+| S4     | Split $4k across 4 wallets vs one wallet                            | Σ eff_units within 1 % and never higher than the single wallet                                                                                                                         | **Prevented** (no gain from splitting)                                                 |
+| S5     | Whale on both sides                                                 | Own-side 99 % share ⇒ `1.0×`; other-side tranche `≤ 1.002×`                                                                                                                            | **Prevented**                                                                          |
+| S6     | Whale at `backing_close_ts`                                         | Rejected `BackingClosed`; one second earlier accepted at `1.0×` with only `min_hold` of accrual                                                                                        | **Prevented**                                                                          |
+| S7     | 20 drip deposits of $100                                            | Multiplier non-increasing, `1.0×` throughout                                                                                                                                           | **Prevented**                                                                          |
+| S8     | Genuine 20 % underdog                                               | `1.06×` at 10 % of warm-up, `≈1.6×` after warm-up                                                                                                                                      | Intended behaviour                                                                     |
+| S9–S10 | One-sided Arena, same-block first backers                           | `1.0×`; TWAB undefined ⇒ instant share, ramp 0                                                                                                                                         | **Prevented**                                                                          |
+| S11    | 1 h Arena, 15 min in                                                | `≈1.30×` (half of a 1.6× ramp; floor 30 min)                                                                                                                                           | Intended                                                                               |
+| S12    | **30-day Arena**: back 10X on A at day 10, back B at day 11, exit A | `m = 1.31×` on the B tranche for the remaining 19 days. Cost: 0.5 % fee on 10X (≈ $500 on $100k) + one day of market exposure on the losing side.                                      | **Accepted MVP risk** — see cost/benefit below                                         |
+| S12b   | S12 with `underdogSettlementClamp = true`                           | attacker weight reduced to `unit_seconds × m_settlement` (`m_settlement ≈ 1.14×` from the whole-Arena TWAB); honest 1.0× positions unchanged                                           | **Post-hackathon hardening** (implemented, off by default; proposal in ECONOMICS §7.4) |
+| S13    | Tiny (\$6/\$6) Arena                                                | multiplier bounded in `[1.0, 2.0]`, deterministic                                                                                                                                      | **Prevented** (bounds)                                                                 |
+| Upset  | Whale makes A the 90 % favourite one second before cutoff           | winner TWAB share ≈ 35 % (not 10 %); `m_upset < 1.35×`                                                                                                                                 | **Prevented** for the pool-level bonus                                                 |
+
+### 3.1 Residual cost/benefit (S12 class)
+
+With honest backing `X` per side at elapsed `e`, an attacker holding `kX`
+on A for `T` seconds drives B's TWAB share to `(e + T) / (2e + (2 + k) T)`.
+Reaching 20 % needs `kT ≥ 3e + 2T`; at `e = 10 d` in a 30-day Arena that is
+`k = 10, T ≥ 1.6 d` or `k = 4, T ≥ 15 d`. The multiplier then applies to a
+tranche whose remaining accrual is `duration − e − T`. The attack is only
+profitable when the reward pool is large relative to total backing (roughly
+`pool / backing ≳ fee × k / (m − 1)` ≈ 0.5 % × 10 / 0.31 ≈ 16 % for S12) —
+i.e. heavily sponsored, thinly backed, long Arenas. Mitigations available
+without changing accounts: shorter default durations for sponsored Arenas,
+a lower `underdog.capQ4` for Arenas whose pool/backing ratio is high, or
+enabling the settlement clamp (S12b).
+
+### 3.2 Reward-cap and Sybil findings (distribution.test.ts)
+
+- A per-position payout cap is **not** a Sybil defence: splitting a 90 %
+  whale into four wallets defeats HardCap, WaterFill and ConditionalCap
+  alike (the split wallets collectively receive strictly more), while pure
+  proportional distribution is split-neutral up to dust. Sybil resistance
+  comes from fees and rent per wallet, not from the cap.
+- The Phase 0 HardCap causes large _unnecessary_ rollover: a lone winner
+  receives 25 % of the pool; two equal winners 50 %; in the happy-path
+  vector (`arena.json`) 46 % of a 14.5 USDC pool rolls over. See
+  ECONOMICS §6.6 for the comparison and recommendation.
+
+### 3.3 Threat-matrix status after Phase 1
+
+| Rows                                                                                                                                                   | Status                                                                                                                                                                                      |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 (sniping), 7 (double claim), 8 (replayed settlement), 9 (insolvency), 10 (rounding), 16 (overflow), 17 (fee bypass), 18 (stranded funds), 23 (clock) | **Prevented** in `packages/core`; guarded by unit + property tests and `arena.json` vectors. The program must replay the same vectors.                                                      |
+| 2 (underdog manipulation)                                                                                                                              | **Prevented / economically mitigated** per §3; S12 class **accepted MVP risk**.                                                                                                             |
+| 3 (oracle), 6 (stale prices)                                                                                                                           | **Prevented** by `validatePriceUpdate` (18 oracle vectors). On-chain enforcement pending Phase 2.                                                                                           |
+| 4 (low-liquidity), 5 (wash), 11–13 (Token-2022 / unsupported assets)                                                                                   | **Prevented** at admission by the market-quality model (fixtures: RUGME, FEEx, STALEx rejected; TSLAx warns on the DN-Institute wash signature). On-chain extension checks pending Phase 2. |
+| 14 (creator spam), 15 (fake sponsors), 19 (issuer actions), 20–22 (ops / web / Sybil)                                                                  | **Post-hackathon hardening** or operational; not exercised by the core engine.                                                                                                              |
+
+A claim of "prevented" above means a test in `packages/core` fails if the
+protection is removed.
 
 ## 4. Program-level hardening checklist
 
