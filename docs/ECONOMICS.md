@@ -224,11 +224,12 @@ The same accrual is applied to the side-level aggregate:
 
 ```
 Side {
-  units             u64
-  unit_seconds      u128   // ∫ units dt (for backing share TWAB)
-  eff_units         u128
-  eff_unit_seconds  u128   // Σ over positions; the reward denominator
-  participants      u32
+  units               u64
+  unit_seconds        u128   // ∫ units dt — the backing TWAB; NEVER reduced by exits (history)
+  reward_unit_seconds u128   // Σ position.unit_seconds — reduced by forfeiture (raw reward basis)
+  eff_units           u128
+  eff_unit_seconds    u128   // Σ position.eff_unit_seconds — reduced by forfeiture (boosted basis)
+  participants        u32
 }
 ```
 
@@ -305,25 +306,36 @@ keeps his asset but earns nothing.
 
 ## 6. Reward distribution
 
-At settlement the program freezes:
+**Normative rule (Decision 1, 2026-09-12): proportional payout, no per-position cap.**
+
+At settlement the program freezes, for the winning side after final accrual
+at `end_ts`:
 
 ```
-pool_at_settlement  = reward_vault.amount + upset_bonus                 (§7.3)
-W_total             = winning_side.eff_unit_seconds (after final accrual at end_ts)
+pool_at_settlement  = reward_vault.amount + upset_bonus                             (§7.3)
+m_settle_q4         = clamp(10_000 + slope * (5_000 - twab_share_winner_bps), 10_000, cap_q4)   (§7.4)
+W_total             = min( side.eff_unit_seconds , side.reward_unit_seconds * m_settle_q4 )
 ```
 
-### 6.1 Per-position share
+### 6.1 Per-position payout
 
 ```
-W_i        = position.eff_unit_seconds (after final accrual, winning side only)
-share_i    = min( W_i * 10_000 / W_total , max_share_bps ) / 10_000      (u128 math, floor)
-payout_i   = pool_at_settlement * W_i / W_total,  capped at pool_at_settlement * max_share_bps / 10_000
+W_i       = min( position.eff_unit_seconds , position.unit_seconds * m_settle_q4 )   // §7.4 clamp
+payout_i  = floor( pool_at_settlement * W_i / W_total )                              // u128, no cap
 ```
 
-`max_share_bps` defaults to **2500** (no single position may take more than
-25% of a pool). Because the cap is applied per position without
-redistribution, `Σ payout_i ≤ pool_at_settlement` always holds and each claim
-is O(1). The un-distributed remainder rolls over (§6.4).
+Properties:
+
+- `Σ_i W_i ≤ W_total` because `min(a_i, b_i) ≤ a_i` and `≤ b_i` term-wise, so
+  `Σ payout_i ≤ pool_at_settlement` holds by construction; each claim is O(1).
+- When no tranche is clamped (the normal case: every entry boost ≤ `m_settle`)
+  `W_total = Σ_i W_i` exactly and the only remainder is integer dust.
+- Splitting a position across wallets cannot increase the aggregate payout
+  beyond integer rounding (proportional payout is split-neutral).
+- The remainder (dust, and the gap `W_total − Σ W_i` created by clamped
+  manipulation tranches) is protocol-defined and rolls over per §6.4.
+- No creator-selectable distribution modes exist in the MVP. The capped
+  variants studied in Phase 1 (§6.6) remain internal analysis utilities.
 
 ### 6.2 Claim
 
@@ -358,19 +370,19 @@ receives it at creation. If no such Arena exists after
 
 ### 6.5 Worked example
 
-BONK vs TSLAx, 24 h, BONK wins. `pool_at_settlement = 4 000 USDC`.
+BONK vs TSLAx, 24 h, BONK wins, no tranche clamped. `pool_at_settlement = 4 000 USDC`.
 
-| Position           | W_i (M) | Raw share | Capped (25%) | Payout       |
-| ------------------ | ------- | --------- | ------------ | ------------ |
-| Alice              | 86.4    | 12.0%     | 12.0%        | 480.00       |
-| Bob                | 144.0   | 20.0%     | 20.0%        | 800.00       |
-| Erin (early whale) | 432.0   | 60.0%     | 25.0%        | 1 000.00     |
-| Frank              | 57.6    | 8.0%      | 8.0%         | 320.00       |
-| **Total**          | 720.0   | 100%      | 65%          | **2 600.00** |
+| Position           | W_i (M) | Share | Payout       |
+| ------------------ | ------- | ----- | ------------ |
+| Alice              | 86.4    | 12.0% | 480.00       |
+| Bob                | 144.0   | 20.0% | 800.00       |
+| Erin (early whale) | 432.0   | 60.0% | 2 400.00     |
+| Frank              | 57.6    | 8.0%  | 320.00       |
+| **Total**          | 720.0   | 100%  | **4 000.00** |
 
-1 400 USDC rolls over to the next BONK vs TSLAx Arena.
+Nothing rolls over except integer dust.
 
-### 6.6 Cap behaviour comparison (Phase 1 findings; normative rule unchanged pending approval)
+### 6.6 Cap behaviour comparison (Phase 1 analysis — led to Decision 1)
 
 `packages/core/src/engine/distribution.ts` implements four behaviours on
 identical inputs; `distribution.test.ts` and `distribution.json` record the
@@ -399,14 +411,11 @@ Findings:
 4. **C** fixes the lone-/two-winner cases but still rolls whenever one
    position dominates among ≥ 4 winners.
 
-**Recommendation (pending approval):** set `max_share_bps = 10_000`
-(proportional, D) as the default — it is the only split-neutral option,
-has zero avoidable rollover, keeps `claim` O(1) on-chain, and the
-time-weighting already limits late whales. Keep `max_share_bps` as a
-creator-configurable knob for Arenas that want a visible "no single
-winner takes more than X %" rule, implemented as B (WaterFill) computed by
-the crank at settlement and stored per position. Until approved, the
-engine default remains **A with 2 500 bps**.
+**Decision 1 (adopted):** proportional payout (D) is the normative rule
+(§6.1) — the only split-neutral option, zero avoidable rollover, O(1)
+on-chain `claim`. `max_share_bps` was removed from `ArenaParams`; HardCap,
+WaterFill and ConditionalCap live on only as internal comparison utilities
+in `packages/core/src/engine/distribution.ts`.
 
 ---
 
@@ -472,8 +481,9 @@ side.
 
 4. **Fees on both sides.** Backing the other side costs the full fee and the
    attacker's units on that side are forfeited from rewards on exit.
-5. **Per-position share cap** (§6.1) bounds the payoff of any single
-   manipulated position to 25% of the pool.
+5. **Settlement clamp** (§7.4) bounds every tranche's final weight by the
+   boost the whole-Arena TWAB justifies, so a manufactured entry-time
+   multiplier can never be locked in.
 6. **Bounded upside.** The multiplier only redistributes _within_ the winning
    side and is capped at 2.0×. It never touches principal and it cannot make
    the pool larger by itself (only the Upset Bonus does, and that uses the
@@ -503,27 +513,38 @@ is frozen. When the crowd is wrong, the pool gets bigger; when the favourite
 wins, nothing changes. Distorting a whole-Arena integral is the most
 expensive manipulation in the system.
 
-### 7.4 Proposal (not yet adopted): settlement clamp on entry-time boosts
+### 7.4 Settlement clamp (normative — Decision 2, 2026-09-12)
 
-Phase 1 simulation S12 (SECURITY §3) shows that in long Arenas an attacker
-holding 10× the honest backing on the opposite side for one day can still
-lock in ≈1.31× on a later tranche. A deterministic, O(1) hardening is
-implemented in `packages/core` behind `ArenaConfig.underdogSettlementClamp`
-(default **off**, i.e. Phase 0 behaviour):
+Phase 1 simulation S12 (SECURITY §3) showed that in long Arenas an attacker
+holding 10× the honest backing on the opposite side for one day could lock in
+≈1.31× on a later tranche. The clamp removes that permanently: at settlement
+a single multiplier is derived from protocol-verifiable state — the
+winner's whole-Arena backing TWAB (§7.1) — and every winning position's
+final weight is bounded by it.
 
 ```
-m_settle_q4 = clamp(10_000 + slope * (5_000 - twab_share_winner_bps), 10_000, cap_q4)   // same as m_upset
+m_settle_q4 = clamp( 10_000 + slope * (5_000 - twab_share_winner_bps) , 10_000 , cap_q4 )   // == m_upset (§7.3)
 W_i         = min( eff_unit_seconds_i , unit_seconds_i * m_settle_q4 )
+W_total     = min( side.eff_unit_seconds , side.reward_unit_seconds * m_settle_q4 )
 ```
 
-A tranche can never earn more boost than the whole-Arena underdog status of
-its side justifies; honest 1.0× positions are unaffected (up to exit-rounding
-dust < 10⁴ unit-seconds). On-chain cost: one extra `u128` per position
-(`unit_seconds`, already added). The denominator `W_total` under the clamp
-is `Σ_i W_i`, which requires either an O(n) pass at settlement or the safe
-approximation `min(side.eff_unit_seconds, side.unit_seconds × m_settle)`
-(≥ the true sum ⇒ payouts still sum to ≤ pool, remainder rolls over).
-**Adoption requires approval; see the Phase 1 report.**
+Guarantees (each is a test in `packages/core`):
+
+- never increases a weight: `W_i ≤ eff_unit_seconds_i`;
+- never exceeds the configured bounds: `m_settle ∈ [1.0, cap_q4]`;
+- genuine underdog incentives are preserved: when the underdog side wins,
+  `m_settle` equals the boost honest entrants received after warm-up, so
+  their tranches are not clamped;
+- a favourite that wins has `m_settle = 1.0×`, so every tranche pays on raw
+  capital-time — an entry-time boost on the eventual majority side is never
+  paid out;
+- honest 1.0× positions are unaffected up to exit-rounding dust
+  (< 10⁴ unit-seconds);
+- principal is untouched; only reward weights change.
+
+Cost: one extra `u128` on `Position` (`unit_seconds`) and one on `Side`
+(`reward_unit_seconds`); `claim` stays O(1). `W_total ≥ Σ W_i`, so the
+denominator is safe (§6.1) and any gap rolls over.
 
 ---
 
@@ -599,7 +620,6 @@ reached SETTLED with ≥ 10 distinct participants.
 | `min_hold_bps`, `min_hold_floor_secs`          | 1000, 900          | Arena    |
 | `warmup_bps`, `warmup_floor_secs`              | 1000, 1800         | Arena    |
 | `underdog_slope`, `underdog_cap_q4`            | 2, 20 000          | Arena    |
-| `max_share_bps`                                | 2500               | Arena    |
 | `reserve_draw_bps`, `upset_bonus_cap_usdc`     | 1000, 5 000 USDC   | protocol |
 | `claim_window_secs`                            | 30 days            | protocol |
 | `settlement_grace_secs`                        | 6 h                | Arena    |

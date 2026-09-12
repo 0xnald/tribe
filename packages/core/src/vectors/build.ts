@@ -19,7 +19,7 @@ import {
   positionRewardWeight,
   type ArenaEvent,
 } from '../engine/arena';
-import { distribute } from '../engine/distribution';
+import { distribute, type DistributionMode } from '../engine/distribution';
 import { isTribeError } from '../engine/errors';
 import { feeRequired, splitFee } from '../engine/fees';
 import { validatePriceUpdate, type PriceInput } from '../engine/oracle';
@@ -29,7 +29,6 @@ import {
   ZERO_SIDE,
   type ArenaAssetSpec,
   type ArenaConfig,
-  type DistributionMode,
   type SideId,
   type SideState,
 } from '../engine/types';
@@ -1239,9 +1238,7 @@ function cfg(o: Partial<ArenaConfig> & { durationSecs?: bigint } = {}): ArenaCon
     feePolicy: DEFAULT_FEE_POLICY,
     limits: DEFAULT_PROTOCOL_LIMITS,
     sponsorOpen: true,
-    distributionMode: 'HardCap',
     allowClosedSettlement: false,
-    underdogSettlementClamp: false,
     ...rest,
   };
 }
@@ -1284,9 +1281,8 @@ const settleEv = (
   prices: { A: price(c.assets.A, a, c.endTs), B: price(c.assets.B, b, c.endTs) },
 });
 
-const CLAMP = cfg({ underdogSettlementClamp: true, durationSecs: 30n * DAY });
+const LONG = cfg({ durationSecs: 30n * DAY });
 const SHORT = cfg({ durationSecs: HOUR });
-const WF = cfg({ distributionMode: 'WaterFill' });
 
 export const arenaCategory: Category<ArenaCase> = {
   category: 'arena',
@@ -1406,29 +1402,68 @@ export const arenaCategory: Category<ArenaCase> = {
       },
     },
     {
-      name: 'underdog upset with bonus and settlement clamp',
+      name: 'S12 attack: opponent inflation clamped at settlement',
       description:
-        '30-day arena; attacker inflates A for a day then backs B; B wins as underdog; clamp on',
+        '30-day arena; attacker holds 10× on A for a day then backs B at ≈1.31×; B wins; ' +
+        'normative clamp reduces the attacker weight to raw × m_settle, honest 1.0× untouched',
       inputs: {
-        config: CLAMP,
+        config: LONG,
         createdAt: T0,
         rolloverIn: 0n,
         events: [
-          startEv(CLAMP),
-          backEv(CLAMP.startTs, 'honestA', 'A', 10_000n),
-          backEv(CLAMP.startTs, 'honestB', 'B', 10_000n),
-          backEv(CLAMP.startTs + 10n * DAY, 'attacker', 'A', 100_000n),
-          backEv(CLAMP.startTs + 11n * DAY, 'attacker', 'B', 10_000n),
+          startEv(LONG),
+          backEv(LONG.startTs, 'honestA', 'A', 10_000n),
+          backEv(LONG.startTs, 'honestB', 'B', 10_000n),
+          backEv(LONG.startTs + 10n * DAY, 'attacker', 'A', 100_000n),
+          backEv(LONG.startTs + 11n * DAY, 'attacker', 'B', 10_000n),
           {
             type: 'exit',
-            now: CLAMP.startTs + 11n * DAY + 1n,
+            now: LONG.startTs + 11n * DAY + 1n,
             owner: 'attacker',
             side: 'A',
             units: bonk(100_000n),
           },
-          settleEv(CLAMP, 281n, TSLA_PRICE_Q8 + 1_000_000_000n, CLAMP.endTs, 100_000_000_000n),
+          settleEv(LONG, 281n, TSLA_PRICE_Q8 + 1_000_000_000n, LONG.endTs, 100_000_000_000n),
         ],
-        claimAt: CLAMP.endTs + HOUR,
+        claimAt: LONG.endTs + HOUR,
+      },
+    },
+    {
+      name: 'honest underdog wins with upset bonus',
+      description:
+        'A is the 80 % favourite from t0; B backers enter early (ramped) and after warm-up (full 1.6×); ' +
+        'B wins; m_settle ≈ 1.6× so no honest tranche is clamped; Upset Bonus drawn from reserve',
+      inputs: {
+        config: C0,
+        createdAt: T0,
+        rolloverIn: 0n,
+        events: [
+          startEv(),
+          backEv(START, 'crowd', 'A', 80_000n),
+          backEv(START + 864n, 'early', 'B', 10_000n),
+          backEv(START + 3n * HOUR, 'late', 'B', 10_000n),
+          settleEv(C0, 281n, TSLA_PRICE_Q8 + 1_000_000_000n, END + HOUR, 1_000_000_000_000n),
+        ],
+        claimAt: END + 2n * HOUR,
+      },
+    },
+    {
+      name: 'favourite wins: every tranche clamped to 1.0×',
+      description:
+        'B is the 20 % underdog and its backers hold 1.6× tranches, but A (favourite) wins; ' +
+        'm_settle = 1.0 so W_i = raw unit-seconds for A; no upset bonus',
+      inputs: {
+        config: C0,
+        createdAt: T0,
+        rolloverIn: 0n,
+        events: [
+          startEv(),
+          backEv(START, 'crowd', 'A', 80_000n),
+          backEv(START + 3n * HOUR, 'dog', 'B', 20_000n),
+          backEv(START + 6n * HOUR, 'joiner', 'A', 5_000n),
+          settleEv(C0, 300n, TSLA_PRICE_Q8, END, 1_000_000_000_000n),
+        ],
+        claimAt: END + HOUR,
       },
     },
     {
@@ -1449,21 +1484,21 @@ export const arenaCategory: Category<ArenaCase> = {
       },
     },
     {
-      name: 'water-fill distribution with rollover in',
+      name: 'proportional distribution with rollover in and a dominant whale',
       description:
-        'rollover of 1 000 USDC seeds the pool; whale is capped and excess redistributed',
+        'rollover of 1 000 USDC seeds the pool; the 70 % whale receives 70 % (no cap); Σ payouts ≤ pool',
       inputs: {
-        config: WF,
+        config: C0,
         createdAt: T0,
         rolloverIn: 1_000_000_000n,
         events: [
-          startEv(WF),
+          startEv(),
           backEv(START, 'whale', 'A', 70_000n),
           backEv(START, 'x', 'A', 10_000n),
           backEv(START, 'y', 'A', 10_000n),
           backEv(START, 'z', 'A', 10_000n),
           backEv(START, 'b', 'B', 1000n),
-          settleEv(WF, 300n, TSLA_PRICE_Q8),
+          settleEv(C0, 300n, TSLA_PRICE_Q8),
         ],
         claimAt: END + HOUR,
       },
@@ -1574,7 +1609,6 @@ export const arenaCategory: Category<ArenaCase> = {
         minHoldBps: num(params.minHoldBps),
         minHoldFloorSecs: num(params.minHoldFloorSecs),
         underdog: decodeUnderdogPolicy(params.underdog),
-        maxShareBps: num(params.maxShareBps),
         settlementGraceSecs: num(params.settlementGraceSecs),
         minBackingUsdc: big(params.minBackingUsdc),
       },
@@ -1590,9 +1624,7 @@ export const arenaCategory: Category<ArenaCase> = {
         upsetBonusCapUsdc: big(limits.upsetBonusCapUsdc),
       },
       sponsorOpen: bool(c.sponsorOpen),
-      distributionMode: str(c.distributionMode) as DistributionMode,
       allowClosedSettlement: bool(c.allowClosedSettlement),
-      underdogSettlementClamp: bool(c.underdogSettlementClamp),
     };
     const events = arr(o.events).map((x): ArenaEvent => {
       const e = obj(x);

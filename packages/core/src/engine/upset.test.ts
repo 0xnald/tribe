@@ -108,9 +108,9 @@ describe('upset bonus through settlement (manipulation)', () => {
     // TWAB share of B ≈ 10k×24h / (10k×24h + 10k×24h + 80k×2.4h) ≈ 35 % → m ≈ 1.29×, not 1.8×
     expect(st.winnerTwabShareBps).toBeGreaterThan(3400n);
     expect(st.winnerTwabShareBps).toBeLessThan(3600n);
-    expect(st.mUpsetQ4).toBeLessThan(13_500n);
+    expect(st.mSettleQ4).toBeLessThan(13_500n);
     expect(st.upsetBonus).toBe(
-      ((h.state.rewardVault - st.upsetBonus) * (st.mUpsetQ4 - 10_000n)) / 10_000n,
+      ((h.state.rewardVault - st.upsetBonus) * (st.mSettleQ4 - 10_000n)) / 10_000n,
     );
   });
   it('never adds liabilities beyond the reserve and never touches positions', () => {

@@ -31,8 +31,12 @@ export interface ArenaAssetSpec {
 /** Side aggregate — mirrors the on-chain `Side` struct (ECONOMICS §5.3). */
 export interface SideState {
   units: bigint;
+  /** ∫ units dt — the backing TWAB; never reduced by exits (history). */
   unitSeconds: bigint;
+  /** Σ position.unit_seconds — reduced by forfeiture; the raw reward basis (ECONOMICS §7.4). */
+  rewardUnitSeconds: bigint;
   effUnits: bigint;
+  /** Σ position.eff_unit_seconds — reduced by forfeiture; the boosted reward basis. */
   effUnitSeconds: bigint;
   participants: bigint;
 }
@@ -84,11 +88,15 @@ export interface SettlementRecord {
   perfBpsB: bigint;
   /** Reward vault balance + upset bonus, frozen at settlement. */
   poolAtSettlement: bigint;
-  /** Winning side eff_unit_seconds after final accrual; 0 for TIE. */
+  /**
+   * Frozen reward denominator: min(side.eff_unit_seconds, side.reward_unit_seconds × m_settle)
+   * for the winning side after final accrual; 0 for TIE (ECONOMICS §6.1).
+   */
   wTotal: bigint;
   /** Winning-side whole-Arena TWAB share, bps (ECONOMICS §7.3). */
   winnerTwabShareBps: bigint;
-  mUpsetQ4: bigint;
+  /** Settlement multiplier from the winner's TWAB share; drives both the Upset Bonus and the clamp. */
+  mSettleQ4: bigint;
   upsetBonus: bigint;
   settledAt: bigint;
 }
@@ -97,8 +105,6 @@ export interface SponsorState {
   amount: bigint;
   refunded: boolean;
 }
-
-export type DistributionMode = 'Proportional' | 'HardCap' | 'WaterFill' | 'ConditionalCap';
 
 export interface ArenaConfig {
   creator: string;
@@ -110,17 +116,8 @@ export interface ArenaConfig {
   feePolicy: FeePolicy;
   limits: ProtocolLimits;
   sponsorOpen: boolean;
-  /** Reward-cap behaviour at claim time; Phase 0 default is HardCap. */
-  distributionMode: DistributionMode;
   /** Registry policy: allow LastKnown settlement for equity sides. */
   allowClosedSettlement: boolean;
-  /**
-   * Optional hardening (see ECONOMICS §7.4 proposal): at claim, a position's
-   * reward weight is min(eff_unit_seconds, unit_seconds × m_settlement) where
-   * m_settlement is derived from the winner's whole-Arena TWAB share. Off by
-   * default — Phase 0 behaviour.
-   */
-  underdogSettlementClamp: boolean;
 }
 
 export interface ArenaState {
@@ -160,6 +157,7 @@ export function positionKey(side: SideId, owner: string): string {
 export const ZERO_SIDE: SideState = {
   units: 0n,
   unitSeconds: 0n,
+  rewardUnitSeconds: 0n,
   effUnits: 0n,
   effUnitSeconds: 0n,
   participants: 0n,

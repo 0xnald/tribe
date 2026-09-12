@@ -230,33 +230,45 @@ describe('adversarial underdog simulations', () => {
     expect(m).toBeLessThanOrEqual(13_200n);
   });
 
-  it('S12b the optional settlement clamp neutralises the S12 attack', () => {
-    const run = (clamp: boolean) => {
-      const h = balanced(10_000n, { durationSecs: 30n * DAY, underdogSettlementClamp: clamp });
-      const t0 = h.state.config.startTs;
-      h.back('attacker', 'A', unitsForUsd(h.state, 'A', 100_000n), t0 + 10n * DAY);
-      h.back('attacker', 'B', unitsForUsd(h.state, 'B', 10_000n), t0 + 11n * DAY);
-      h.exit('attacker', 'A', h.state.positions['A:attacker']?.units ?? 0n, t0 + 11n * DAY + 1n);
-      h.settle({ A: 281n, B: TSLA_PRICE_Q8 + 1_000_000_000n }); // B wins
-      return h;
+  it('S12b the normative settlement clamp neutralises the S12 attack', () => {
+    const h = balanced(10_000n, { durationSecs: 30n * DAY });
+    const t0 = h.state.config.startTs;
+    h.back('attacker', 'A', unitsForUsd(h.state, 'A', 100_000n), t0 + 10n * DAY);
+    h.back('attacker', 'B', unitsForUsd(h.state, 'B', 10_000n), t0 + 11n * DAY);
+    h.exit('attacker', 'A', h.state.positions['A:attacker']?.units ?? 0n, t0 + 11n * DAY + 1n);
+    h.settle({ A: 281n, B: TSLA_PRICE_Q8 + 1_000_000_000n }); // B wins
+    const st = h.state.settlement;
+    if (!st) throw new Error('not settled');
+    // whole-Arena TWAB: A = 10k×30d + 100k×1d = 400k·d, B = 10k×30d + 10k×19d = 490k·d → B is the
+    // 55 % majority once its own late tranche is counted ⇒ m_settle = 1.0× and the attacker's
+    // 1.31× entry boost is removed entirely.
+    expect(st.mSettleQ4).toBe(10_000n);
+    const w = new Map(finalWinningWeights(h.state).map((x) => [x.key, x.weight]));
+    const c = h.state.config;
+    const finalOf = (k: string) => {
+      const p = h.state.positions[k];
+      if (!p) throw new Error('missing');
+      const dt = c.endTs - (p.lastTouchTs > c.endTs ? c.endTs : p.lastTouchTs);
+      return { eff: p.effUnitSeconds + p.effUnits * dt, raw: p.unitSeconds + p.units * dt };
     };
-    const plain = run(false);
-    const clamped = run(true);
-    const pw = finalWinningWeights(plain.state);
-    const cw = finalWinningWeights(clamped.state);
-    const get = (w: ReturnType<typeof finalWinningWeights>, k: string) =>
-      w.find((x) => x.key === k)?.weight ?? 0n;
-    // whole-Arena TWAB share of B ≈ (10k×30d)/(10k×30d + 10k×30d + 100k×1d) ≈ 43 % → m_settle ≈ 1.14×
-    expect(clamped.state.settlement?.mUpsetQ4).toBeLessThan(11_500n);
-    expect(get(cw, 'B:attacker')).toBeLessThan(get(pw, 'B:attacker'));
-    // honest backer (1.0× tranche) is untouched by the clamp
-    expect(get(cw, 'B:honestB')).toBe(get(pw, 'B:honestB'));
-    // clamped attacker weight == unit_seconds × m_settle exactly
-    const atk = clamped.state.positions['B:attacker'];
-    if (!atk) throw new Error('missing');
-    const c = clamped.state.config;
-    const us = atk.unitSeconds + atk.units * (c.endTs - atk.lastTouchTs);
-    expect(get(cw, 'B:attacker')).toBe(us * (clamped.state.settlement?.mUpsetQ4 ?? 0n));
+    const atk = finalOf('B:attacker');
+    const hon = finalOf('B:honestB');
+    // attacker: entry boost 1.31× is clamped down to raw × m_settle
+    expect(w.get('B:attacker')).toBe(atk.raw * st.mSettleQ4);
+    expect(w.get('B:attacker') ?? 0n).toBeLessThan(atk.eff);
+    // honest 1.0× backer is untouched (eff == raw × 1.0 ≤ raw × m_settle)
+    expect(w.get('B:honestB')).toBe(hon.eff);
+    // frozen denominator is ≥ Σ clamped weights, so Σ payouts ≤ pool
+    const sum = [...w.values()].reduce((a, b) => a + b, 0n);
+    expect(st.wTotal).toBeGreaterThanOrEqual(sum);
+    let paid = 0n;
+    for (const k of ['B:attacker', 'B:honestB']) {
+      const p = h.state.positions[k];
+      if (!p) throw new Error('missing');
+      const r = h.claim(p.owner, 'B').effects[0];
+      if (r?.kind === 'RewardClaimed') paid += r.amount;
+    }
+    expect(paid).toBeLessThanOrEqual(st.poolAtSettlement);
   });
 
   it('S13 low-liquidity Arena (tiny backing): multipliers still bounded and deterministic', () => {

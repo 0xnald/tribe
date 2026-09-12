@@ -1,5 +1,5 @@
 import { ArenaParamsSchema, FeePolicySchema, ProtocolLimitsSchema } from '../config/policy';
-import { assertI64, maxBig, notionalUsdc } from '../math/fixed';
+import { assertI64, maxBig, minBig, notionalUsdc } from '../math/fixed';
 import {
   accrualDelta,
   accruePosition,
@@ -9,7 +9,7 @@ import {
   newPosition,
   type Window,
 } from './accrual';
-import { distribute, payoutHardCap, type WeightedPosition } from './distribution';
+import type { WeightedPosition } from './distribution';
 import { ErrorCode, fail } from './errors';
 import { feeRequired, splitFee } from './fees';
 import { validatePriceUpdate, type PriceInput } from './oracle';
@@ -25,6 +25,7 @@ import {
   type PositionState,
   type SideId,
   type SidePriceSnapshot,
+  type SideState,
 } from './types';
 import { underdogMultiplier } from './underdog';
 import { computeUpsetBonus } from './upset';
@@ -377,7 +378,7 @@ function settle(s0: ArenaState, e: Extract<ArenaEvent, { type: 'settle' }>): App
   const shareInputs: ShareInputs = { sides: s.sides, valuations: vals };
 
   let winnerTwabShareBps = 5000n;
-  let mUpsetQ4 = 10_000n;
+  let mSettleQ4 = 10_000n;
   let upsetBonus = 0n;
   let wTotal = 0n;
   if (outcome.winner !== 'TIE') {
@@ -392,9 +393,9 @@ function settle(s0: ArenaState, e: Extract<ArenaEvent, { type: 'settle' }>): App
         upsetBonusCapUsdc: s.config.limits.upsetBonusCapUsdc,
       },
     });
-    mUpsetQ4 = u.mUpsetQ4;
+    mSettleQ4 = u.mUpsetQ4;
     upsetBonus = u.bonus;
-    wTotal = s.sides[outcome.winner].effUnitSeconds;
+    wTotal = sideRewardDenominator(s.sides[outcome.winner], mSettleQ4);
   }
   const poolAtSettlement = s.rewardVault + upsetBonus;
   return {
@@ -410,7 +411,7 @@ function settle(s0: ArenaState, e: Extract<ArenaEvent, { type: 'settle' }>): App
         poolAtSettlement,
         wTotal,
         winnerTwabShareBps,
-        mUpsetQ4,
+        mSettleQ4,
         upsetBonus,
         settledAt: e.now,
       },
@@ -429,17 +430,30 @@ function settle(s0: ArenaState, e: Extract<ArenaEvent, { type: 'settle' }>): App
 }
 
 /**
- * Reward weight of a winning position after final accrual. With
- * `underdogSettlementClamp` the entry-time boost can never exceed the boost
- * the whole-Arena TWAB would have granted (ECONOMICS §7.4 proposal).
+ * Frozen reward denominator of the winning side (ECONOMICS §6.1):
+ * min(eff_unit_seconds, reward_unit_seconds × m_settle). It is ≥ the sum of
+ * the clamped position weights, so Σ payouts ≤ pool; any gap rolls over.
+ */
+export function sideRewardDenominator(side: SideState, mSettleQ4: bigint): bigint {
+  return minBig(side.effUnitSeconds, side.rewardUnitSeconds * mSettleQ4);
+}
+
+/**
+ * Final reward weight of a position (ECONOMICS §7.4, normative): the
+ * entry-time boost can never exceed the boost the whole-Arena TWAB grants.
+ *   W_i = min(eff_unit_seconds_i, unit_seconds_i × m_settle)
  */
 export function positionRewardWeight(s: ArenaState, p: PositionState): bigint {
   const st = s.settlement;
   if (!st) fail(ErrorCode.InvalidStatus, 'not settled');
   const final = accruePosition(p, maxBig(s.config.endTs, p.lastTouchTs), windowOf(s));
-  if (!s.config.underdogSettlementClamp) return final.effUnitSeconds;
-  const clamp = final.unitSeconds * st.mUpsetQ4;
-  return final.effUnitSeconds < clamp ? final.effUnitSeconds : clamp;
+  return minBig(final.effUnitSeconds, final.unitSeconds * st.mSettleQ4);
+}
+
+/** Normative payout (ECONOMICS §6.1): floor(pool × W_i / W_total); no per-position cap. */
+export function payoutProportional(pool: bigint, weight: bigint, wTotal: bigint): bigint {
+  if (wTotal === 0n || weight === 0n) return 0n;
+  return (pool * weight) / wTotal;
 }
 
 /** Final (end_ts-accrued) reward weights of every winning-side position. */
@@ -466,19 +480,7 @@ function claim(s: ArenaState, e: Extract<ArenaEvent, { type: 'claim' }>): ApplyR
   const weight = positionRewardWeight(s, pos);
   if (weight === 0n) fail(ErrorCode.NoRewardWeight);
 
-  const capBps = BigInt(s.config.params.maxShareBps);
-  let amount: bigint;
-  if (s.config.distributionMode === 'HardCap' && !s.config.underdogSettlementClamp) {
-    amount = payoutHardCap(st.poolAtSettlement, weight, st.wTotal, capBps);
-  } else {
-    const r = distribute(
-      s.config.distributionMode,
-      st.poolAtSettlement,
-      finalWinningWeights(s),
-      capBps,
-    );
-    amount = r.payouts.get(positionKey(e.side, e.owner)) ?? 0n;
-  }
+  const amount = payoutProportional(st.poolAtSettlement, weight, st.wTotal);
   if (amount === 0n) fail(ErrorCode.NothingToClaim);
   if (amount > s.rewardVault) fail(ErrorCode.InsufficientVault, `${amount} > ${s.rewardVault}`);
   return {

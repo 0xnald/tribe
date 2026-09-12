@@ -21,10 +21,10 @@ import {
   type ArenaEffect,
   type ArenaEvent,
 } from './arena';
-import { distribute, type WeightedPosition } from './distribution';
+import { distribute, type DistributionMode, type WeightedPosition } from './distribution';
 import { splitFee } from './fees';
 import { isTribeError } from './errors';
-import type { ArenaState, DistributionMode, SideId } from './types';
+import type { ArenaState, SideId } from './types';
 import { ONE_Q4 } from './underdog';
 
 /**
@@ -76,14 +76,9 @@ function feeFor(state: ArenaState, side: SideId, units: bigint): bigint {
 /** Turn abstract steps into concrete events, applying them and recording what was accepted. */
 function runSteps(
   steps: Step[],
-  opts: { mode?: DistributionMode; clamp?: boolean; endPriceA?: bigint } = {},
+  opts: { endPriceA?: bigint } = {},
 ): { state: ArenaState; accepted: ArenaEvent[]; rejected: number; effects: ArenaEffect[] } {
-  const cfg = arenaConfig({
-    startTs: START,
-    durationSecs: DURATION,
-    distributionMode: opts.mode ?? 'HardCap',
-    underdogSettlementClamp: opts.clamp ?? false,
-  });
+  const cfg = arenaConfig({ startTs: START, durationSecs: DURATION });
   let state = createArena(cfg, T0).state;
   const accepted: ArenaEvent[] = [];
   const effects: ArenaEffect[] = [];
@@ -203,56 +198,50 @@ describe('engine invariants (property-based)', () => {
     );
   });
 
-  it('every multiplier is within [1.0, cap]; Σ payouts ≤ pool in every mode; losers get nothing', () => {
-    const modes: DistributionMode[] = ['HardCap', 'WaterFill', 'ConditionalCap', 'Proportional'];
+  it('every multiplier is within [1.0, cap]; Σ payouts ≤ pool; losers get nothing', () => {
     fc.assert(
-      fc.property(
-        fc.array(stepArb, { minLength: 1, maxLength: 30 }),
-        fc.constantFrom(...modes),
-        fc.boolean(),
-        (steps, mode, clamp) => {
-          const { state, effects } = runSteps(steps, { mode, clamp });
-          for (const e of effects) {
-            if (e.kind !== 'Backed') continue;
-            expect(e.multiplierQ4).toBeGreaterThanOrEqual(ONE_Q4);
-            expect(e.multiplierQ4).toBeLessThanOrEqual(BigInt(DEFAULT_ARENA_PARAMS.underdog.capQ4));
-          }
-          const st = state.settlement;
-          if (!st) throw new Error('not settled');
-          let s = state;
-          let paid = 0n;
-          for (const p of Object.values(state.positions)) {
-            try {
-              const r = applyEvent(s, {
-                type: 'claim',
-                now: END + HOUR,
-                owner: p.owner,
-                side: p.side,
-              });
-              s = r.state;
-              const eff = r.effects[0];
-              if (eff?.kind === 'RewardClaimed') {
-                paid += eff.amount;
-                expect(p.side).toBe(st.winner);
-              }
-            } catch (err) {
-              if (!isTribeError(err)) throw err;
-              if (st.winner !== 'TIE' && p.side !== st.winner)
-                expect(err.code).toBe('NotWinningSide');
+      fc.property(fc.array(stepArb, { minLength: 1, maxLength: 30 }), (steps) => {
+        const { state, effects } = runSteps(steps);
+        for (const e of effects) {
+          if (e.kind !== 'Backed') continue;
+          expect(e.multiplierQ4).toBeGreaterThanOrEqual(ONE_Q4);
+          expect(e.multiplierQ4).toBeLessThanOrEqual(BigInt(DEFAULT_ARENA_PARAMS.underdog.capQ4));
+        }
+        const st = state.settlement;
+        if (!st) throw new Error('not settled');
+        let s = state;
+        let paid = 0n;
+        for (const p of Object.values(state.positions)) {
+          try {
+            const r = applyEvent(s, {
+              type: 'claim',
+              now: END + HOUR,
+              owner: p.owner,
+              side: p.side,
+            });
+            s = r.state;
+            const eff = r.effects[0];
+            if (eff?.kind === 'RewardClaimed') {
+              paid += eff.amount;
+              expect(p.side).toBe(st.winner);
             }
+          } catch (err) {
+            if (!isTribeError(err)) throw err;
+            if (st.winner !== 'TIE' && p.side !== st.winner)
+              expect(err.code).toBe('NotWinningSide');
           }
-          expect(paid).toBeLessThanOrEqual(st.poolAtSettlement);
-          expect(s.rewardVault).toBe(st.poolAtSettlement - paid);
-          expect(s.rewardVault).toBeGreaterThanOrEqual(0n);
-          // second claims all fail
-          for (const p of Object.values(s.positions)) {
-            if (!p.claimed) continue;
-            expect(() =>
-              applyEvent(s, { type: 'claim', now: END + HOUR, owner: p.owner, side: p.side }),
-            ).toThrow();
-          }
-        },
-      ),
+        }
+        expect(paid).toBeLessThanOrEqual(st.poolAtSettlement);
+        expect(s.rewardVault).toBe(st.poolAtSettlement - paid);
+        expect(s.rewardVault).toBeGreaterThanOrEqual(0n);
+        // second claims all fail
+        for (const p of Object.values(s.positions)) {
+          if (!p.claimed) continue;
+          expect(() =>
+            applyEvent(s, { type: 'claim', now: END + HOUR, owner: p.owner, side: p.side }),
+          ).toThrow();
+        }
+      }),
       { numRuns: 120 },
     );
   });
@@ -291,23 +280,31 @@ describe('engine invariants (property-based)', () => {
     );
   });
 
-  it('settlement clamp never increases any weight and never changes the honest (1.0×) ones', () => {
+  it('settlement clamp: W_i ≤ eff and ≤ raw × m_settle; honest 1.0× positions keep their eff weight; Σ W_i ≤ W_total', () => {
     fc.assert(
       fc.property(fc.array(stepArb, { minLength: 1, maxLength: 30 }), (steps) => {
-        const plain = runSteps(steps, { clamp: false }).state;
-        const clamped = runSteps(steps, { clamp: true }).state;
-        const wp = new Map(finalWinningWeights(plain).map((x) => [x.key, x.weight]));
-        const wc = new Map(finalWinningWeights(clamped).map((x) => [x.key, x.weight]));
-        for (const [k, v] of wc) {
-          const before = wp.get(k) ?? 0n;
-          expect(v).toBeLessThanOrEqual(before);
-          const p = clamped.positions[k];
-          // honest 1.0× positions: identical up to exit-rounding dust (< 1e4 unit-seconds)
-          if (p && p.units > 0n && p.effUnits === p.units * ONE_Q4)
-            expect(before - v).toBeLessThan(ONE_Q4);
+        const { state } = runSteps(steps);
+        const st = state.settlement;
+        if (!st) throw new Error('not settled');
+        expect(st.mSettleQ4).toBeGreaterThanOrEqual(ONE_Q4);
+        expect(st.mSettleQ4).toBeLessThanOrEqual(BigInt(DEFAULT_ARENA_PARAMS.underdog.capQ4));
+        let sum = 0n;
+        for (const { key, weight } of finalWinningWeights(state)) {
+          const p = state.positions[key];
+          if (!p) throw new Error('missing');
+          const f = accruePosition(p, p.lastTouchTs > END ? p.lastTouchTs : END, {
+            startTs: START,
+            endTs: END,
+          });
+          expect(weight).toBeLessThanOrEqual(f.effUnitSeconds);
+          expect(weight).toBeLessThanOrEqual(f.unitSeconds * st.mSettleQ4);
+          if (p.units > 0n && p.effUnits === p.units * ONE_Q4)
+            expect(f.effUnitSeconds - weight).toBeLessThan(ONE_Q4);
+          sum += weight;
         }
+        expect(sum).toBeLessThanOrEqual(st.wTotal);
       }),
-      { numRuns: 60 },
+      { numRuns: 100 },
     );
   });
 });

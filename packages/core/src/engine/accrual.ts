@@ -34,6 +34,10 @@ export function accrueSide(side: SideState, dt: bigint): SideState {
   return {
     ...side,
     unitSeconds: assertU128(side.unitSeconds + side.units * dt, 'side.unit_seconds'),
+    rewardUnitSeconds: assertU128(
+      side.rewardUnitSeconds + side.units * dt,
+      'side.reward_unit_seconds',
+    ),
     effUnitSeconds: assertU128(side.effUnitSeconds + side.effUnits * dt, 'side.eff_unit_seconds'),
   };
 }
@@ -142,6 +146,7 @@ export function applyExit(
     side: {
       ...side,
       units: side.units - x,
+      rewardUnitSeconds: side.rewardUnitSeconds - removedUnitSeconds,
       effUnits: side.effUnits - removedEff,
       effUnitSeconds: side.effUnitSeconds - removedEffSeconds,
     },

@@ -17,7 +17,7 @@ import {
   unitsForUsd,
 } from '../testing/fixtures';
 import { accruePosition } from './accrual';
-import { applyEvent, createArena, phaseOf, type ArenaEvent } from './arena';
+import { applyEvent, createArena, finalWinningWeights, phaseOf, type ArenaEvent } from './arena';
 import { ErrorCode, TribeError } from './errors';
 
 function expectCode(fn: () => unknown, code: ErrorCode): void {
@@ -400,10 +400,16 @@ describe('claim', () => {
     const a = h.claim('alice', 'A').effects[0];
     const b = h.claim('bob', 'A').effects[0];
     if (a?.kind !== 'RewardClaimed' || b?.kind !== 'RewardClaimed') throw new Error('bad effects');
-    // alice held 24 h, bob 12 h at equal capital → raw shares 2/3 and 1/3.
-    // Phase 0 HardCap (25 %) binds on BOTH → half the pool rolls over. See distribution.test.ts.
-    expect(a.amount).toBe((pool * 2500n) / 10_000n);
-    expect(b.amount).toBe((pool * 2500n) / 10_000n);
+    // Normative proportional payout: floor(pool × W_i / W_total) with the settlement clamp.
+    // alice: 24 h at 1.0×; bob: 12 h at 1.25× (A was the 37.5 % side when he entered);
+    // m_settle ≈ 1.36× (A's whole-Arena share ≈ 32 %) so neither tranche is clamped.
+    const st = h.state.settlement;
+    if (!st) throw new Error('not settled');
+    const w = new Map(finalWinningWeights(h.state).map((x) => [x.key, x.weight]));
+    expect(a.amount).toBe((pool * (w.get('A:alice') ?? 0n)) / st.wTotal);
+    expect(b.amount).toBe((pool * (w.get('A:bob') ?? 0n)) / st.wTotal);
+    expect(a.amount).toBeGreaterThan(b.amount);
+    expect(a.amount + b.amount).toBeGreaterThan((pool * 99n) / 100n); // no cap → ≤ 1 % dust rolls
     expect(a.amount + b.amount).toBeLessThanOrEqual(pool);
     expectCode(() => h.claim('alice', 'A'), ErrorCode.AlreadyClaimed);
     expect(h.state.totalClaimed).toBe(a.amount + b.amount);
@@ -418,7 +424,7 @@ describe('claim', () => {
     h.settle({ A: 300n, B: TSLA_PRICE_Q8 }, c.endTs + 4n * HOUR);
     const r = h.claim('alice', 'A', c.endTs + 5n * HOUR).effects[0];
     if (r?.kind !== 'RewardClaimed') throw new Error('expected claim');
-    expect(r.amount).toBe(((h.state.settlement?.poolAtSettlement ?? 0n) * 2500n) / 10_000n); // lone winner, HardCap 25 %
+    expect(r.amount).toBe(h.state.settlement?.poolAtSettlement ?? 0n); // lone winner takes the whole pool
     expect(h.state.positions['A:alice']?.units).toBe(0n);
   });
   it('claim before settlement is rejected', () => {

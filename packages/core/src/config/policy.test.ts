@@ -47,13 +47,12 @@ describe('ArenaParams', () => {
       warmupBps: 1000,
       warmupFloorSecs: 1800,
     });
-    expect(DEFAULT_ARENA_PARAMS.maxShareBps).toBe(2500);
     expect(DEFAULT_ARENA_PARAMS.minBackingUsdc).toBe(5_000_000n);
   });
-  it('rejects a zero share cap', () => {
-    expect(ArenaParamsSchema.safeParse({ ...DEFAULT_ARENA_PARAMS, maxShareBps: 0 }).success).toBe(
-      false,
-    );
+  it('rejects a min-hold that leaves no backing window', () => {
+    expect(
+      ArenaParamsSchema.safeParse({ ...DEFAULT_ARENA_PARAMS, minHoldBps: 10_000 }).success,
+    ).toBe(false);
   });
 });
 

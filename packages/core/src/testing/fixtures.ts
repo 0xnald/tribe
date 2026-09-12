@@ -63,10 +63,8 @@ export interface ArenaFixtureOptions {
   durationSecs?: bigint;
   params?: Partial<ArenaParams>;
   assets?: Record<SideId, ArenaAssetSpec>;
-  distributionMode?: ArenaConfig['distributionMode'];
   allowClosedSettlement?: boolean;
   sponsorOpen?: boolean;
-  underdogSettlementClamp?: boolean;
 }
 
 export function arenaConfig(o: ArenaFixtureOptions = {}): ArenaConfig {
@@ -82,9 +80,7 @@ export function arenaConfig(o: ArenaFixtureOptions = {}): ArenaConfig {
     feePolicy: DEFAULT_FEE_POLICY,
     limits: DEFAULT_PROTOCOL_LIMITS,
     sponsorOpen: o.sponsorOpen ?? true,
-    distributionMode: o.distributionMode ?? 'HardCap',
     allowClosedSettlement: o.allowClosedSettlement ?? false,
-    underdogSettlementClamp: o.underdogSettlementClamp ?? false,
   };
 }
 

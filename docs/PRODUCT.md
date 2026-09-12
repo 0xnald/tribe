@@ -86,6 +86,10 @@ invariants below are product commitments:
    sponsored pools, protocol-funded promotional pools, creator-funded pools.
 4. **Rewards are conviction-weighted**: capital × holding duration × underdog
    multiplier, computed deterministically on-chain from integer accumulators.
+   The winning side shares the pool **proportionally** — there is no
+   per-wallet cap — and every underdog boost is bounded at settlement by the
+   whole-Arena backing history, so a manufactured multiplier can never be
+   locked in.
 5. **Nobody is locked.** Users can exit an Arena Position before settlement.
    For the MVP a full early exit forfeits future Arena Rewards for that
    position; the underlying asset is always withdrawable.

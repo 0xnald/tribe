@@ -9,7 +9,7 @@ import {
   payoutHardCap,
   type WeightedPosition,
 } from './distribution';
-import type { DistributionMode } from './types';
+import type { DistributionMode } from './distribution';
 
 const POOL = 4_000_000_000n; // 4 000 USDC
 const CAP = 2500n;

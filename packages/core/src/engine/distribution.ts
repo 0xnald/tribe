@@ -1,15 +1,18 @@
 import { assertU128, minBig } from '../math/fixed';
 import { ErrorCode, fail } from './errors';
-import type { DistributionMode } from './types';
 
 /**
- * Reward distribution (ECONOMICS §6).
+ * Reward distribution utilities — INTERNAL / analysis only.
  *
- * Four cap behaviours are implemented so they can be compared on identical
- * inputs; `HardCap` is the Phase 0 default. Every mode guarantees
- * Σ payouts ≤ pool with floor division and returns the undistributed
- * remainder explicitly (rollover).
+ * The normative protocol rule (ECONOMICS §6.1) is proportional payout with
+ * no per-position cap, implemented O(1) in `arena.ts` (`payoutProportional`).
+ * The capped variants below (HardCap, WaterFill, ConditionalCap) were the
+ * Phase 1 comparison set and are kept for tests and analysis; they are not
+ * exposed to Arena creators and are not part of the on-chain program.
+ * Every mode guarantees Σ payouts ≤ pool with floor division.
  */
+
+export type DistributionMode = 'Proportional' | 'HardCap' | 'WaterFill' | 'ConditionalCap';
 
 export interface WeightedPosition {
   key: string;

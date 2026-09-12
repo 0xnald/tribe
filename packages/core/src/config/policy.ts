@@ -46,11 +46,10 @@ export const ArenaParamsSchema = z
     minHoldBps: bps,
     minHoldFloorSecs: secs,
     underdog: UnderdogPolicySchema,
-    maxShareBps: bps,
     settlementGraceSecs: secs,
     minBackingUsdc: z.bigint().nonnegative(),
   })
-  .refine((p) => p.maxShareBps > 0, { message: 'maxShareBps must be > 0' });
+  .refine((p) => p.minHoldBps < 10_000, { message: 'minHoldBps must leave a backing window' });
 export type ArenaParams = z.infer<typeof ArenaParamsSchema>;
 
 export const ProtocolLimitsSchema = z
@@ -83,7 +82,6 @@ export const DEFAULT_ARENA_PARAMS: ArenaParams = ArenaParamsSchema.parse({
   minHoldBps: 1000,
   minHoldFloorSecs: 15 * 60,
   underdog: { slope: 2, capQ4: 20_000, warmupBps: 1000, warmupFloorSecs: 30 * 60 },
-  maxShareBps: 2500,
   settlementGraceSecs: 6 * H,
   minBackingUsdc: 5_000_000n,
 });
