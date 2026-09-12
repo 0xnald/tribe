@@ -556,11 +556,11 @@
     },
     {
       "name": "overflow boundary",
-      "description": "2^63 at expo +8",
+      "description": "2^62 at expo +8 (i64-representable on-chain; Q8 result exceeds u64)",
       "inputs": {
         "input": {
           "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-          "price": "9223372036854775808",
+          "price": "4611686018427387904",
           "expo": 8,
           "conf": "0",
           "publishTime": "1760000000",
@@ -581,7 +581,7 @@
       },
       "expected": {
         "ok": false,
-        "code": "OracleUnsupportedExponent"
+        "code": "MathOverflow"
       }
     }
   ]

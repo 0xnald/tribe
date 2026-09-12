@@ -1,5 +1,5 @@
 import { MULT_Q6 } from '../constants';
-import { MathError, refPriceQ8, toQ8 } from '../math/fixed';
+import { refPriceQ8, toQ8 } from '../math/fixed';
 import { ErrorCode, type ErrorCode as ErrorCodeT } from './errors';
 import type { ArenaAssetSpec, PriceMode, SidePriceSnapshot } from './types';
 
@@ -83,13 +83,18 @@ export function validatePriceUpdate(
     mode = 'LastKnown';
   }
 
+  // Exponent range is a policy check (OracleUnsupportedExponent); a price that
+  // does not fit Q8/u64 after normalisation is an arithmetic bound (MathOverflow).
+  if (!Number.isInteger(input.expo) || input.expo < -18 || input.expo > 8) {
+    return { ok: false, code: ErrorCode.OracleUnsupportedExponent, detail: `expo ${input.expo}` };
+  }
   let oraclePriceQ8: bigint;
   try {
     oraclePriceQ8 = toQ8(input.price, input.expo);
   } catch (e) {
     return {
       ok: false,
-      code: e instanceof MathError ? ErrorCode.OracleUnsupportedExponent : ErrorCode.MathOverflow,
+      code: ErrorCode.MathOverflow,
       detail: e instanceof Error ? e.message : String(e),
     };
   }

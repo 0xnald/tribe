@@ -6,6 +6,10 @@ packages:
 allowBuilds:
   unrs-resolver: true
   esbuild: true
+  # web3.js optional natives — JS fallbacks are used; no build scripts run
+  bigint-buffer: false
+  bufferutil: false
+  utf-8-validate: false
 
 # Written by create-next-app: exempt the pinned Next.js release from pnpm's
 # minimum-release-age quarantine so the exact version resolves.

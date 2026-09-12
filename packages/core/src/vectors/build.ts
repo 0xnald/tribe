@@ -890,9 +890,9 @@ export const oracleCategory: Category<OracleCase> = {
     },
     {
       name: 'overflow boundary',
-      description: '2^63 at expo +8',
+      description: '2^62 at expo +8 (i64-representable on-chain; Q8 result exceeds u64)',
       inputs: {
-        input: price(BONK, 1n << 63n, T, { expo: 8 }),
+        input: price(BONK, 1n << 62n, T, { expo: 8 }),
         asset: BONK,
         targetTs: T,
         allowClosed: false,

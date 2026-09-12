@@ -1,0 +1,20 @@
+[toolchain]
+anchor_version = "1.2.0"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+tribe_arena = "shzfcWWZtWWTMfRuEvdBAsJZUe3mYork3wug5z5U5w4"
+
+[programs.devnet]
+tribe_arena = "shzfcWWZtWWTMfRuEvdBAsJZUe3mYork3wug5z5U5w4"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+# Program tests run under LiteSVM (deterministic clock + Pyth fixtures); see packages/program-client.
+test = "echo 'use: pnpm --filter @tribe/program-client test' && exit 1"

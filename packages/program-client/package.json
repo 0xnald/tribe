@@ -1,0 +1,38 @@
+{
+  "name": "@tribe/program-client",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Typed client for the tribe_arena Anchor program: PDAs, instruction builders, fetchers, tx composition helpers.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "test:program": "vitest run --config vitest.program.config.ts"
+  },
+  "dependencies": {
+    "@anchor-lang/core": "^1.2.0",
+    "@solana/spl-token": "^0.4.15",
+    "@solana/web3.js": "^1.99.0",
+    "@tribe/core": "workspace:*",
+    "bn.js": "^5.2.3",
+    "bs58": "^6.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@types/bn.js": "^5.2.0",
+    "@types/node": "^22.20.2",
+    "eslint": "^9.39.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^5.0.0"
+  },
+  "optionalDependencies": {
+    "litesvm": "0.8.0"
+  }
+}
