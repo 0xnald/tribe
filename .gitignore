@@ -1,0 +1,38 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+.next/
+out/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# anchor / solana
+programs/**/target/
+.anchor/
+test-ledger/
+**/*.so
+target/
+
+# env & secrets
+.env
+.env.*
+!.env.example
+*.pem
+keys/
+*.keypair.json
+wallet*.json
+
+# os / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
+.turbo/
+.vercel
