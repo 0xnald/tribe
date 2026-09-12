@@ -29,27 +29,27 @@
 Dark is the default theme (the Arena reads best on ink); light is fully
 supported via `prefers-color-scheme` and a manual toggle.
 
-| Token | Dark | Light | Use |
-| --- | --- | --- | --- |
-| `--bg` | `#0E0F12` Ink | `#F6F3EC` Bone | page background |
-| `--bg-elev` | `#15171C` | `#FFFFFF` | cards, sheets |
-| `--bg-sunken` | `#0A0B0D` | `#EEEAE1` | wells, bars background |
-| `--line` | `#262930` | `#E2DDD2` | hairlines |
-| `--line-strong` | `#3A3E48` | `#C9C3B6` | focus/hover borders |
-| `--fg` | `#F4F1EA` | `#121317` | primary text |
-| `--fg-muted` | `#9A9FAA` | `#5F6470` | secondary text |
-| `--fg-faint` | `#5C616B` | `#9A9FAA` | tertiary text, disabled |
+| Token           | Dark          | Light          | Use                     |
+| --------------- | ------------- | -------------- | ----------------------- |
+| `--bg`          | `#0E0F12` Ink | `#F6F3EC` Bone | page background         |
+| `--bg-elev`     | `#15171C`     | `#FFFFFF`      | cards, sheets           |
+| `--bg-sunken`   | `#0A0B0D`     | `#EEEAE1`      | wells, bars background  |
+| `--line`        | `#262930`     | `#E2DDD2`      | hairlines               |
+| `--line-strong` | `#3A3E48`     | `#C9C3B6`      | focus/hover borders     |
+| `--fg`          | `#F4F1EA`     | `#121317`      | primary text            |
+| `--fg-muted`    | `#9A9FAA`     | `#5F6470`      | secondary text          |
+| `--fg-faint`    | `#5C616B`     | `#9A9FAA`      | tertiary text, disabled |
 
 ### 2.2 Tribe accents
 
-| Token | Value | Use |
-| --- | --- | --- |
-| `--volt` | `#D9FF3D` | signature: primary CTA fill, LIVE dot, winner glow, key highlights. Text on volt is always Ink. |
-| `--ember` | `#FF4D1F` | urgency: lead change flash, "ending soon", streak fire. |
-| `--ultra` | `#2F5BFF` | informational links, focus ring (dark), selected state. |
-| `--rise` | `#19C37D` | positive performance. |
-| `--fall` | `#F03E5A` | negative performance. |
-| `--gold` | `#F5B301` | sponsored pools, rewards, Victory Roll. |
+| Token     | Value     | Use                                                                                             |
+| --------- | --------- | ----------------------------------------------------------------------------------------------- |
+| `--volt`  | `#D9FF3D` | signature: primary CTA fill, LIVE dot, winner glow, key highlights. Text on volt is always Ink. |
+| `--ember` | `#FF4D1F` | urgency: lead change flash, "ending soon", streak fire.                                         |
+| `--ultra` | `#2F5BFF` | informational links, focus ring (dark), selected state.                                         |
+| `--rise`  | `#19C37D` | positive performance.                                                                           |
+| `--fall`  | `#F03E5A` | negative performance.                                                                           |
+| `--gold`  | `#F5B301` | sponsored pools, rewards, Victory Roll.                                                         |
 
 Rules: Volt is the only accent allowed as a large fill. Ember appears in
 flashes and small badges, never as a background block. Rise/Fall colour
@@ -62,21 +62,21 @@ its glow, and its CTA. Hues are chosen so any seed pairing is distinct
 (ΔE > 25) and all pass 3:1 against `--bg` for non-text use. Text is never
 set in asset colour; it sits on an asset-tinted surface with `--fg`.
 
-| Asset | Hex | Note |
-| --- | --- | --- |
-| BONK | `#FF8A1F` | orange |
-| TSLAx | `#E31937` | Tesla red |
-| SOL | `#19E0A0` | Solana green |
-| SPYx | `#2E6BE6` | index blue |
-| BTC | `#F7931A` | bitcoin orange (never paired with BONK) |
+| Asset | Hex       | Note                                                                            |
+| ----- | --------- | ------------------------------------------------------------------------------- |
+| BONK  | `#FF8A1F` | orange                                                                          |
+| TSLAx | `#E31937` | Tesla red                                                                       |
+| SOL   | `#19E0A0` | Solana green                                                                    |
+| SPYx  | `#2E6BE6` | index blue                                                                      |
+| BTC   | `#F7931A` | bitcoin orange (never paired with BONK)                                         |
 | MSTRx | `#FF5E1F` | strategy orange-red (paired with BTC: BTC uses `--gold` tint variant `#F2C14E`) |
-| PENGU | `#7FD1FF` | ice blue |
-| DISx | `#1E3BB8` | Disney navy |
-| NVDAx | `#76B900` | NVIDIA green |
-| AAPLx | `#B8BCC6` | space grey |
-| WIF | `#D9A066` | tan |
-| GMEx | `#D42B2B` | GME red |
-| GLDx | `#E6B422` | gold |
+| PENGU | `#7FD1FF` | ice blue                                                                        |
+| DISx  | `#1E3BB8` | Disney navy                                                                     |
+| NVDAx | `#76B900` | NVIDIA green                                                                    |
+| AAPLx | `#B8BCC6` | space grey                                                                      |
+| WIF   | `#D9A066` | tan                                                                             |
+| GMEx  | `#D42B2B` | GME red                                                                         |
+| GLDx  | `#E6B422` | gold                                                                            |
 
 Tints: `color-mix(in oklab, var(--asset) 14%, var(--bg-elev))` for surfaces,
 `… 32%` for bars in light mode, full hue for bars in dark mode.
@@ -88,29 +88,29 @@ Volt on Ink: 15.6:1. Ink on Volt: 15.6:1. Bone text on Ink: 16.8:1.
 
 ## 3. Typography
 
-| Role | Family | Notes |
-| --- | --- | --- |
-| Display | **Bricolage Grotesque** (variable, `opsz`, `wdth`) | headlines, Arena names, big percentages |
-| Body / UI | **Inter** (variable) | `font-feature-settings: "tnum", "ss01"` for numbers |
-| Mono | **JetBrains Mono** | addresses, signatures, tx previews |
+| Role      | Family                                             | Notes                                               |
+| --------- | -------------------------------------------------- | --------------------------------------------------- |
+| Display   | **Bricolage Grotesque** (variable, `opsz`, `wdth`) | headlines, Arena names, big percentages             |
+| Body / UI | **Inter** (variable)                               | `font-feature-settings: "tnum", "ss01"` for numbers |
+| Mono      | **JetBrains Mono**                                 | addresses, signatures, tx previews                  |
 
 Loaded via `next/font/google` with `display: swap` and system fallbacks.
 
 Scale (px / line-height / weight):
 
-| Token | Size | Use |
-| --- | --- | --- |
-| `hero-num` | 96 / 1.0 / 700 (tnum) | Arena performance on the Arena page (desktop); 56 on mobile |
-| `display-xl` | 64 / 1.02 / 700, `wdth 90` | homepage tagline |
-| `display-lg` | 44 / 1.05 / 700 | Arena names in hero |
-| `display-md` | 32 / 1.1 / 700 | card asset names |
-| `h1` | 32 / 1.2 / 700 (Inter) | page titles |
-| `h2` | 24 / 1.25 / 600 | sections |
-| `h3` | 18 / 1.3 / 600 | card titles |
-| `body` | 16 / 1.5 / 400 | |
-| `small` | 14 / 1.45 / 400 | |
-| `micro` | 12 / 1.35 / 500, tracking 0.04em, uppercase | labels: LIVE, DEMO, BACKING |
-| `num-lg` / `num-md` | 28 / 20, tabular | money, counts |
+| Token               | Size                                        | Use                                                         |
+| ------------------- | ------------------------------------------- | ----------------------------------------------------------- |
+| `hero-num`          | 96 / 1.0 / 700 (tnum)                       | Arena performance on the Arena page (desktop); 56 on mobile |
+| `display-xl`        | 64 / 1.02 / 700, `wdth 90`                  | homepage tagline                                            |
+| `display-lg`        | 44 / 1.05 / 700                             | Arena names in hero                                         |
+| `display-md`        | 32 / 1.1 / 700                              | card asset names                                            |
+| `h1`                | 32 / 1.2 / 700 (Inter)                      | page titles                                                 |
+| `h2`                | 24 / 1.25 / 600                             | sections                                                    |
+| `h3`                | 18 / 1.3 / 600                              | card titles                                                 |
+| `body`              | 16 / 1.5 / 400                              |                                                             |
+| `small`             | 14 / 1.45 / 400                             |                                                             |
+| `micro`             | 12 / 1.35 / 500, tracking 0.04em, uppercase | labels: LIVE, DEMO, BACKING                                 |
+| `num-lg` / `num-md` | 28 / 20, tabular                            | money, counts                                               |
 
 Percentages always show sign and two decimals (`+8.42%`), money uses
 locale grouping with USDC suffix in UI (`$184,291`), token amounts show up
@@ -130,14 +130,14 @@ to 6 significant digits with the symbol.
 
 ## 5. Motion
 
-| Token | Value |
-| --- | --- |
-| `--dur-fast` | 120 ms (hover, toggles) |
-| `--dur-base` | 200 ms (sheets, chips) |
-| `--dur-slow` | 320 ms (bar changes, number rolls) |
-| `--dur-moment` | 600–900 ms (lead change, settlement, Victory Roll) |
-| `--ease-out` | `cubic-bezier(.2,.8,.2,1)` |
-| `--ease-spring` | Motion spring `{ stiffness: 420, damping: 32 }` |
+| Token           | Value                                              |
+| --------------- | -------------------------------------------------- |
+| `--dur-fast`    | 120 ms (hover, toggles)                            |
+| `--dur-base`    | 200 ms (sheets, chips)                             |
+| `--dur-slow`    | 320 ms (bar changes, number rolls)                 |
+| `--dur-moment`  | 600–900 ms (lead change, settlement, Victory Roll) |
+| `--ease-out`    | `cubic-bezier(.2,.8,.2,1)`                         |
+| `--ease-spring` | Motion spring `{ stiffness: 420, damping: 32 }`    |
 
 Moments (Motion / CSS):
 
@@ -253,17 +253,17 @@ five items; Create is the centre Volt action.
 
 Second person, present tense, verbs first. Short.
 
-| Situation | Copy |
-| --- | --- |
-| Hero | *Don't bet on what you believe in. Own it.* |
-| CTA | `BACK BONK` |
-| Success | *You own 1,240,000 BONK. It's in the Arena.* |
-| Exit warning | *Exiting now forfeits this position's Arena Rewards. Your BONK is returned to your wallet.* |
-| Late | *Backing closed 12 minutes ago. You can still buy BONK — it just won't count in this Arena.* |
-| Demo | *Demo Arena — simulated prices, no transaction.* |
-| Market hours | *TSLAx reference price updates during US market hours only.* |
-| Draw | *DRAW. Pool rolls into the next BONK vs TSLAx Arena.* |
-| Win | *BONK WINS. Your Arena Reward: 480 USDC.* |
+| Situation    | Copy                                                                                         |
+| ------------ | -------------------------------------------------------------------------------------------- |
+| Hero         | _Don't bet on what you believe in. Own it._                                                  |
+| CTA          | `BACK BONK`                                                                                  |
+| Success      | _You own 1,240,000 BONK. It's in the Arena._                                                 |
+| Exit warning | _Exiting now forfeits this position's Arena Rewards. Your BONK is returned to your wallet._  |
+| Late         | _Backing closed 12 minutes ago. You can still buy BONK — it just won't count in this Arena._ |
+| Demo         | _Demo Arena — simulated prices, no transaction._                                             |
+| Market hours | _TSLAx reference price updates during US market hours only._                                 |
+| Draw         | _DRAW. Pool rolls into the next BONK vs TSLAx Arena._                                        |
+| Win          | _BONK WINS. Your Arena Reward: 480 USDC._                                                    |
 
 Avoid: "bet", "wager", "odds", "payout ratio", "leverage", "moon".
 

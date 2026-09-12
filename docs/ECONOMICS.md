@@ -10,16 +10,16 @@
 
 ## 0. Notation and number formats
 
-| Symbol | Meaning | Representation |
-| --- | --- | --- |
-| `units` | Raw token amount of an asset (smallest unit) | `u64` |
-| `d` | Token decimals | `u8` |
-| `P` | Reference price in **Q8 USD** (USD × 10⁸) | `u64` (fits: $10¹⁰ max) |
-| `mult` | xStocks scaled-UI multiplier in **Q6** (× 10⁶) | `u64`, `1_000_000` = 1.0 |
-| `usdc` | USDC amount in micro-USDC (10⁻⁶) | `u64` |
-| `bps` | Basis points, 10 000 = 100% | `u16`/`u32` |
-| `t` | Unix timestamp, seconds | `i64` |
-| `unitSeconds` | ∫ units dt | `u128` |
+| Symbol        | Meaning                                        | Representation           |
+| ------------- | ---------------------------------------------- | ------------------------ |
+| `units`       | Raw token amount of an asset (smallest unit)   | `u64`                    |
+| `d`           | Token decimals                                 | `u8`                     |
+| `P`           | Reference price in **Q8 USD** (USD × 10⁸)      | `u64` (fits: $10¹⁰ max)  |
+| `mult`        | xStocks scaled-UI multiplier in **Q6** (× 10⁶) | `u64`, `1_000_000` = 1.0 |
+| `usdc`        | USDC amount in micro-USDC (10⁻⁶)               | `u64`                    |
+| `bps`         | Basis points, 10 000 = 100%                    | `u16`/`u32`              |
+| `t`           | Unix timestamp, seconds                        | `i64`                    |
+| `unitSeconds` | ∫ units dt                                     | `u128`                   |
 
 Rules:
 
@@ -106,7 +106,7 @@ else                        -> B wins
 
 `tie_bps` defaults to **1** (0.01%) and is an Arena parameter.
 
-Only the *reference prices* defined in ARCHITECTURE.md §5 may be used. DEX
+Only the _reference prices_ defined in ARCHITECTURE.md §5 may be used. DEX
 last-trade prints are never a settlement source.
 
 ---
@@ -117,13 +117,13 @@ Fees are the primary funding source of Arena Rewards. They are **policy
 parameters** captured into every Arena at creation (so a later policy change
 never alters a running Arena).
 
-| Parameter | Default | Notes |
-| --- | --- | --- |
-| `fee_bps` | 50 (0.50%) | Charged on every Back, in USDC. |
-| `split.reward_pool_bps` | 4000 | To the Arena Reward Pool vault. |
-| `split.protocol_bps` | 4000 | To the Tribe treasury. |
-| `split.creator_bps` | 2000 | To the Arena Creator. |
-| `creator_share_target` | `Creator` | `Creator` / `Protocol` / `RewardPool`; first-party Arenas use `RewardPool`. |
+| Parameter               | Default    | Notes                                                                       |
+| ----------------------- | ---------- | --------------------------------------------------------------------------- |
+| `fee_bps`               | 50 (0.50%) | Charged on every Back, in USDC.                                             |
+| `split.reward_pool_bps` | 4000       | To the Arena Reward Pool vault.                                             |
+| `split.protocol_bps`    | 4000       | To the Tribe treasury.                                                      |
+| `split.creator_bps`     | 2000       | To the Arena Creator.                                                       |
+| `creator_share_target`  | `Creator`  | `Creator` / `Protocol` / `RewardPool`; first-party Arenas use `RewardPool`. |
 
 Constraint: `reward_pool_bps + protocol_bps + creator_bps == 10_000`.
 
@@ -190,7 +190,7 @@ Solvency invariant: the sum of all payouts is computed from a fixed
 
 A naive "capital at settlement" model lets a whale deposit in the final
 minute and dominate. Tribe weights each position by the **integral of capital
-over time**, so weight is proportional to *how much* × *for how long*.
+over time**, so weight is proportional to _how much_ × _for how long_.
 
 ### 5.2 Per-position state (on-chain)
 
@@ -289,12 +289,12 @@ discounting it, and it defines the **LOCKED** state.
 
 24-hour Arena, `min_hold` = 2.4 h.
 
-| Position | Capital | Enters at | Exits | eff_unit_seconds (relative) |
-| --- | --- | --- | --- | --- |
-| Alice | $1 000 | t = 0 | — | 1 000 × 86 400 = 86.4 M |
-| Bob | $10 000 | t = 20 h | — | 10 000 × 14 400 = 144 M |
-| Carol | $50 000 | t = 21.7 h | — | **rejected** (backing closed at 21.6 h) |
-| Dave | $1 000 | t = 0 | full exit at 23 h | 0 (forfeit) |
+| Position | Capital | Enters at  | Exits             | eff_unit_seconds (relative)             |
+| -------- | ------- | ---------- | ----------------- | --------------------------------------- |
+| Alice    | $1 000  | t = 0      | —                 | 1 000 × 86 400 = 86.4 M                 |
+| Bob      | $10 000 | t = 20 h   | —                 | 10 000 × 14 400 = 144 M                 |
+| Carol    | $50 000 | t = 21.7 h | —                 | **rejected** (backing closed at 21.6 h) |
+| Dave     | $1 000  | t = 0      | full exit at 23 h | 0 (forfeit)                             |
 
 Bob's 10× capital for 1/6 of the time earns 1.67× Alice's weight — linear in
 capital-time, never dominated by timing alone. Carol cannot snipe. Dave
@@ -357,13 +357,13 @@ receives it at creation. If no such Arena exists after
 
 BONK vs TSLAx, 24 h, BONK wins. `pool_at_settlement = 4 000 USDC`.
 
-| Position | W_i (M) | Raw share | Capped (25%) | Payout |
-| --- | --- | --- | --- | --- |
-| Alice | 86.4 | 12.0% | 12.0% | 480.00 |
-| Bob | 144.0 | 20.0% | 20.0% | 800.00 |
-| Erin (early whale) | 432.0 | 60.0% | 25.0% | 1 000.00 |
-| Frank | 57.6 | 8.0% | 8.0% | 320.00 |
-| **Total** | 720.0 | 100% | 65% | **2 600.00** |
+| Position           | W_i (M) | Raw share | Capped (25%) | Payout       |
+| ------------------ | ------- | --------- | ------------ | ------------ |
+| Alice              | 86.4    | 12.0%     | 12.0%        | 480.00       |
+| Bob                | 144.0   | 20.0%     | 20.0%        | 800.00       |
+| Erin (early whale) | 432.0   | 60.0%     | 25.0%        | 1 000.00     |
+| Frank              | 57.6    | 8.0%      | 8.0%         | 320.00       |
+| **Total**          | 720.0   | 100%      | 65%          | **2 600.00** |
 
 1 400 USDC rolls over to the next BONK vs TSLAx Arena.
 
@@ -399,13 +399,13 @@ share 40% → 1.2×, share ≥ 50% → 1.0×.
 
 ### 7.2 Manipulation defences
 
-Threat: a whale backs the *other* side to make its own side look like the
+Threat: a whale backs the _other_ side to make its own side look like the
 underdog, backs its own side at a boosted multiplier, then exits the other
 side.
 
 1. **`max(instant, TWAB)`.** Any flash deposit on the other side lowers the
    instantaneous share immediately but barely moves the time-weighted share.
-   The multiplier uses whichever is *less favourable*. To drag TWAB from 50%
+   The multiplier uses whichever is _less favourable_. To drag TWAB from 50%
    to 20% at hour 6 of a 24 h Arena, the attacker must hold 4× the existing
    backing on the other side for ≈18 h — real market exposure, real fees, and
    by then their own tranche has almost no time weight.
@@ -421,11 +421,12 @@ side.
    ```
 
    A manipulation in the first minutes yields ≈1.00×.
+
 4. **Fees on both sides.** Backing the other side costs the full fee and the
    attacker's units on that side are forfeited from rewards on exit.
 5. **Per-position share cap** (§6.1) bounds the payoff of any single
    manipulated position to 25% of the pool.
-6. **Bounded upside.** The multiplier only redistributes *within* the winning
+6. **Bounded upside.** The multiplier only redistributes _within_ the winning
    side and is capped at 2.0×. It never touches principal and it cannot make
    the pool larger by itself (only the Upset Bonus does, and that uses the
    whole-Arena TWAB, §7.3).
@@ -516,20 +517,20 @@ reached SETTLED with ≥ 10 distinct participants.
 
 ## 12. Parameter registry (defaults)
 
-| Key | Default | Scope |
-| --- | --- | --- |
-| `fee_bps` | 50 | policy |
-| `reward_pool_bps / protocol_bps / creator_bps` | 4000 / 4000 / 2000 | policy |
-| `tie_bps` | 1 | Arena |
-| `min_hold_bps`, `min_hold_floor_secs` | 1000, 900 | Arena |
-| `warmup_bps`, `warmup_floor_secs` | 1000, 1800 | Arena |
-| `underdog_slope`, `underdog_cap_q4` | 2, 20 000 | Arena |
-| `max_share_bps` | 2500 | Arena |
-| `reserve_draw_bps`, `upset_bonus_cap_usdc` | 1000, 5 000 USDC | protocol |
-| `claim_window_secs` | 30 days | protocol |
-| `settlement_grace_secs` | 6 h | Arena |
-| `min_backing_usdc` | 5 USDC | Arena |
-| `min_duration_secs`, `max_duration_secs` | 1 h, 30 days | protocol |
+| Key                                            | Default            | Scope    |
+| ---------------------------------------------- | ------------------ | -------- |
+| `fee_bps`                                      | 50                 | policy   |
+| `reward_pool_bps / protocol_bps / creator_bps` | 4000 / 4000 / 2000 | policy   |
+| `tie_bps`                                      | 1                  | Arena    |
+| `min_hold_bps`, `min_hold_floor_secs`          | 1000, 900          | Arena    |
+| `warmup_bps`, `warmup_floor_secs`              | 1000, 1800         | Arena    |
+| `underdog_slope`, `underdog_cap_q4`            | 2, 20 000          | Arena    |
+| `max_share_bps`                                | 2500               | Arena    |
+| `reserve_draw_bps`, `upset_bonus_cap_usdc`     | 1000, 5 000 USDC   | protocol |
+| `claim_window_secs`                            | 30 days            | protocol |
+| `settlement_grace_secs`                        | 6 h                | Arena    |
+| `min_backing_usdc`                             | 5 USDC             | Arena    |
+| `min_duration_secs`, `max_duration_secs`       | 1 h, 30 days       | protocol |
 
 All parameters are validated by `packages/core` (`ArenaConfigSchema`) and
 mirrored in the program's `ProtocolConfig` / `Arena` accounts.

@@ -3,7 +3,7 @@
 > **Status:** Source of truth. Changes to terminology, the financial model, or
 > the core loop require explicit approval.
 >
-> **Tagline:** *Don't bet on what you believe in. Own it.*
+> **Tagline:** _Don't bet on what you believe in. Own it._
 
 ---
 
@@ -15,14 +15,14 @@ Users enter live **Arenas** where two real assets compete on relative price
 performance over a defined time window — Solana meme coins against tokenized
 Wall Street stocks, index ETFs against SOL, gold against Bitcoin.
 
-When a user **Backs** a side, their capital is routed into the *actual asset*.
+When a user **Backs** a side, their capital is routed into the _actual asset_.
 They own it. The Arena decides who earns additional **Arena Rewards** and
 reputation. It never decides who keeps their money.
 
 ### 1.1 What Tribe is not
 
 **Tribe is not a binary prediction market.** Users purchase or commit real
-spot assets. Arena outcomes govern *additional rewards* rather than
+spot assets. Arena outcomes govern _additional rewards_ rather than
 transferring losing users' principal to winners.
 
 Tribe is also not:
@@ -57,18 +57,18 @@ This must feel like a **consumer social-finance product**, not a terminal.
 
 ## 3. Terminology (fixed)
 
-| Term | Meaning |
-| --- | --- |
-| **Tribe** | The product. |
-| **Arena** | The core primitive: two assets, one time window, one winner. |
-| **Back** | The user action of committing capital to a side of an Arena. |
-| **Arena Position** | A user's committed holding on one side of one Arena. |
-| **Backing** | The capital metric (USD value committed to a side / an Arena). |
-| **Arena Winner** | The side whose asset has the greater percentage return at settlement. |
-| **Arena Rewards** | Additional USDC rewards distributed to winning-side positions from the Arena Reward Pool. |
-| **Victory Roll** | Compounding rewards into more of the winning asset and/or the next compatible Arena. |
-| **Conviction Score** | The user's reputation metric. |
-| **Arena Creator** | The wallet that created an Arena; earns a configured share of its fees. |
+| Term                 | Meaning                                                                                   |
+| -------------------- | ----------------------------------------------------------------------------------------- |
+| **Tribe**            | The product.                                                                              |
+| **Arena**            | The core primitive: two assets, one time window, one winner.                              |
+| **Back**             | The user action of committing capital to a side of an Arena.                              |
+| **Arena Position**   | A user's committed holding on one side of one Arena.                                      |
+| **Backing**          | The capital metric (USD value committed to a side / an Arena).                            |
+| **Arena Winner**     | The side whose asset has the greater percentage return at settlement.                     |
+| **Arena Rewards**    | Additional USDC rewards distributed to winning-side positions from the Arena Reward Pool. |
+| **Victory Roll**     | Compounding rewards into more of the winning asset and/or the next compatible Arena.      |
+| **Conviction Score** | The user's reputation metric.                                                             |
+| **Arena Creator**    | The wallet that created an Arena; earns a configured share of its fees.                   |
 
 Do not rename these without explicit approval. UI copy, code identifiers,
 program account names, and documentation must use these terms consistently.
@@ -97,11 +97,11 @@ invariants below are product commitments:
 Worked example — **BONK vs TSLAx**, user backs BONK with 100 USDC:
 
 | Scenario | BONK move | TSLAx move | Arena result | Underlying value | Arena Rewards |
-| --- | --- | --- | --- | --- | --- |
-| A | +15% | +2% | BONK wins | ≈ $115 | share of pool |
-| B | +5% | +9% | BONK loses | ≈ $105 | none |
-| C | −10% | −12% | BONK wins | ≈ $90 | share of pool |
-| D | −10% | +1% | BONK loses | ≈ $90 | none |
+| -------- | --------- | ---------- | ------------ | ---------------- | ------------- |
+| A        | +15%      | +2%        | BONK wins    | ≈ $115           | share of pool |
+| B        | +5%       | +9%        | BONK loses   | ≈ $105           | none          |
+| C        | −10%      | −12%       | BONK wins    | ≈ $90            | share of pool |
+| D        | −10%      | +1%        | BONK loses   | ≈ $90            | none          |
 
 In every row the user still owns their BONK when the Arena ends. They can
 keep it, sell it, or roll it into another Arena.
@@ -110,7 +110,7 @@ keep it, sell it, or roll it into another Arena.
 
 **Primary user — the narrative-driven Solana native.** Holds memes and SOL,
 has opinions about Tesla and NVIDIA, is bored by brokerage apps, and lives on
-Crypto Twitter. Wants to *do something* with a conviction without a 20x perp.
+Crypto Twitter. Wants to _do something_ with a conviction without a 20x perp.
 
 **Secondary user — the tokenized-stock curious.** Has heard xStocks exist on
 Solana but has no reason to hold them. An Arena — "back NVDAx against SOL for
@@ -134,16 +134,16 @@ want to put a narrative on a scoreboard and fund a reward pool around it.
 
 ## 7. Product surfaces (MVP)
 
-| Surface | Purpose |
-| --- | --- |
-| **Home** | Hero Arena, Live Arenas, Trending, Ending Soon, Sponsored, Leaderboard teaser, How Tribe Works. |
-| **Arena page** | The visual star. Understandable in five seconds. Entry flow lives here. |
-| **Back flow** | Choose side → entry method (USDC or existing holdings) → amount → preview (route, slippage, fee, position, multiplier, eligibility) → sign → success → live position. |
-| **My Arenas** | Live positions, asset PnL, Arena relative performance, reward weight, projected share (labelled estimate), early exit, completed Arenas, claims, Victory Roll. |
-| **Create Arena** | Asset A, asset B, duration, optional reward funding, title, description. |
-| **Creator page** | Arenas created, backing, fees earned, participants, ranking. |
-| **Leaderboard** | Conviction Score, win rate (min participation), streaks, biggest upset, top creators, most-backed creators. |
-| **Share card** | OG image + deep link for every Arena. |
+| Surface          | Purpose                                                                                                                                                               |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Home**         | Hero Arena, Live Arenas, Trending, Ending Soon, Sponsored, Leaderboard teaser, How Tribe Works.                                                                       |
+| **Arena page**   | The visual star. Understandable in five seconds. Entry flow lives here.                                                                                               |
+| **Back flow**    | Choose side → entry method (USDC or existing holdings) → amount → preview (route, slippage, fee, position, multiplier, eligibility) → sign → success → live position. |
+| **My Arenas**    | Live positions, asset PnL, Arena relative performance, reward weight, projected share (labelled estimate), early exit, completed Arenas, claims, Victory Roll.        |
+| **Create Arena** | Asset A, asset B, duration, optional reward funding, title, description.                                                                                              |
+| **Creator page** | Arenas created, backing, fees earned, participants, ranking.                                                                                                          |
+| **Leaderboard**  | Conviction Score, win rate (min participation), streaks, biggest upset, top creators, most-backed creators.                                                           |
+| **Share card**   | OG image + deep link for every Arena.                                                                                                                                 |
 
 Detailed UI specifications live in [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md).
 
@@ -152,15 +152,15 @@ Detailed UI specifications live in [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md).
 The featured hero Arena is **BONK vs TSLAx** — Solana meme culture vs. Wall
 Street in three words.
 
-| Arena | Narrative |
-| --- | --- |
-| BONK vs TSLAx | Memes vs. Wall Street |
-| SOL vs SPYx | Solana vs. the S&P 500 |
-| BTC vs MSTRx | The asset vs. the leveraged proxy |
-| PENGU vs DISx | Internet culture vs. legacy media |
-| NVDAx vs AAPLx | AI vs. the incumbent |
-| WIF vs GMEx | Meme coin vs. meme stock |
-| GLDx vs BTC | Old money vs. digital gold |
+| Arena          | Narrative                         |
+| -------------- | --------------------------------- |
+| BONK vs TSLAx  | Memes vs. Wall Street             |
+| SOL vs SPYx    | Solana vs. the S&P 500            |
+| BTC vs MSTRx   | The asset vs. the leveraged proxy |
+| PENGU vs DISx  | Internet culture vs. legacy media |
+| NVDAx vs AAPLx | AI vs. the incumbent              |
+| WIF vs GMEx    | Meme coin vs. meme stock          |
+| GLDx vs BTC    | Old money vs. digital gold        |
 
 Seed Arenas are clearly labelled as **demo** or **live** according to the
 demo/real-mode rules in [ARCHITECTURE.md](./ARCHITECTURE.md#demo-mode-vs-real-mode).
@@ -186,7 +186,7 @@ position carries a visible provenance badge:
 
 ## 11. Success criteria (Stocklana judging)
 
-> *Could this be a real app that people will actually use?*
+> _Could this be a real app that people will actually use?_
 
 - A real user and problem: narrative-driven holders who want a reason to own
   tokenized stocks and memes side by side.

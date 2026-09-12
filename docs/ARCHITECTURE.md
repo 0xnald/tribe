@@ -53,17 +53,17 @@ tribe/
 
 ## 3. On-chain vs. off-chain
 
-| Concern | Where | Why |
-| --- | --- | --- |
-| Arena parameters & state | **On-chain** | Auditable, permissionless lifecycle, no trust in Tribe servers for outcomes. |
-| Position vaults & accumulators | **On-chain** | Holding verification and time weighting must be enforceable; ECONOMICS §5. |
-| Reward pool, sponsor deposits, fee routing | **On-chain** | Solvency by construction; sponsors can verify funding. |
-| Settlement prices | **On-chain** (Pyth `PriceUpdateV2` verified in-program) | Removes the Tribe crank from the trust base — anyone can settle with the same result. |
-| Claims | **On-chain** | Double-claim safety via PDA flag. |
-| Asset registry (eligibility) | **On-chain** allowlist, **off-chain** scoring | Program needs a small trustworthy list; the market-quality model needs rich data. |
-| Participant counts, activity feeds, leaderboards, Conviction Score | **Off-chain** indexer | Derived deterministically from events; cheap to recompute. |
-| Display prices, quotes, routes | **Off-chain** | Latency and cost; never used for settlement. |
-| Social cards, deep links, drafts | **Off-chain** | Pure presentation. |
+| Concern                                                            | Where                                                   | Why                                                                                   |
+| ------------------------------------------------------------------ | ------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Arena parameters & state                                           | **On-chain**                                            | Auditable, permissionless lifecycle, no trust in Tribe servers for outcomes.          |
+| Position vaults & accumulators                                     | **On-chain**                                            | Holding verification and time weighting must be enforceable; ECONOMICS §5.            |
+| Reward pool, sponsor deposits, fee routing                         | **On-chain**                                            | Solvency by construction; sponsors can verify funding.                                |
+| Settlement prices                                                  | **On-chain** (Pyth `PriceUpdateV2` verified in-program) | Removes the Tribe crank from the trust base — anyone can settle with the same result. |
+| Claims                                                             | **On-chain**                                            | Double-claim safety via PDA flag.                                                     |
+| Asset registry (eligibility)                                       | **On-chain** allowlist, **off-chain** scoring           | Program needs a small trustworthy list; the market-quality model needs rich data.     |
+| Participant counts, activity feeds, leaderboards, Conviction Score | **Off-chain** indexer                                   | Derived deterministically from events; cheap to recompute.                            |
+| Display prices, quotes, routes                                     | **Off-chain**                                           | Latency and cost; never used for settlement.                                          |
+| Social cards, deep links, drafts                                   | **Off-chain**                                           | Pure presentation.                                                                    |
 
 What is deliberately **not** built on-chain in the MVP: the market-quality
 scoring model, Conviction Score, leaderboards, streak logic. They influence
@@ -71,15 +71,15 @@ nothing that moves funds.
 
 ## 4. Custody and holding verification
 
-Reward eligibility requires knowing a user *held* the asset for the accrued
+Reward eligibility requires knowing a user _held_ the asset for the accrued
 time. Four models were compared:
 
-| Option | Holding provable? | Principal safety | Token-2022 fit | Complexity | Verdict |
-| --- | --- | --- | --- | --- | --- |
-| **1. Arena Position Vault** (per-user PDA token account; only owner can withdraw) | Yes, on-chain | Program has no path to move funds except back to owner | Good — `transfer_checked` via token interface; ATA handles extensions | Small program | **Chosen** |
-| 2. Token delegation (`approve` to Arena PDA) | No — user can still transfer the delegated balance away | Same as wallet | OK | Small | Rejected: cannot honestly claim "held throughout" |
-| 3. Balance snapshots / indexer | No — sampling can be gamed between samples; indexer must be trusted | Same as wallet | OK | Medium + infra | Rejected as primary; kept as an *observability* signal only |
-| 4. Position receipt token (transferable NFT/token) | Yes | Same as 1 | Adds a mint per position | Larger | Post-MVP idea (secondary market for positions) |
+| Option                                                                            | Holding provable?                                                   | Principal safety                                       | Token-2022 fit                                                        | Complexity     | Verdict                                                     |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------- | -------------- | ----------------------------------------------------------- |
+| **1. Arena Position Vault** (per-user PDA token account; only owner can withdraw) | Yes, on-chain                                                       | Program has no path to move funds except back to owner | Good — `transfer_checked` via token interface; ATA handles extensions | Small program  | **Chosen**                                                  |
+| 2. Token delegation (`approve` to Arena PDA)                                      | No — user can still transfer the delegated balance away             | Same as wallet                                         | OK                                                                    | Small          | Rejected: cannot honestly claim "held throughout"           |
+| 3. Balance snapshots / indexer                                                    | No — sampling can be gamed between samples; indexer must be trusted | Same as wallet                                         | OK                                                                    | Medium + infra | Rejected as primary; kept as an _observability_ signal only |
+| 4. Position receipt token (transferable NFT/token)                                | Yes                                                                 | Same as 1                                              | Adds a mint per position                                              | Larger         | Post-MVP idea (secondary market for positions)              |
 
 **Decision: Option 1 — Arena Position Vault.**
 
@@ -103,13 +103,13 @@ time. Four models were compared:
 
 ### 5.1 Hierarchy
 
-| Purpose | Source | Notes |
-| --- | --- | --- |
-| **Settlement & start snapshots** | Pyth Core price feeds, posted on-chain as `PriceUpdateV2` and verified by the program | Feed ids fixed in the registry. Crypto: `Crypto.X/USD`. Equity: `Equity.US.X/USD` × on-chain `ScaledUiAmount` multiplier. |
-| **Live Arena display** | Pyth Hermes (server proxy, API key) polled every 2–5 s | Same feeds as settlement so the UI never shows a number the program would not. |
-| **Display fallback** | Jupiter Price v3 (`usdPrice`, `stockData` for xStocks) | Labelled "indicative"; used only if Hermes is unavailable. Never used for settlement. |
-| **Market status / halts / corporate actions** | xStocks public API (`/public/assets/{symbol}`, `/system/status`, `/corporate-actions/upcoming`, `/assets/{symbol}/multiplier`) + Pyth `market_hours` | Advisory inputs to the crank and UI. |
-| **Execution quotes** | Jupiter `swap/v2/order` (no `taker`) for previews; `swap/v2/build` for composable instructions | Slippage and price impact shown in the Back preview. |
+| Purpose                                       | Source                                                                                                                                               | Notes                                                                                                                     |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **Settlement & start snapshots**              | Pyth Core price feeds, posted on-chain as `PriceUpdateV2` and verified by the program                                                                | Feed ids fixed in the registry. Crypto: `Crypto.X/USD`. Equity: `Equity.US.X/USD` × on-chain `ScaledUiAmount` multiplier. |
+| **Live Arena display**                        | Pyth Hermes (server proxy, API key) polled every 2–5 s                                                                                               | Same feeds as settlement so the UI never shows a number the program would not.                                            |
+| **Display fallback**                          | Jupiter Price v3 (`usdPrice`, `stockData` for xStocks)                                                                                               | Labelled "indicative"; used only if Hermes is unavailable. Never used for settlement.                                     |
+| **Market status / halts / corporate actions** | xStocks public API (`/public/assets/{symbol}`, `/system/status`, `/corporate-actions/upcoming`, `/assets/{symbol}/multiplier`) + Pyth `market_hours` | Advisory inputs to the crank and UI.                                                                                      |
+| **Execution quotes**                          | Jupiter `swap/v2/order` (no `taker`) for previews; `swap/v2/build` for composable instructions                                                       | Slippage and price impact shown in the Back preview.                                                                      |
 
 ### 5.2 Why not the xStocks-specific Pyth feeds
 
@@ -172,19 +172,19 @@ requires both entries `Active`. Admission additionally rejects mints with a
 from Jupiter Tokens v2, Jupiter Price v3, xStocks API and, for xStocks, the
 DN Institute wash-trading methodology:
 
-| Signal | Threshold (initial) | Source |
-| --- | --- | --- |
-| Oracle availability | Pyth feed exists and published in last 24 h (or last session for equities) | Pyth |
-| Liquidity | ≥ $250k Jupiter-reported liquidity | Price v3 `liquidity` |
-| Market age | mint `createdAt` ≥ 30 days | Tokens v2 |
-| Organic volume | `buyOrganicVolume + sellOrganicVolume ≥ 20%` of 24 h volume, or Jupiter `organicScoreLabel ≠ low` | Tokens v2 |
-| Verification | Jupiter `isVerified`, no `audit.isSus` | Tokens v2 |
-| Issuer status | not `isTradingHalted`; no unsupported corporate action pending | xStocks |
-| Wash signature | pool-level round-trip share below the DN-Institute flag threshold on the primary route | scheduled job (post-MVP automation; manual for the seed set) |
+| Signal              | Threshold (initial)                                                                               | Source                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Oracle availability | Pyth feed exists and published in last 24 h (or last session for equities)                        | Pyth                                                         |
+| Liquidity           | ≥ $250k Jupiter-reported liquidity                                                                | Price v3 `liquidity`                                         |
+| Market age          | mint `createdAt` ≥ 30 days                                                                        | Tokens v2                                                    |
+| Organic volume      | `buyOrganicVolume + sellOrganicVolume ≥ 20%` of 24 h volume, or Jupiter `organicScoreLabel ≠ low` | Tokens v2                                                    |
+| Verification        | Jupiter `isVerified`, no `audit.isSus`                                                            | Tokens v2                                                    |
+| Issuer status       | not `isTradingHalted`; no unsupported corporate action pending                                    | xStocks                                                      |
+| Wash signature      | pool-level round-trip share below the DN-Institute flag threshold on the primary route            | scheduled job (post-MVP automation; manual for the seed set) |
 
 Only assets passing all gates are proposed for registry activation. Because
 settlement uses oracle prices, low-liquidity manipulation affects a user's
-*execution* (visible slippage in the preview) but not the Arena result; the
+_execution_ (visible slippage in the preview) but not the Arena result; the
 liquidity gate exists to protect execution quality and to keep the
 underdog-share signal meaningful.
 
@@ -200,7 +200,7 @@ underdog-share signal meaningful.
 + address lookup tables from Jupiter
 ```
 
-The program's `back` reads the *actual* post-swap units from the user's ATA
+The program's `back` reads the _actual_ post-swap units from the user's ATA
 delta (`units` argument bounded by ATA balance), so slippage never leaves
 units stranded. If the composed transaction exceeds 1232 bytes for a given
 route, the client falls back to two transactions (swap, then back) and says
@@ -218,14 +218,14 @@ eligibility) is used for standalone buys that create no position.
 
 Accounts:
 
-| Account | Seeds | Purpose |
-| --- | --- | --- |
-| `ProtocolConfig` | `["config"]` | authority, treasury, upset reserve, fee policy defaults, limits. |
-| `AssetEntry` | `["asset", mint]` | registry (§6). |
-| `Arena` | `["arena", creator, nonce]` | parameters, status, prices, side aggregates, pool snapshot. |
-| `Position` | `["position", arena, side, user]` | ECONOMICS §5.2 state. Owner of the position vault ATA. |
-| `Sponsor` | `["sponsor", arena, sponsor]` | funded amount, refunded flag. |
-| `Rollover` | `["rollover", mint_a, mint_b]` | USDC vault for pair rollovers. |
+| Account          | Seeds                             | Purpose                                                          |
+| ---------------- | --------------------------------- | ---------------------------------------------------------------- |
+| `ProtocolConfig` | `["config"]`                      | authority, treasury, upset reserve, fee policy defaults, limits. |
+| `AssetEntry`     | `["asset", mint]`                 | registry (§6).                                                   |
+| `Arena`          | `["arena", creator, nonce]`       | parameters, status, prices, side aggregates, pool snapshot.      |
+| `Position`       | `["position", arena, side, user]` | ECONOMICS §5.2 state. Owner of the position vault ATA.           |
+| `Sponsor`        | `["sponsor", arena, sponsor]`     | funded amount, refunded flag.                                    |
+| `Rollover`       | `["rollover", mint_a, mint_b]`    | USDC vault for pair rollovers.                                   |
 
 Instructions: `init_config`, `set_asset`, `create_arena`, `fund_reward_pool`,
 `snapshot_start`, `back`, `exit`, `settle`, `claim`, `refund_sponsor`,
@@ -274,28 +274,28 @@ has settled), always badged.
 
 ## 11. Technology stack (pinned 2026-09-12)
 
-| Layer | Choice | Version |
-| --- | --- | --- |
-| Framework | Next.js (App Router, Turbopack) | 16.3.5 |
-| UI | React / React DOM | 19.3.0 |
-| Language | TypeScript (strict) | 5.9.3 (TS 7 evaluated; deferred until typescript-eslint/vitest support is verified) |
-| Styling | Tailwind CSS v4 (`@tailwindcss/postcss`) | 4.3.3 |
-| Primitives | `radix-ui` (unified package) | 1.6.7 |
-| Motion | `motion` (Framer Motion) | 13.2.0 |
-| Data | `@tanstack/react-query` | 5.102.8 |
-| Client state | `zustand` | 5.0.15 |
-| Validation | `zod` | 4.6.2 |
-| Solana | `@solana/web3.js` 1.99.0, `@solana/spl-token` 0.4.15 | web3.js v1 line chosen for Anchor/Jupiter/wallet-adapter compatibility; `@solana/kit` migration is post-hackathon |
-| Wallets | `@solana/wallet-adapter-react` 0.15.40, `-react-ui` 0.9.40, `-wallets` 0.19.39 | wallet-standard auto-discovery |
-| Anchor client | `@anchor-lang/core` | 1.2.0 |
-| Pyth | `@pythnetwork/hermes-client` 3.1.0, `@pythnetwork/pyth-solana-receiver` 0.16.0 | Hermes API key server-side |
-| Jupiter | REST (`api.jup.ag`, `x-api-key`) via typed fetch; `@jup-ag/api` only if types are useful | swap v2, price v3, tokens v2 |
-| DB | Postgres via Drizzle ORM; PGlite for local/dev | — |
-| Tests | Vitest 5, Playwright (responsive checks), `anchor test` (Rust + TS) | — |
-| Lint/format | ESLint 10 (flat config) + typescript-eslint, Prettier 3.9 | — |
-| Package manager | pnpm 12 | — |
-| Program | Anchor 1.2.0, anchor-spl 1.2.0, pyth-solana-receiver-sdk 2.0.0, Agave CLI 4.2.x | built in WSL Ubuntu 22.04 |
-| Hosting | Vercel (web + cron), Neon (Postgres), Helius (RPC + webhooks) | — |
+| Layer           | Choice                                                                                   | Version                                                                                                           |
+| --------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Framework       | Next.js (App Router, Turbopack)                                                          | 16.3.5                                                                                                            |
+| UI              | React / React DOM                                                                        | 19.3.0                                                                                                            |
+| Language        | TypeScript (strict)                                                                      | 5.9.3 (TS 7 evaluated; deferred until typescript-eslint/vitest support is verified)                               |
+| Styling         | Tailwind CSS v4 (`@tailwindcss/postcss`)                                                 | 4.3.3                                                                                                             |
+| Primitives      | `radix-ui` (unified package)                                                             | 1.6.7                                                                                                             |
+| Motion          | `motion` (Framer Motion)                                                                 | 13.2.0                                                                                                            |
+| Data            | `@tanstack/react-query`                                                                  | 5.102.8                                                                                                           |
+| Client state    | `zustand`                                                                                | 5.0.15                                                                                                            |
+| Validation      | `zod`                                                                                    | 4.6.2                                                                                                             |
+| Solana          | `@solana/web3.js` 1.99.0, `@solana/spl-token` 0.4.15                                     | web3.js v1 line chosen for Anchor/Jupiter/wallet-adapter compatibility; `@solana/kit` migration is post-hackathon |
+| Wallets         | `@solana/wallet-adapter-react` 0.15.40, `-react-ui` 0.9.40, `-wallets` 0.19.39           | wallet-standard auto-discovery                                                                                    |
+| Anchor client   | `@anchor-lang/core`                                                                      | 1.2.0                                                                                                             |
+| Pyth            | `@pythnetwork/hermes-client` 3.1.0, `@pythnetwork/pyth-solana-receiver` 0.16.0           | Hermes API key server-side                                                                                        |
+| Jupiter         | REST (`api.jup.ag`, `x-api-key`) via typed fetch; `@jup-ag/api` only if types are useful | swap v2, price v3, tokens v2                                                                                      |
+| DB              | Postgres via Drizzle ORM; PGlite for local/dev                                           | —                                                                                                                 |
+| Tests           | Vitest 5, Playwright (responsive checks), `anchor test` (Rust + TS)                      | —                                                                                                                 |
+| Lint/format     | ESLint 10 (flat config) + typescript-eslint, Prettier 3.9                                | —                                                                                                                 |
+| Package manager | pnpm 12                                                                                  | —                                                                                                                 |
+| Program         | Anchor 1.2.0, anchor-spl 1.2.0, pyth-solana-receiver-sdk 2.0.0, Agave CLI 4.2.x          | built in WSL Ubuntu 22.04                                                                                         |
+| Hosting         | Vercel (web + cron), Neon (Postgres), Helius (RPC + webhooks)                            | —                                                                                                                 |
 
 ## 12. Environment variables
 
@@ -321,7 +321,7 @@ The Arena assets (BONK, TSLAx, …) and Pyth equity feeds exist on
 **mainnet-beta** only. Options:
 
 - **A. Mainnet program** — fully real end-to-end with tiny amounts. Requires
-  ≈2–3 SOL for program rent plus crank fees. *Recommended if budget allows.*
+  ≈2–3 SOL for program rent plus crank fees. _Recommended if budget allows._
 - **B. Devnet program + mainnet swaps** — Arena logic on devnet with test
   mints and Pyth devnet feeds; the "real asset interaction" is a mainnet
   Jupiter swap shown separately. Honest but split-brained.

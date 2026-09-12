@@ -26,16 +26,16 @@
                                     └───────────────────────────▶ CANCELLED
 ```
 
-| State | Stored on-chain as | Meaning |
-| --- | --- | --- |
-| **DRAFT** | — (indexer only) | Creator is composing an Arena in the UI. Nothing exists on-chain. |
-| **SCHEDULED** | `status = Scheduled` | Arena account, vaults and parameters exist. Start snapshot not yet taken. No backing allowed. |
-| **LIVE** | `status = Live` | Start prices snapshotted. Backing, adding, and exiting allowed. Accrual running. |
-| **LOCKED** | derived: `Live && now ≥ backing_close_ts` | Backing closed. Exits still allowed. Accrual running. |
-| **ENDING** | derived: `Live && now ≥ end_ts` | Accrual frozen at `end_ts`. Awaiting settlement prices. Exits allowed (no weight change). |
-| **SETTLING** | — (indexer/crank only) | The settlement transaction is being assembled and sent. |
-| **SETTLED** | `status = Settled` | Winner (or TIE) recorded with settlement prices; pool frozen; claims open. |
-| **CANCELLED** | `status = Cancelled` | Arena void. No rewards. Positions withdrawable; sponsors refundable. |
+| State         | Stored on-chain as                        | Meaning                                                                                       |
+| ------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------- |
+| **DRAFT**     | — (indexer only)                          | Creator is composing an Arena in the UI. Nothing exists on-chain.                             |
+| **SCHEDULED** | `status = Scheduled`                      | Arena account, vaults and parameters exist. Start snapshot not yet taken. No backing allowed. |
+| **LIVE**      | `status = Live`                           | Start prices snapshotted. Backing, adding, and exiting allowed. Accrual running.              |
+| **LOCKED**    | derived: `Live && now ≥ backing_close_ts` | Backing closed. Exits still allowed. Accrual running.                                         |
+| **ENDING**    | derived: `Live && now ≥ end_ts`           | Accrual frozen at `end_ts`. Awaiting settlement prices. Exits allowed (no weight change).     |
+| **SETTLING**  | — (indexer/crank only)                    | The settlement transaction is being assembled and sent.                                       |
+| **SETTLED**   | `status = Settled`                        | Winner (or TIE) recorded with settlement prices; pool frozen; claims open.                    |
+| **CANCELLED** | `status = Cancelled`                      | Arena void. No rewards. Positions withdrawable; sponsors refundable.                          |
 
 `LOCKED` and `ENDING` are **derived** from timestamps rather than stored, so
 no transaction is required to enter them and no crank can be late. The
@@ -44,18 +44,18 @@ instruction.
 
 ## 2. Arena parameters fixed at creation
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `creator` | Pubkey | Arena Creator. |
-| `asset_a`, `asset_b` | `AssetRef` | Registry entries: mint, token program, decimals, price feed id, asset class, staleness policy, scaled-UI flag. |
-| `start_ts`, `end_ts` | i64 | Window. `end_ts - start_ts ∈ [min_duration, max_duration]`. |
-| `backing_close_ts` | i64 | `end_ts - min_hold_secs` (ECONOMICS §5.6). |
-| `settlement_grace_secs` | u32 | How long after `end_ts` settlement may be attempted before permissionless cancellation. |
-| `fee_policy` | struct | Snapshot of `FeePolicy` at creation (ECONOMICS §3). |
-| `underdog`, `tie_bps`, `max_share_bps`, warm-up | struct | ECONOMICS §7, §2, §6. |
-| `title`, `description_uri` | string | Metadata (short on-chain title, URI to indexer/IPFS for the rest). |
-| `sponsor_open` | bool | Whether `fund_reward_pool` is permissionless. |
-| `creation_bond` | u64 | Lamports held until SETTLED/CANCELLED to deter spam. |
+| Field                                           | Type       | Description                                                                                                    |
+| ----------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------- |
+| `creator`                                       | Pubkey     | Arena Creator.                                                                                                 |
+| `asset_a`, `asset_b`                            | `AssetRef` | Registry entries: mint, token program, decimals, price feed id, asset class, staleness policy, scaled-UI flag. |
+| `start_ts`, `end_ts`                            | i64        | Window. `end_ts - start_ts ∈ [min_duration, max_duration]`.                                                    |
+| `backing_close_ts`                              | i64        | `end_ts - min_hold_secs` (ECONOMICS §5.6).                                                                     |
+| `settlement_grace_secs`                         | u32        | How long after `end_ts` settlement may be attempted before permissionless cancellation.                        |
+| `fee_policy`                                    | struct     | Snapshot of `FeePolicy` at creation (ECONOMICS §3).                                                            |
+| `underdog`, `tie_bps`, `max_share_bps`, warm-up | struct     | ECONOMICS §7, §2, §6.                                                                                          |
+| `title`, `description_uri`                      | string     | Metadata (short on-chain title, URI to indexer/IPFS for the rest).                                             |
+| `sponsor_open`                                  | bool       | Whether `fund_reward_pool` is permissionless.                                                                  |
+| `creation_bond`                                 | u64        | Lamports held until SETTLED/CANCELLED to deter spam.                                                           |
 
 Both assets must be **active** in the on-chain Asset Registry at creation
 (ARCHITECTURE §6). Creation is permissionless over the registry.
@@ -66,7 +66,7 @@ Both assets must be **active** in the on-chain Asset Registry at creation
 
 - Signer: creator. Pays rent + creation bond.
 - Validates parameters, registry status of both assets, `start_ts ≥ now +
-  min_lead_secs` (default 5 min), `asset_a ≠ asset_b`.
+min_lead_secs` (default 5 min), `asset_a ≠ asset_b`.
 - Creates: `Arena`, two `Side` records (inline), reward USDC vault (PDA),
   position vault ATAs are created lazily per user.
 - Receives any Rollover Pool for the ordered pair.
@@ -87,6 +87,7 @@ Both assets must be **active** in the on-chain Asset Registry at creation
   hours), the last publish **before** `start_ts` no older than
   `max_closed_staleness_secs`. The chosen mode is stored per side
   (`price_mode = Exact | LastKnown`).
+
 - For `ScaledUi` assets, reads the mint's current multiplier and stores
   `mult_start_q6`; `P_start = P_pyth × mult / 1e6` (ECONOMICS §0.1).
 - Rejects if the Pyth confidence interval is wider than
@@ -125,7 +126,7 @@ settlement_grace_secs`, `cancel_expired` becomes callable (§3.8).
 
 - Signer: anyone (permissionless crank).
 - Requires `now ≥ end_ts` and `now ≤ end_ts + settlement_grace_secs +
-  extensions`.
+extensions`.
 - Requires two verified Pyth price updates with `publish_time` inside the
   **end window** (same rule as §3.2 around `end_ts`), with `LastKnown`
   allowed for equity assets outside market hours **only if the start
@@ -151,13 +152,13 @@ settlement_grace_secs`, `cancel_expired` becomes callable (§3.8).
 from SCHEDULED, LIVE, LOCKED, or ENDING when a **cancellation condition**
 holds:
 
-| Condition | Detection |
-| --- | --- |
-| An asset is suspended in the registry (delisted, halted, oracle retired). | registry flag |
-| Price source failed for one side beyond the grace window. | crank alert |
-| Mint became non-transferable for the duration (paused / transfer hook set). | on-chain check |
-| Corporate action of an unsupported kind (§5.3). | xStocks API + registry |
-| Duplicate / erroneous creation. | manual |
+| Condition                                                                   | Detection              |
+| --------------------------------------------------------------------------- | ---------------------- |
+| An asset is suspended in the registry (delisted, halted, oracle retired).   | registry flag          |
+| Price source failed for one side beyond the grace window.                   | crank alert            |
+| Mint became non-transferable for the duration (paused / transfer hook set). | on-chain check         |
+| Corporate action of an unsupported kind (§5.3).                             | xStocks API + registry |
+| Duplicate / erroneous creation.                                             | manual                 |
 
 Every authority cancellation emits `ArenaCancelled { reason }` and is shown in
 the UI with the reason.
@@ -176,14 +177,14 @@ holiday closing the equity feed). Emits `SettlementExtended`.
 
 ## 4. Sources of truth
 
-| Question | Source |
-| --- | --- |
-| Arena state, prices, winner, weights, pool | `Arena` account (program) |
-| Reference prices | Pyth `PriceUpdateV2` accounts verified by the program, feed ids fixed in the registry |
-| xStocks multiplier | Mint `ScaledUiAmount` extension at snapshot time |
-| Market hours / halts / corporate actions | xStocks public API + Pyth `market_hours`, consumed by the crank and UI; **advisory**, never a settlement input |
-| Display prices between snapshots | Pyth (via Tribe API proxy) with Jupiter Price v3 as display fallback, labelled |
-| Participant counts, activity, leaderboards | Indexer built from program events |
+| Question                                   | Source                                                                                                         |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Arena state, prices, winner, weights, pool | `Arena` account (program)                                                                                      |
+| Reference prices                           | Pyth `PriceUpdateV2` accounts verified by the program, feed ids fixed in the registry                          |
+| xStocks multiplier                         | Mint `ScaledUiAmount` extension at snapshot time                                                               |
+| Market hours / halts / corporate actions   | xStocks public API + Pyth `market_hours`, consumed by the crank and UI; **advisory**, never a settlement input |
+| Display prices between snapshots           | Pyth (via Tribe API proxy) with Jupiter Price v3 as display fallback, labelled                                 |
+| Participant counts, activity, leaderboards | Indexer built from program events                                                                              |
 
 ## 5. Edge cases
 
@@ -213,9 +214,9 @@ Rules:
 2. The Create Arena flow **defaults `start_ts` and `end_ts` for
    equity-containing Arenas to RTH** and shows a "Market-hours Arena" badge.
 3. Creators may opt into `allow_closed_settlement`. The Arena page then shows
-   a persistent notice: *"TSLAx reference price updates only during US
+   a persistent notice: _"TSLAx reference price updates only during US
    market hours (09:30–16:00 ET). Outside those hours its performance is
-   frozen at the last official price."*
+   frozen at the last official price."_
 4. Settlement in `LastKnown` mode records `price_mode = LastKnown` per side
    and the UI labels the settlement price "last close".
 5. US market holidays are handled by the same mechanism (staleness ≤ 72 h;
@@ -274,4 +275,4 @@ of at least 60 s so validator clock drift cannot invalidate a correct crank.
 5. `Σ claims ≤ pool_at_settlement`.
 6. A position can claim at most once.
 7. Settlement prices depend only on `(feed_id, end_ts window)`, never on
-   *when* the settle transaction lands.
+   _when_ the settle transaction lands.

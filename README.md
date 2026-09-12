@@ -29,11 +29,11 @@ you backed the underdog.
 principal to anyone. Your BONK is still your BONK: keep it, sell it, or
 roll it into the next Arena.
 
-| You back BONK with $100 | BONK | TSLAx | Arena | Your BONK is worth | Arena Rewards |
-| --- | --- | --- | --- | --- | --- |
-| | +15% | +2% | BONK wins | ≈ $115 | your share of the pool |
-| | +5% | +9% | BONK loses | ≈ $105 | none |
-| | −10% | −12% | BONK wins | ≈ $90 | your share of the pool |
+| You back BONK with $100 | BONK | TSLAx | Arena      | Your BONK is worth | Arena Rewards          |
+| ----------------------- | ---- | ----- | ---------- | ------------------ | ---------------------- |
+|                         | +15% | +2%   | BONK wins  | ≈ $115             | your share of the pool |
+|                         | +5%  | +9%   | BONK loses | ≈ $105             | none                   |
+|                         | −10% | −12%  | BONK wins  | ≈ $90              | your share of the pool |
 
 ## How it works
 
@@ -59,7 +59,7 @@ layer, one router. "BONK vs TSLAx" can only exist here:
   Pyth/Chainlink oracle mappings — Tribe reads the multiplier straight from
   the mint so splits and dividends are price-continuous.
 - **Jupiter** routes USDC into either side and returns composable
-  instructions, so *swap + back* is one signature.
+  instructions, so _swap + back_ is one signature.
 - **Pyth** pull oracles let the program verify crypto **and** US-equity
   settlement prices at exact timestamps — anyone can settle an Arena and
   get the same answer.
@@ -82,7 +82,7 @@ Next.js 16 app ──▶ API routes (Jupiter, Pyth proxy, registry, OG cards)
   scoring, leaderboards, Conviction Score, social cards.
 - **Custody model**: per-user Arena Position Vault with user-only
   withdrawal — chosen over delegation and balance snapshots because it is
-  the only option that lets Tribe *honestly* attest holding duration. See
+  the only option that lets Tribe _honestly_ attest holding duration. See
   [ARCHITECTURE](docs/ARCHITECTURE.md#4-custody-and-holding-verification).
 
 Full document: [ARCHITECTURE](docs/ARCHITECTURE.md) ·
@@ -90,13 +90,13 @@ Full document: [ARCHITECTURE](docs/ARCHITECTURE.md) ·
 
 ## Integrations
 
-| | Used for |
-| --- | --- |
-| [xStocks public API](https://docs.xstocks.fi/apis/openapi) | asset list, mints, market status, multipliers, corporate actions, oracle mapping |
-| [Jupiter](https://developers.jup.ag) | quotes (`swap/v2/order`), composable swap instructions (`swap/v2/build`), Price v3, Tokens v2 (organic-volume and verification signals) |
-| [Pyth](https://docs.pyth.network) | settlement and display prices; `PriceUpdateV2` verified on-chain via the Pyth Solana receiver |
-| Token-2022 | xStocks `ScaledUiAmount`, `pausable`, `permanentDelegate` handling via `token_interface` |
-| [DN Institute wash-trading study](https://github.com/mkzung/solana-xstocks-wash-analysis) | methodology for the market-quality layer |
+|                                                                                           | Used for                                                                                                                                |
+| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| [xStocks public API](https://docs.xstocks.fi/apis/openapi)                                | asset list, mints, market status, multipliers, corporate actions, oracle mapping                                                        |
+| [Jupiter](https://developers.jup.ag)                                                      | quotes (`swap/v2/order`), composable swap instructions (`swap/v2/build`), Price v3, Tokens v2 (organic-volume and verification signals) |
+| [Pyth](https://docs.pyth.network)                                                         | settlement and display prices; `PriceUpdateV2` verified on-chain via the Pyth Solana receiver                                           |
+| Token-2022                                                                                | xStocks `ScaledUiAmount`, `pausable`, `permanentDelegate` handling via `token_interface`                                                |
+| [DN Institute wash-trading study](https://github.com/mkzung/solana-xstocks-wash-analysis) | methodology for the market-quality layer                                                                                                |
 
 ## Screenshots
 
@@ -133,19 +133,19 @@ anchor build && anchor test
 
 ## Environment variables
 
-| Variable | Purpose |
-| --- | --- |
-| `NEXT_PUBLIC_SOLANA_CLUSTER` | `mainnet-beta` or `devnet` |
-| `NEXT_PUBLIC_RPC_URL` / `RPC_URL` | browser / server RPC endpoints |
-| `NEXT_PUBLIC_TRIBE_PROGRAM_ID` | deployed `tribe_arena` id |
-| `TRIBE_MODE` | `live` or `demo` |
-| `PYTH_HERMES_URL`, `PYTH_HERMES_API_KEY` | Pyth Hermes (API key required since Aug 2026) |
-| `JUPITER_API_KEY` | Jupiter APIs |
-| `XSTOCKS_API_URL` | defaults to `https://api.xstocks.fi/api/v2` |
-| `DATABASE_URL` | Postgres; empty uses embedded PGlite |
-| `CRANK_KEYPAIR` | base58 keypair for start/settle cranks (fee SOL only) |
-| `HELIUS_WEBHOOK_SECRET` | indexer webhook auth |
-| `NEXT_PUBLIC_APP_URL` | absolute URL for share links and OG images |
+| Variable                                 | Purpose                                               |
+| ---------------------------------------- | ----------------------------------------------------- |
+| `NEXT_PUBLIC_SOLANA_CLUSTER`             | `mainnet-beta` or `devnet`                            |
+| `NEXT_PUBLIC_RPC_URL` / `RPC_URL`        | browser / server RPC endpoints                        |
+| `NEXT_PUBLIC_TRIBE_PROGRAM_ID`           | deployed `tribe_arena` id                             |
+| `TRIBE_MODE`                             | `live` or `demo`                                      |
+| `PYTH_HERMES_URL`, `PYTH_HERMES_API_KEY` | Pyth Hermes (API key required since Aug 2026)         |
+| `JUPITER_API_KEY`                        | Jupiter APIs                                          |
+| `XSTOCKS_API_URL`                        | defaults to `https://api.xstocks.fi/api/v2`           |
+| `DATABASE_URL`                           | Postgres; empty uses embedded PGlite                  |
+| `CRANK_KEYPAIR`                          | base58 keypair for start/settle cranks (fee SOL only) |
+| `HELIUS_WEBHOOK_SECRET`                  | indexer webhook auth                                  |
+| `NEXT_PUBLIC_APP_URL`                    | absolute URL for share links and OG images            |
 
 ## Testing
 
@@ -177,9 +177,9 @@ open decisions. Known limitations are listed in
 
 ## Hackathon context
 
-Stocklana, Solana Foundation — *"Tokenized stocks already trade on Solana.
+Stocklana, Solana Foundation — _"Tokenized stocks already trade on Solana.
 Build what makes owning and using them better than today's brokerage
-app."* Tribe's wedge: **Consumer** — a social reason to own tokenized
+app."_ Tribe's wedge: **Consumer** — a social reason to own tokenized
 stocks and memes side by side, with real ownership at the core.
 
 Open-source components: Anchor, Pyth SDKs, Jupiter APIs, Radix UI, Motion,
