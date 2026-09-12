@@ -408,6 +408,19 @@ describe('claim', () => {
     expectCode(() => h.claim('alice', 'A'), ErrorCode.AlreadyClaimed);
     expect(h.state.totalClaimed).toBe(a.amount + b.amount);
   });
+  it('regression: withdrawing after end then claiming works and pays the frozen weight', () => {
+    const h = harness();
+    h.start();
+    const c = h.state.config;
+    h.back('alice', 'A', unitsForUsd(h.state, 'A', 100n), c.startTs);
+    h.back('bob', 'B', unitsForUsd(h.state, 'B', 100n), c.startTs);
+    h.exit('alice', 'A', h.state.positions['A:alice']?.units ?? 0n, c.endTs + 3n * HOUR); // before settle
+    h.settle({ A: 300n, B: TSLA_PRICE_Q8 }, c.endTs + 4n * HOUR);
+    const r = h.claim('alice', 'A', c.endTs + 5n * HOUR).effects[0];
+    if (r?.kind !== 'RewardClaimed') throw new Error('expected claim');
+    expect(r.amount).toBe(((h.state.settlement?.poolAtSettlement ?? 0n) * 2500n) / 10_000n); // lone winner, HardCap 25 %
+    expect(h.state.positions['A:alice']?.units).toBe(0n);
+  });
   it('claim before settlement is rejected', () => {
     const h = harness();
     h.start();

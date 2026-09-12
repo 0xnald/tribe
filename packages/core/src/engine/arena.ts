@@ -436,7 +436,7 @@ function settle(s0: ArenaState, e: Extract<ArenaEvent, { type: 'settle' }>): App
 export function positionRewardWeight(s: ArenaState, p: PositionState): bigint {
   const st = s.settlement;
   if (!st) fail(ErrorCode.InvalidStatus, 'not settled');
-  const final = accruePosition(p, s.config.endTs, windowOf(s));
+  const final = accruePosition(p, maxBig(s.config.endTs, p.lastTouchTs), windowOf(s));
   if (!s.config.underdogSettlementClamp) return final.effUnitSeconds;
   const clamp = final.unitSeconds * st.mUpsetQ4;
   return final.effUnitSeconds < clamp ? final.effUnitSeconds : clamp;
@@ -462,7 +462,7 @@ function claim(s: ArenaState, e: Extract<ArenaEvent, { type: 'claim' }>): ApplyR
   if (e.side !== st.winner) fail(ErrorCode.NotWinningSide);
   const existing = getPosition(s, e.side, e.owner);
   if (existing.claimed) fail(ErrorCode.AlreadyClaimed);
-  const pos = accruePosition(existing, s.config.endTs, windowOf(s));
+  const pos = accruePosition(existing, maxBig(s.config.endTs, existing.lastTouchTs), windowOf(s));
   const weight = positionRewardWeight(s, pos);
   if (weight === 0n) fail(ErrorCode.NoRewardWeight);
 
