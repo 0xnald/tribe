@@ -1,0 +1,73 @@
+/* Tribe design tokens — source: docs/DESIGN_SYSTEM.md */
+
+:root {
+  /* structural (dark default) */
+  --bg: #0e0f12;
+  --bg-elev: #15171c;
+  --bg-sunken: #0a0b0d;
+  --line: #262930;
+  --line-strong: #3a3e48;
+  --fg: #f4f1ea;
+  --fg-muted: #9a9faa;
+  --fg-faint: #5c616b;
+
+  /* accents */
+  --volt: #d9ff3d;
+  --ember: #ff4d1f;
+  --ultra: #2f5bff;
+  --rise: #19c37d;
+  --fall: #f03e5a;
+  --gold: #f5b301;
+
+  /* shape */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+  --r-arena: 20px;
+
+  /* motion */
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --dur-moment: 700ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  color-scheme: dark;
+}
+
+:root[data-theme='light'],
+:root:not([data-theme='dark']) .theme-light {
+  --bg: #f6f3ec;
+  --bg-elev: #ffffff;
+  --bg-sunken: #eeeae1;
+  --line: #e2ddd2;
+  --line-strong: #c9c3b6;
+  --fg: #121317;
+  --fg-muted: #5f6470;
+  --fg-faint: #9a9faa;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --bg: #f6f3ec;
+    --bg-elev: #ffffff;
+    --bg-sunken: #eeeae1;
+    --line: #e2ddd2;
+    --line-strong: #c9c3b6;
+    --fg: #121317;
+    --fg-muted: #5f6470;
+    --fg-faint: #9a9faa;
+    color-scheme: light;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+    --dur-moment: 0ms;
+  }
+}
