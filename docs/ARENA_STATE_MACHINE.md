@@ -276,3 +276,24 @@ of at least 60 s so validator clock drift cannot invalidate a correct crank.
 6. A position can claim at most once.
 7. Settlement prices depend only on `(feed_id, end_ts window)`, never on
    _when_ the settle transaction lands.
+
+## 7. Program mapping (Phase 2)
+
+| Transition (§3)       | Instruction           | Stored status / derived phase                                 |
+| --------------------- | --------------------- | ------------------------------------------------------------- |
+| 3.1 create_arena      | `create_arena`        | `Scheduled`                                                   |
+| 3.2 snapshot_start    | `snapshot_start`      | `Live`; `LOCKED`/`ENDING` derived from `backing_close_ts`/`end_ts` inside `back`/`settle` |
+| 3.3 back              | `back`                | `Live` only, `now < backing_close_ts`                         |
+| 3.4 exit              | `exit`                | `Live` (forfeit before `end_ts`), `Settled`, `Cancelled`      |
+| 3.5 fund_reward_pool  | `fund_reward_pool`    | `Scheduled`/`Live`, `now < end_ts`                            |
+| 3.6 settle            | `settle`              | `Settled` with `SettlementRecord`                             |
+| 3.7 claim / sweep     | `claim`, `sweep_unclaimed` | `Settled`                                                |
+| 3.8 cancel            | `cancel_arena`, `cancel_expired` | `Cancelled` with `cancel_reason`                    |
+| 3.9 extend            | `extend_settlement`   | `Live`, `extensions = 1`                                      |
+| sponsor refund        | `refund_sponsor`      | `Cancelled` or `Settled` + TIE                                |
+
+`DRAFT` and `SETTLING` never exist on-chain. Every stored status has a
+permissionless path to a terminal state (`cancel_expired`), and `exit` is
+accepted in every status that can hold a position, so principal can always
+be withdrawn without any Tribe-controlled signer (bankrun test
+"failure recovery").

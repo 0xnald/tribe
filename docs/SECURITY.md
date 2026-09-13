@@ -115,21 +115,57 @@ backers up to `cap_q4`.
 A claim of "prevented" above means a test in `packages/core` fails if the
 protection is removed.
 
-## 4. Program-level hardening checklist
+## 4. Program security review (Phase 2, `programs/tribe_arena`)
 
-- [ ] All accounts constrained by seeds + `has_one`; no `UncheckedAccount`
-      without a documented reason.
-- [ ] Token accounts validated: `mint`, `owner`, `token_program` match the
-      registry entry.
-- [ ] `init_if_needed` only for `Position`, with owner check.
-- [ ] Reentrancy irrelevant (no CPI into untrusted programs); Jupiter swap
-      instructions are siblings in the transaction, not CPIs.
-- [ ] Events for every state change.
-- [ ] Upgrade authority: multisig; documented as upgradeable during the
-      hackathon.
-- [ ] Rust unit tests for math (parity with `packages/core` vectors).
-- [ ] Anchor integration tests for every transition and every rejection in
-      the threat matrix.
+Each row states the mechanism in the code and the test that exercises it
+(`packages/program-client/tests/program.test.ts` under bankrun unless noted).
+
+| Area | Mechanism | Test |
+| --- | --- | --- |
+| PDA seed collisions | Distinct literal prefixes (`config`, `asset`, `arena`, `position`, `sponsor`); `arena` seeds include creator + 8-byte LE nonce; `position` seeds include arena + 1-byte side + owner; bumps stored and re-checked with `bump = account.bump`. | seeds mismatch on a foreign position → `AccountNotInitialized`/`ConstraintSeeds` |
+| Account ownership | All state accounts are `Account<T>` (owner = program, discriminator checked). Pyth updates are `Account<PriceUpdateV2>` whose owner is the receiver program (SDK type). | non-receiver-owned price account → `AccountOwnedByWrongProgram` |
+| Signer requirements | `owner` signs `back`/`exit`/`claim`; `authority` signs admin instructions (`has_one = authority`); crank instructions accept any signer (permissionless by design). | non-authority `set_asset`/`cancel_arena` → `Unauthorized`; creator cannot cancel |
+| Account substitution | `reward_vault` pinned by `address = arena.reward_vault`; treasury/reserve pinned to config; position vault is `associated_token::authority = position`; owner token accounts require `token::authority = owner`; mints pinned to `arena.assets[side].mint`. | wrong mint → `MintMismatch`; foreign owner account → `ConstraintTokenOwner`; substituted position vault → `ConstraintTokenOwner` (vault authority must be the position PDA); substituted reward vault → `ConstraintAddress` |
+| Token program substitution | `asset_token_program` must equal the registered program (`address = arena.assets[side].token_program`); mints declared with `mint::token_program`, so a swapped program fails the mint check first. | `ConstraintMintTokenProgram` (registration and `back`) |
+| Mint substitution at creation | `create_arena` takes `AssetEntry` PDAs derived from the mint; a creator cannot pass an unregistered mint. | unregistered mint → `AccountNotInitialized` |
+| Arbitrary CPI | The program only CPIs into the token programs (transfer_checked) and the ATA/system programs for account creation; no CPI into user-supplied programs. | — (by construction) |
+| Vault authority | Position vault authority is the `Position` PDA; reward vault authority is the `Arena` PDA; reserve authority is the `Config` PDA. Only `exit`, `claim`, `refund_sponsor`, `sweep_unclaimed`, `settle` sign with them, each to a destination constrained by the instruction. | principal invariant test |
+| Unchecked accounts / remaining_accounts | `back` receives the three USDC fee legs as `UncheckedAccount`s to fit the SBF stack; each is pinned by `address =` to `config.treasury`, `config.upset_reserve` and the creator's derived USDC ATA / `arena.reward_vault`, and paid with `transfer_checked` (mint + decimals from config), so a wrong account fails the address check or the token program. No `remaining_accounts`. | substituted reward vault → `ConstraintAddress` |
+| Arithmetic | `checked_*`/`mul_div` (U256) everywhere; `overflow-checks = true` in release; Q8 normalisation bounds prices to u64. | vector parity (`cargo test`), overflow vector |
+| Precision / rounding | Floor everywhere; protocol share absorbs fee rounding; forfeited part absorbs exit rounding; payouts floored. | vectors `fees`, `accrual`, `distribution` |
+| Reinitialization | `init` for config/arena (fails if exists); `init_if_needed` only for `Position` (via `open_position`, Scheduled/Live only), `Sponsor` and vault ATAs, with owner/side re-checked on reuse. | `init_config` twice → system `already in use`; `open_position` on a settled Arena → `InvalidStatus` |
+| Duplicate claim / settlement / refund | `claimed` flag set before CPI; `settle` requires `Live`; `refunded` flag on `Sponsor`. | `AlreadyClaimed`, `AlreadySettled`, `SponsorAlreadyRefunded` |
+| Timestamp assumptions | `Clock::get()` only; windows have ≥ 60 s tolerances; late cranks use the update published at the target time (publish-time window), so the price cannot be chosen by delaying. | late settle at `end_ts + 2 h` uses the `end_ts` print |
+| Rent / account closure | No account is ever closed by the program in the MVP (no rent-drain vector; positions remain as audit records). | — |
+| Sponsor insolvency | Sponsor deposits are real transfers into the vault before the record is credited; refunds bounded by `reward_pool_balance`. | refund flows |
+| Reward insolvency | `pool_at_settlement` frozen from `reward_pool_balance` (≤ vault balance); `W_total ≥ Σ W_i`; claim requires `amount ≤ reward_pool_balance`. | Σ claims ≤ pool test; vector `arena.json` |
+| Principal / reward mixing | Principal lives in per-position asset vaults; rewards in the USDC vault; no instruction moves asset units except `exit` to the owner, and no instruction moves USDC to anyone but claimant/sponsor/treasury. | "losing principal never becomes winning principal" test |
+| Pause | `paused` blocks `create_arena` and `back` only; exits, settlement, claims and refunds keep working so a pause can never strand funds. | pause test |
+
+Findings while writing the program (all fixed before tests):
+
+1. `CpiContext` in Anchor 1.x takes the program id, not the account info —
+   caught at compile time.
+2. `pool × W_i` overflowed `u128` for large positions in long Arenas; a
+   256-bit intermediate was introduced for every `floor(a × b / d)` on the
+   money path (`engine/u256.rs`).
+3. The TS engine mapped a Q8 overflow to `OracleUnsupportedExponent`; the
+   Rust engine reported `MathOverflow`. The TS side was wrong per
+   ARCHITECTURE §5.3 and was corrected; the shared vector regenerated.
+4. Building for SBF exposed 4 KiB stack-frame overflows in `claim` and in
+   the generated account validation of `back`, `fund_reward_pool`,
+   `settle` and `refund_sponsor`. Fixed by boxing every account, removing a
+   `Position` clone and moving position/vault creation into
+   `open_position`. A stack overflow that only appears at runtime would
+   have made those instructions unusable, so the SBF build (not just
+   `cargo check`) is part of validation.
+5. `open_position` initially had no status guard, so positions (and rent)
+   could be created on settled/cancelled Arenas; it now requires
+   Scheduled/Live.
+
+Not yet covered (post-hackathon): formal audit; upgrade-authority
+multisig; `Rollover` per-pair vaults; token-account closing/rent reclaim;
+fuzzing of the instruction layer beyond the shared vectors.
 
 ## 5. Web/API hardening checklist
 

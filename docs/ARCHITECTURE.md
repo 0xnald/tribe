@@ -217,30 +217,97 @@ so.
 Jupiter's `/build` is Metis-only; `/order`+`/execute` (all routers, gasless
 eligibility) is used for standalone buys that create no position.
 
-## 8. Program design (Anchor 1.2, `tribe_arena`)
+## 8. Program design (Anchor 1.2, `tribe_arena`) — implemented in Phase 2
 
-Accounts:
+Program id (devnet & local): `shzfcWWZtWWTMfRuEvdBAsJZUe3mYork3wug5z5U5w4`.
+Source: `programs/tribe_arena`. The pure engine (`src/engine/*`) is a
+line-by-line transcription of `packages/core` and is what the shared
+vectors replay; instruction handlers (`src/instructions/*`) add account
+validation and token transfers around it.
 
-| Account          | Seeds                             | Purpose                                                          |
-| ---------------- | --------------------------------- | ---------------------------------------------------------------- |
-| `ProtocolConfig` | `["config"]`                      | authority, treasury, upset reserve, fee policy defaults, limits. |
-| `AssetEntry`     | `["asset", mint]`                 | registry (§6).                                                   |
-| `Arena`          | `["arena", creator, nonce]`       | parameters, status, prices, side aggregates, pool snapshot.      |
-| `Position`       | `["position", arena, side, user]` | ECONOMICS §5.2 state. Owner of the position vault ATA.           |
-| `Sponsor`        | `["sponsor", arena, sponsor]`     | funded amount, refunded flag.                                    |
-| `Rollover`       | `["rollover", mint_a, mint_b]`    | USDC vault for pair rollovers.                                   |
+### 8.1 Accounts
 
-Instructions: `init_config`, `set_asset`, `create_arena`, `fund_reward_pool`,
-`snapshot_start`, `back`, `exit`, `settle`, `claim`, `refund_sponsor`,
-`cancel_arena`, `cancel_expired`, `extend_settlement`, `sweep_unclaimed`.
+| Account          | Seeds                              | Purpose                                                                                                                                                                                                                         |
+| ---------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ProtocolConfig` | `["config"]`                       | `authority`, `usdc_mint`, `treasury` (USDC token account), `upset_reserve` (USDC ATA of the config PDA), `fee_policy`, `limits`, `default_params`, `paused`.                                                                   |
+| `AssetEntry`     | `["asset", mint]`                  | registry (§6): mint, token program, decimals, asset class, Pyth feed id, `scaled_ui`, tolerance, closed-staleness, max confidence, status.                                                                                     |
+| `Arena`          | `["arena", creator, nonce_le]`     | both `ArenaAsset` snapshots, window + `backing_close_ts`, params/fee-policy snapshot, creator target, status, start/end `PriceSnapshot`s, `last_accrual_ts`, `[SideState; 2]`, reward-pool accounting, `SettlementRecord`, cancel/extension/sweep metadata. |
+| `Position`       | `["position", arena, side, owner]` | ECONOMICS §5.2 state (`units`, `unit_seconds`, `eff_units`, `eff_unit_seconds`, timestamps, `claimed`, `deposits`, `fee_paid`, `forfeited`). Authority of its own vault ATA.                                                    |
+| `Sponsor`        | `["sponsor", arena, sponsor]`      | funded amount, refunded flag.                                                                                                                                                                                                   |
 
-Events mirror STATE_MACHINE §3. All arithmetic is checked (`checked_*`) in
-`u128`; overflow is a hard error.
+Vaults are associated token accounts, never arbitrary accounts:
 
-Token programs: every token account is accessed through
-`anchor_spl::token_interface` so legacy SPL (BONK, USDC) and Token-2022
-(xStocks) work through the same instruction; the ATA program creates vaults
-with the right extensions.
+- **Position vault** — ATA(`position` PDA, side mint, side token program).
+  Only `exit` moves tokens out, signed by `owner`, to a token account whose
+  authority is `owner`.
+- **Reward vault** — ATA(`arena` PDA, USDC). Funded by fee legs, sponsors and
+  the Upset Bonus; drained only by `claim` (to the claimant), `refund_sponsor`
+  (to the sponsor) and `sweep_unclaimed` (to the treasury).
+- **Upset reserve** — ATA(`config` PDA, USDC); `settle` moves at most the
+  computed bonus into the reward vault.
+
+Per-pair `Rollover` vaults from Phase 0 are **post-MVP**: `sweep_unclaimed`
+sends the remainder to the treasury and records it in `rollover_out`.
+
+### 8.2 Instructions
+
+| Instruction         | Signer    | Guards (engine + accounts)                                                                                                                                                                                                                                                  |
+| ------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init_config`       | authority | one-time; validates fee split = 100 %, limits, params; creates the upset reserve ATA.                                                                                                                                                                                          |
+| `set_asset`         | authority | inspects the mint: owner must equal the supplied token program; Token-2022 mints with `TransferFeeConfig`, `NonTransferable`, `InterestBearingConfig` or a non-null transfer-hook program are rejected; records `scaled_ui`.                                                    |
+| `set_paused`        | authority | pauses `create_arena` and `back`.                                                                                                                                                                                                                                             |
+| `create_arena`      | anyone    | both `AssetEntry` PDAs must be `Active` (mints cannot be substituted — the entries are derived from the mint), distinct assets, duration/lead/window limits, params snapshot, reward vault ATA init, `backing_close_ts` derived.                                               |
+| `fund_reward_pool`  | sponsor   | SCHEDULED/LIVE and before `end_ts`; permissionless when `sponsor_open`, else creator/authority; `Sponsor` record accumulates.                                                                                                                                                  |
+| `snapshot_start`    | anyone    | SCHEDULED, `start_ts ≤ now ≤ start_ts + grace`; two `PriceUpdateV2` accounts (owner-checked by the Pyth SDK type) validated per §5.3; mints must match the Arena; ScaledUi multiplier read from the mint.                                                                    |
+| `open_position`     | owner     | SCHEDULED/LIVE; idempotently creates the `Position` PDA and its vault ATA for one side (owner/side must match on re-use). Composed by the client in front of the first `back`.                                                                                             |
+| `back`              | owner     | LIVE, `now < backing_close_ts`, notional ≥ minimum, `fee_paid ≥ required`; mint/token program must equal the side's registered ones; user token accounts must be owned by `owner`; vault delta checked after the transfer; fee legs (treasury, upset reserve, creator ATA / reward vault) are address-pinned. |
+| `exit`              | owner     | any status with positions; forfeiture per ECONOMICS §5.5 while LIVE before `end_ts`; PDA-signed transfer to an account owned by `owner`.                                                                                                                                       |
+| `settle`            | anyone    | LIVE, `end_ts ≤ now ≤ deadline`; two validated `PriceUpdateV2`; winner/TIE; whole-Arena TWAB → `m_settle`; Upset Bonus transferred from the reserve; `W_total` frozen.                                                                                                        |
+| `claim`             | owner     | SETTLED, winning side, not claimed, `W_i > 0`; `claimed` set before the PDA-signed USDC transfer to an account owned by `owner`.                                                                                                                                               |
+| `cancel_arena`      | authority | SCHEDULED/LIVE → CANCELLED.                                                                                                                                                                                                                                                   |
+| `cancel_expired`    | anyone    | SCHEDULED past `start_ts + grace`, or LIVE past `end_ts + grace + extension` → CANCELLED.                                                                                                                                                                                     |
+| `extend_settlement` | authority | LIVE, after `end_ts`, once, ≤ `max_extension_secs`.                                                                                                                                                                                                                           |
+| `refund_sponsor`    | sponsor   | CANCELLED or TIE; once per sponsor; PDA-signed transfer to the sponsor's own USDC account.                                                                                                                                                                                     |
+| `sweep_unclaimed`   | anyone    | SETTLED after the claim window; TIE keeps unrefunded sponsor money in the vault.                                                                                                                                                                                              |
+
+Events mirror STATE_MACHINE §3 (`ArenaCreated`, `PoolFunded`, `ArenaStarted`,
+`Backed`, `Exited`, `ArenaSettled`, `RewardClaimed`, `ArenaCancelled`,
+`SettlementExtended`, `SponsorRefunded`, `UnclaimedSwept`).
+
+### 8.3 Arithmetic and oracle adapter
+
+All arithmetic is checked in `u128`/`i128`; `floor(a × b / d)` uses a
+256-bit intermediate (`engine/u256.rs`) so proportional payouts and USD
+valuations are exact for any `u64` unit count over a 30-day Arena. The
+only floating-point read in the program is the Token-2022 `ScaledUiAmount`
+multiplier, which the token program itself stores as an IEEE `f64`; it is
+converted once, deterministically, to Q6 and range-checked (`token.rs`).
+
+The oracle path is isolated: `engine/oracle.rs` validates a plain
+`PriceInput` (feed id, verification level, price, confidence, publish time,
+multiplier) and is exercised by the shared vectors; `instructions/arena.rs`
+builds that input from a Pyth `PriceUpdateV2` account whose owner is checked
+by the SDK's account type. Program tests run under bankrun
+(`solana-program-test`) with receiver-owned fixture accounts and a
+controlled clock, so the production validation code runs unchanged (§8.4).
+
+### 8.4 Testing
+
+- `cargo test --test vectors` (programs/tribe_arena): loads
+  `packages/core/test-vectors/*.json` and replays every applicable vector —
+  math, accrual, underdog, fees, oracle, settlement, proportional
+  distribution, upset, and all Arena event streams — against the Rust engine.
+- `pnpm --filter @tribe/program-client test:program` (WSL/Linux/macOS):
+  bankrun integration tests with real token accounts (legacy SPL and
+  Token-2022 mints), fabricated Pyth accounts and clock warps. Bankrun's
+  bundled Token-2022 predates `ScaledUiAmount`, so the mainnet Token-2022
+  binary is loaded from `tests/fixtures` (`pnpm --filter
+  @tribe/program-client fixtures` dumps it; nothing is committed).
+
+`anchor test` against `solana-test-validator` is intentionally not the test
+path: Pyth price updates cannot be produced there. LiteSVM was tried first
+and dropped — its Node binding aborts (`std::bad_alloc`) after a few
+CPI-heavy transactions under WSL2 (see RESEARCH_NOTES).
 
 ## 9. Off-chain services (inside `apps/web`)
 
