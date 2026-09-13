@@ -27,7 +27,10 @@ pub fn validate_price_update(
     target_ts: i64,
     allow_closed: bool,
 ) -> Result<PriceSnapshot> {
-    require!(input.feed_id == asset.feed_id, TribeError::OracleFeedMismatch);
+    require!(
+        input.feed_id == asset.feed_id,
+        TribeError::OracleFeedMismatch
+    );
     require!(input.fully_verified, TribeError::OracleNotFullyVerified);
     require!(input.price > 0, TribeError::OracleNonPositivePrice);
     // conf × 10_000 / price ≤ max_conf_bps (same exponent)

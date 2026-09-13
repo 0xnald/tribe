@@ -24,7 +24,9 @@ pub const MULT_Q6: u128 = 1_000_000;
 
 pub fn pow10(n: u32) -> Result<u128> {
     require!(n <= 38, TribeError::InvalidParams);
-    10u128.checked_pow(n).ok_or_else(|| error!(TribeError::MathOverflow))
+    10u128
+        .checked_pow(n)
+        .ok_or_else(|| error!(TribeError::MathOverflow))
 }
 
 pub fn to_u64(x: u128) -> Result<u64> {
@@ -35,7 +37,10 @@ pub fn to_u64(x: u128) -> Result<u64> {
 /// prices and exponents outside [-18, 8]; the result must fit u64.
 pub fn to_q8(price: i64, expo: i32) -> Result<u64> {
     require!(price > 0, TribeError::OracleNonPositivePrice);
-    require!((-18..=8).contains(&expo), TribeError::OracleUnsupportedExponent);
+    require!(
+        (-18..=8).contains(&expo),
+        TribeError::OracleUnsupportedExponent
+    );
     let p = price as u128;
     let shift = 8 + expo; // expo −8 → no shift
     let q8 = if shift >= 0 {
@@ -107,7 +112,7 @@ pub fn decide_winner(
         .and_then(|v| v.checked_mul(start_b as u128))
         .ok_or_else(|| error!(TribeError::MathOverflow))?
         / BPS;
-    let diff = if lhs > rhs { lhs - rhs } else { rhs - lhs };
+    let diff = lhs.abs_diff(rhs);
     if diff <= band {
         Ok(WinnerSide::Tie)
     } else if lhs > rhs {

@@ -109,8 +109,7 @@ pub fn apply_exit(
         r.removed_eff = sub_u128(p.eff_units, mul_u128(p.eff_units, keep)? / u)?;
         r.removed_eff_seconds =
             sub_u128(p.eff_unit_seconds, mul_u128(p.eff_unit_seconds, keep)? / u)?;
-        r.removed_unit_seconds =
-            sub_u128(p.unit_seconds, mul_u128(p.unit_seconds, keep)? / u)?;
+        r.removed_unit_seconds = sub_u128(p.unit_seconds, mul_u128(p.unit_seconds, keep)? / u)?;
     }
     p.units -= x;
     p.unit_seconds = sub_u128(p.unit_seconds, r.removed_unit_seconds)?;

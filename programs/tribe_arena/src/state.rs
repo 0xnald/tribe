@@ -101,6 +101,7 @@ pub mod cancel_reason {
 pub struct ProtocolConfig {
     pub authority: Pubkey,
     pub usdc_mint: Pubkey,
+    pub usdc_decimals: u8,
     /// USDC token account receiving the protocol fee share.
     pub treasury: Pubkey,
     /// USDC token account (ATA of this PDA) funding Upset Bonuses.
@@ -144,7 +145,9 @@ pub struct ArenaAsset {
     pub max_conf_bps: u16,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, Default, PartialEq, Eq, InitSpace)]
+#[derive(
+    AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, Default, PartialEq, Eq, InitSpace,
+)]
 pub struct PriceSnapshot {
     /// Reference price of one raw unit (Q8), multiplier applied.
     pub price_q8: u64,
@@ -155,7 +158,9 @@ pub struct PriceSnapshot {
 }
 
 /// Mirrors `SideState` in the TS engine.
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, Default, PartialEq, Eq, InitSpace)]
+#[derive(
+    AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, Default, PartialEq, Eq, InitSpace,
+)]
 pub struct SideState {
     pub units: u64,
     /// ∫ units dt — backing TWAB; never reduced by exits.
@@ -168,7 +173,9 @@ pub struct SideState {
     pub participants: u32,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, Default, PartialEq, Eq, InitSpace)]
+#[derive(
+    AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, Default, PartialEq, Eq, InitSpace,
+)]
 pub struct SettlementRecord {
     pub winner: u8,
     pub perf_bps_a: i64,

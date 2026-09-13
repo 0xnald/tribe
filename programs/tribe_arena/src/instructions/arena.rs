@@ -50,11 +50,11 @@ pub struct CreateArena<'info> {
     #[account(mut)]
     pub creator: Signer<'info>,
     #[account(seeds = [CONFIG_SEED], bump = config.bump)]
-    pub config: Account<'info, ProtocolConfig>,
+    pub config: Box<Account<'info, ProtocolConfig>>,
     #[account(seeds = [ASSET_SEED, asset_a.mint.as_ref()], bump = asset_a.bump)]
-    pub asset_a: Account<'info, AssetEntry>,
+    pub asset_a: Box<Account<'info, AssetEntry>>,
     #[account(seeds = [ASSET_SEED, asset_b.mint.as_ref()], bump = asset_b.bump)]
-    pub asset_b: Account<'info, AssetEntry>,
+    pub asset_b: Box<Account<'info, AssetEntry>>,
     #[account(
         init,
         payer = creator,
@@ -62,9 +62,9 @@ pub struct CreateArena<'info> {
         seeds = [ARENA_SEED, creator.key().as_ref(), &args.nonce.to_le_bytes()],
         bump,
     )]
-    pub arena: Account<'info, Arena>,
+    pub arena: Box<Account<'info, Arena>>,
     #[account(address = config.usdc_mint)]
-    pub usdc_mint: InterfaceAccount<'info, Mint>,
+    pub usdc_mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(
         init,
         payer = creator,
@@ -72,7 +72,7 @@ pub struct CreateArena<'info> {
         associated_token::authority = arena,
         associated_token::token_program = usdc_token_program,
     )]
-    pub reward_vault: InterfaceAccount<'info, TokenAccount>,
+    pub reward_vault: Box<InterfaceAccount<'info, TokenAccount>>,
     pub usdc_token_program: Interface<'info, TokenInterface>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
@@ -138,9 +138,9 @@ pub struct FundRewardPool<'info> {
     #[account(mut)]
     pub sponsor: Signer<'info>,
     #[account(seeds = [CONFIG_SEED], bump = config.bump)]
-    pub config: Account<'info, ProtocolConfig>,
+    pub config: Box<Account<'info, ProtocolConfig>>,
     #[account(mut, seeds = [ARENA_SEED, arena.creator.as_ref(), &arena.nonce_le], bump = arena.bump)]
-    pub arena: Account<'info, Arena>,
+    pub arena: Box<Account<'info, Arena>>,
     #[account(
         init_if_needed,
         payer = sponsor,
@@ -148,13 +148,13 @@ pub struct FundRewardPool<'info> {
         seeds = [SPONSOR_SEED, arena.key().as_ref(), sponsor.key().as_ref()],
         bump,
     )]
-    pub sponsor_record: Account<'info, Sponsor>,
+    pub sponsor_record: Box<Account<'info, Sponsor>>,
     #[account(address = config.usdc_mint)]
-    pub usdc_mint: InterfaceAccount<'info, Mint>,
+    pub usdc_mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(mut, token::mint = usdc_mint, token::authority = sponsor)]
-    pub sponsor_usdc: InterfaceAccount<'info, TokenAccount>,
+    pub sponsor_usdc: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(mut, address = arena.reward_vault)]
-    pub reward_vault: InterfaceAccount<'info, TokenAccount>,
+    pub reward_vault: Box<InterfaceAccount<'info, TokenAccount>>,
     pub usdc_token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
 }
@@ -163,9 +163,7 @@ pub fn fund_reward_pool(ctx: Context<FundRewardPool>, amount: u64) -> Result<()>
     let arena = &mut ctx.accounts.arena;
     let sponsor = ctx.accounts.sponsor.key();
     require!(
-        arena.sponsor_open
-            || sponsor == arena.creator
-            || sponsor == ctx.accounts.config.authority,
+        arena.sponsor_open || sponsor == arena.creator || sponsor == ctx.accounts.config.authority,
         TribeError::SponsorClosed
     );
     eng::fund_pool(arena, now()?, amount)?;
@@ -200,13 +198,13 @@ pub fn fund_reward_pool(ctx: Context<FundRewardPool>, amount: u64) -> Result<()>
 pub struct SnapshotStart<'info> {
     pub cranker: Signer<'info>,
     #[account(mut, seeds = [ARENA_SEED, arena.creator.as_ref(), &arena.nonce_le], bump = arena.bump)]
-    pub arena: Account<'info, Arena>,
-    pub price_update_a: Account<'info, PriceUpdateV2>,
-    pub price_update_b: Account<'info, PriceUpdateV2>,
+    pub arena: Box<Account<'info, Arena>>,
+    pub price_update_a: Box<Account<'info, PriceUpdateV2>>,
+    pub price_update_b: Box<Account<'info, PriceUpdateV2>>,
     #[account(address = arena.assets[0].mint @ TribeError::MintMismatch)]
-    pub mint_a: InterfaceAccount<'info, Mint>,
+    pub mint_a: Box<InterfaceAccount<'info, Mint>>,
     #[account(address = arena.assets[1].mint @ TribeError::MintMismatch)]
-    pub mint_b: InterfaceAccount<'info, Mint>,
+    pub mint_b: Box<InterfaceAccount<'info, Mint>>,
 }
 
 pub fn snapshot_start(ctx: Context<SnapshotStart>) -> Result<()> {
@@ -239,21 +237,21 @@ pub fn snapshot_start(ctx: Context<SnapshotStart>) -> Result<()> {
 pub struct Settle<'info> {
     pub cranker: Signer<'info>,
     #[account(seeds = [CONFIG_SEED], bump = config.bump)]
-    pub config: Account<'info, ProtocolConfig>,
+    pub config: Box<Account<'info, ProtocolConfig>>,
     #[account(mut, seeds = [ARENA_SEED, arena.creator.as_ref(), &arena.nonce_le], bump = arena.bump)]
-    pub arena: Account<'info, Arena>,
-    pub price_update_a: Account<'info, PriceUpdateV2>,
-    pub price_update_b: Account<'info, PriceUpdateV2>,
+    pub arena: Box<Account<'info, Arena>>,
+    pub price_update_a: Box<Account<'info, PriceUpdateV2>>,
+    pub price_update_b: Box<Account<'info, PriceUpdateV2>>,
     #[account(address = arena.assets[0].mint @ TribeError::MintMismatch)]
-    pub mint_a: InterfaceAccount<'info, Mint>,
+    pub mint_a: Box<InterfaceAccount<'info, Mint>>,
     #[account(address = arena.assets[1].mint @ TribeError::MintMismatch)]
-    pub mint_b: InterfaceAccount<'info, Mint>,
+    pub mint_b: Box<InterfaceAccount<'info, Mint>>,
     #[account(address = config.usdc_mint)]
-    pub usdc_mint: InterfaceAccount<'info, Mint>,
+    pub usdc_mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(mut, address = config.upset_reserve)]
-    pub upset_reserve: InterfaceAccount<'info, TokenAccount>,
+    pub upset_reserve: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(mut, address = arena.reward_vault)]
-    pub reward_vault: InterfaceAccount<'info, TokenAccount>,
+    pub reward_vault: Box<InterfaceAccount<'info, TokenAccount>>,
     pub usdc_token_program: Interface<'info, TokenInterface>,
 }
 
@@ -273,7 +271,13 @@ pub fn settle(ctx: Context<Settle>) -> Result<()> {
     ];
     let reserve_balance = ctx.accounts.upset_reserve.amount;
     let arena = &mut ctx.accounts.arena;
-    let out = eng::settle(arena, t, &inputs, reserve_balance, &ctx.accounts.config.limits)?;
+    let out = eng::settle(
+        arena,
+        t,
+        &inputs,
+        reserve_balance,
+        &ctx.accounts.config.limits,
+    )?;
     if out.upset_bonus > 0 {
         let bump = [ctx.accounts.config.bump];
         let seeds: [&[u8]; 2] = [CONFIG_SEED, &bump];
@@ -305,9 +309,9 @@ pub fn settle(ctx: Context<Settle>) -> Result<()> {
 pub struct CancelArena<'info> {
     pub authority: Signer<'info>,
     #[account(seeds = [CONFIG_SEED], bump = config.bump, has_one = authority @ TribeError::Unauthorized)]
-    pub config: Account<'info, ProtocolConfig>,
+    pub config: Box<Account<'info, ProtocolConfig>>,
     #[account(mut, seeds = [ARENA_SEED, arena.creator.as_ref(), &arena.nonce_le], bump = arena.bump)]
-    pub arena: Account<'info, Arena>,
+    pub arena: Box<Account<'info, Arena>>,
 }
 
 pub fn cancel_arena(ctx: Context<CancelArena>, reason_code: u16) -> Result<()> {
@@ -325,7 +329,7 @@ pub fn cancel_arena(ctx: Context<CancelArena>, reason_code: u16) -> Result<()> {
 pub struct CancelExpired<'info> {
     pub cranker: Signer<'info>,
     #[account(mut, seeds = [ARENA_SEED, arena.creator.as_ref(), &arena.nonce_le], bump = arena.bump)]
-    pub arena: Account<'info, Arena>,
+    pub arena: Box<Account<'info, Arena>>,
 }
 
 pub fn cancel_expired(ctx: Context<CancelExpired>) -> Result<()> {
@@ -343,9 +347,9 @@ pub fn cancel_expired(ctx: Context<CancelExpired>) -> Result<()> {
 pub struct ExtendSettlement<'info> {
     pub authority: Signer<'info>,
     #[account(seeds = [CONFIG_SEED], bump = config.bump, has_one = authority @ TribeError::Unauthorized)]
-    pub config: Account<'info, ProtocolConfig>,
+    pub config: Box<Account<'info, ProtocolConfig>>,
     #[account(mut, seeds = [ARENA_SEED, arena.creator.as_ref(), &arena.nonce_le], bump = arena.bump)]
-    pub arena: Account<'info, Arena>,
+    pub arena: Box<Account<'info, Arena>>,
 }
 
 pub fn extend_settlement(ctx: Context<ExtendSettlement>, secs: i64) -> Result<()> {
@@ -364,22 +368,22 @@ pub fn extend_settlement(ctx: Context<ExtendSettlement>, secs: i64) -> Result<()
 pub struct RefundSponsor<'info> {
     pub sponsor: Signer<'info>,
     #[account(seeds = [CONFIG_SEED], bump = config.bump)]
-    pub config: Account<'info, ProtocolConfig>,
+    pub config: Box<Account<'info, ProtocolConfig>>,
     #[account(mut, seeds = [ARENA_SEED, arena.creator.as_ref(), &arena.nonce_le], bump = arena.bump)]
-    pub arena: Account<'info, Arena>,
+    pub arena: Box<Account<'info, Arena>>,
     #[account(
         mut,
         seeds = [SPONSOR_SEED, arena.key().as_ref(), sponsor.key().as_ref()],
         bump = sponsor_record.bump,
         has_one = sponsor @ TribeError::Unauthorized,
     )]
-    pub sponsor_record: Account<'info, Sponsor>,
+    pub sponsor_record: Box<Account<'info, Sponsor>>,
     #[account(address = config.usdc_mint)]
-    pub usdc_mint: InterfaceAccount<'info, Mint>,
+    pub usdc_mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(mut, token::mint = usdc_mint, token::authority = sponsor)]
-    pub sponsor_usdc: InterfaceAccount<'info, TokenAccount>,
+    pub sponsor_usdc: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(mut, address = arena.reward_vault)]
-    pub reward_vault: InterfaceAccount<'info, TokenAccount>,
+    pub reward_vault: Box<InterfaceAccount<'info, TokenAccount>>,
     pub usdc_token_program: Interface<'info, TokenInterface>,
 }
 
@@ -416,16 +420,16 @@ pub fn refund_sponsor(ctx: Context<RefundSponsor>) -> Result<()> {
 pub struct SweepUnclaimed<'info> {
     pub cranker: Signer<'info>,
     #[account(seeds = [CONFIG_SEED], bump = config.bump)]
-    pub config: Account<'info, ProtocolConfig>,
+    pub config: Box<Account<'info, ProtocolConfig>>,
     #[account(mut, seeds = [ARENA_SEED, arena.creator.as_ref(), &arena.nonce_le], bump = arena.bump)]
-    pub arena: Account<'info, Arena>,
+    pub arena: Box<Account<'info, Arena>>,
     #[account(address = config.usdc_mint)]
-    pub usdc_mint: InterfaceAccount<'info, Mint>,
+    pub usdc_mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(mut, address = arena.reward_vault)]
-    pub reward_vault: InterfaceAccount<'info, TokenAccount>,
+    pub reward_vault: Box<InterfaceAccount<'info, TokenAccount>>,
     /// Rollover destination: the protocol treasury (per-pair rollover vaults are post-MVP).
     #[account(mut, address = config.treasury)]
-    pub treasury: InterfaceAccount<'info, TokenAccount>,
+    pub treasury: Box<InterfaceAccount<'info, TokenAccount>>,
     pub usdc_token_program: Interface<'info, TokenInterface>,
 }
 

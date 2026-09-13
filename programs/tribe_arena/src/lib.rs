@@ -48,6 +48,10 @@ pub mod tribe_arena {
         instructions::snapshot_start(ctx)
     }
 
+    pub fn open_position(ctx: Context<OpenPosition>, side: u8) -> Result<()> {
+        instructions::open_position(ctx, side)
+    }
+
     pub fn back(ctx: Context<Back>, side: u8, units: u64, fee_paid: u64) -> Result<()> {
         instructions::back(ctx, side, units, fee_paid)
     }

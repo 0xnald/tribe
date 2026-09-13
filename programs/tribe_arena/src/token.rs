@@ -4,8 +4,8 @@
 use crate::errors::TribeError;
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::spl_token_2022::extension::{
-    scaled_ui_amount::ScaledUiAmountConfig, transfer_hook::TransferHook,
-    BaseStateWithExtensions, ExtensionType, StateWithExtensions,
+    scaled_ui_amount::ScaledUiAmountConfig, transfer_hook::TransferHook, BaseStateWithExtensions,
+    ExtensionType, StateWithExtensions,
 };
 use anchor_spl::token_interface::{self, Mint, TokenAccount, TokenInterface, TransferChecked};
 
@@ -25,7 +25,11 @@ pub struct MintFacts {
 /// extension or an active transfer hook program.
 pub fn inspect_mint(mint: &InterfaceAccount<Mint>, token_program: &Pubkey) -> Result<MintFacts> {
     let info = mint.to_account_info();
-    require_keys_eq!(*info.owner, *token_program, TribeError::TokenProgramMismatch);
+    require_keys_eq!(
+        *info.owner,
+        *token_program,
+        TribeError::TokenProgramMismatch
+    );
     if *token_program == anchor_spl::token::ID {
         return Ok(MintFacts { scaled_ui: false });
     }
@@ -35,9 +39,10 @@ pub fn inspect_mint(mint: &InterfaceAccount<Mint>, token_program: &Pubkey) -> Re
         TribeError::TokenProgramMismatch
     );
     let data = info.try_borrow_data()?;
-    let state = StateWithExtensions::<
-        anchor_spl::token_interface::spl_token_2022::state::Mint,
-    >::unpack(&data)?;
+    let state =
+        StateWithExtensions::<anchor_spl::token_interface::spl_token_2022::state::Mint>::unpack(
+            &data,
+        )?;
     let types = state.get_extension_types()?;
     for t in &types {
         require!(!UNSUPPORTED.contains(t), TribeError::UnsupportedExtension);
@@ -61,9 +66,10 @@ pub fn read_scaled_multiplier_q6(mint: &AccountInfo, now: i64) -> Result<Option<
         return Ok(None);
     }
     let data = mint.try_borrow_data()?;
-    let state = StateWithExtensions::<
-        anchor_spl::token_interface::spl_token_2022::state::Mint,
-    >::unpack(&data)?;
+    let state =
+        StateWithExtensions::<anchor_spl::token_interface::spl_token_2022::state::Mint>::unpack(
+            &data,
+        )?;
     let Ok(cfg) = state.get_extension::<ScaledUiAmountConfig>() else {
         return Ok(None);
     };
@@ -129,5 +135,31 @@ pub fn transfer_from_pda<'info>(
         ),
         amount,
         mint.decimals,
+    )
+}
+
+/// `transfer_checked` on raw account infos (used where typed accounts would
+/// push an instruction's frame over the SBF stack limit).
+pub fn transfer_checked_raw<'info>(
+    token_program: &Interface<'info, TokenInterface>,
+    from: AccountInfo<'info>,
+    mint: AccountInfo<'info>,
+    to: AccountInfo<'info>,
+    authority: AccountInfo<'info>,
+    amount: u64,
+    decimals: u8,
+) -> Result<()> {
+    token_interface::transfer_checked(
+        CpiContext::new(
+            token_program.key(),
+            TransferChecked {
+                from,
+                mint,
+                to,
+                authority,
+            },
+        ),
+        amount,
+        decimals,
     )
 }

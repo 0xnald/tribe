@@ -16,9 +16,7 @@ use tribe_arena::engine::math::{
     decide_winner, notional_usdc, perf_bps, ref_price_q8, to_q8, WinnerSide,
 };
 use tribe_arena::engine::oracle::{validate_price_update, PriceInput};
-use tribe_arena::engine::shares::{
-    instant_share_after_deposit_bps, twab_share_bps, Valuation,
-};
+use tribe_arena::engine::shares::{instant_share_after_deposit_bps, twab_share_bps, Valuation};
 use tribe_arena::engine::underdog::underdog_multiplier;
 use tribe_arena::engine::upset::{compute_upset_bonus, Limiter};
 use tribe_arena::state::*;
@@ -26,8 +24,7 @@ use tribe_arena::state::*;
 // ───────────────────────────────────────── json helpers
 
 fn vectors_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../packages/core/test-vectors")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../packages/core/test-vectors")
 }
 
 fn load(category: &str) -> Vec<Value> {
@@ -41,7 +38,8 @@ fn load(category: &str) -> Vec<Value> {
 }
 
 fn s(v: &Value) -> &str {
-    v.as_str().unwrap_or_else(|| panic!("expected string, got {v}"))
+    v.as_str()
+        .unwrap_or_else(|| panic!("expected string, got {v}"))
 }
 fn u128_(v: &Value) -> u128 {
     s(v).parse().unwrap_or_else(|_| panic!("u128 {v}"))
@@ -289,10 +287,30 @@ fn accrual_vectors() {
             }
             let e = &steps[k];
             let ep = &e["position"];
-            assert_eq!(p.units as u128, u128_(&ep["units"]), "{} step {k}", v["name"]);
-            assert_eq!(p.unit_seconds, u128_(&ep["unitSeconds"]), "{} step {k}", v["name"]);
-            assert_eq!(p.eff_units, u128_(&ep["effUnits"]), "{} step {k}", v["name"]);
-            assert_eq!(p.eff_unit_seconds, u128_(&ep["effUnitSeconds"]), "{} step {k}", v["name"]);
+            assert_eq!(
+                p.units as u128,
+                u128_(&ep["units"]),
+                "{} step {k}",
+                v["name"]
+            );
+            assert_eq!(
+                p.unit_seconds,
+                u128_(&ep["unitSeconds"]),
+                "{} step {k}",
+                v["name"]
+            );
+            assert_eq!(
+                p.eff_units,
+                u128_(&ep["effUnits"]),
+                "{} step {k}",
+                v["name"]
+            );
+            assert_eq!(
+                p.eff_unit_seconds,
+                u128_(&ep["effUnitSeconds"]),
+                "{} step {k}",
+                v["name"]
+            );
             assert_eq!(p.forfeited, b(&ep["forfeited"]));
             let es = &e["side"];
             assert_eq!(side.units as u128, u128_(&es["units"]));
@@ -409,7 +427,10 @@ fn oracle_vectors() {
             let snap = r.unwrap_or_else(|err| panic!("{}: {err}", v["name"]));
             assert_eq!(snap, snapshot(&e["snapshot"]), "{}", v["name"]);
         } else {
-            let err = error_name(r.err().unwrap_or_else(|| panic!("{} expected error", v["name"])));
+            let err = error_name(
+                r.err()
+                    .unwrap_or_else(|| panic!("{} expected error", v["name"])),
+            );
             assert_eq!(err, s(&e["code"]), "{}", v["name"]);
         }
         n += 1;
@@ -572,7 +593,8 @@ fn build_arena(cfg: &Value, created_at: i64, rollover_in: u64) -> (Sim, Result<(
         bump: 0,
         _reserved: [0; 64],
     };
-    let r = eng::validate_creation(&mut arena, created_at, &limits, rollover_in).map_err(error_name);
+    let r =
+        eng::validate_creation(&mut arena, created_at, &limits, rollover_in).map_err(error_name);
     (
         Sim {
             arena,
@@ -604,7 +626,10 @@ fn apply(sim: &mut Sim, ev: &Value) -> Result<(), String> {
             Ok(())
         }
         "snapshotStart" => {
-            let inputs = [price_input(&ev["prices"]["A"]), price_input(&ev["prices"]["B"])];
+            let inputs = [
+                price_input(&ev["prices"]["A"]),
+                price_input(&ev["prices"]["B"]),
+            ];
             eng::snapshot_start(&mut sim.arena, now, &inputs).map_err(error_name)
         }
         "back" => {
@@ -617,8 +642,15 @@ fn apply(sim: &mut Sim, ev: &Value) -> Result<(), String> {
                 .cloned()
                 .unwrap_or_else(|| new_position(&owner, Pubkey::default(), side));
             let mut arena = sim.arena.clone();
-            eng::back(&mut arena, &mut pos, side as usize, u64_(&ev["units"]), u64_(&ev["feePaid"]), now)
-                .map_err(error_name)?;
+            eng::back(
+                &mut arena,
+                &mut pos,
+                side as usize,
+                u64_(&ev["units"]),
+                u64_(&ev["feePaid"]),
+                now,
+            )
+            .map_err(error_name)?;
             sim.arena = arena;
             sim.positions.insert(key, pos);
             Ok(())
@@ -636,16 +668,29 @@ fn apply(sim: &mut Sim, ev: &Value) -> Result<(), String> {
             Ok(())
         }
         "settle" => {
-            let inputs = [price_input(&ev["prices"]["A"]), price_input(&ev["prices"]["B"])];
+            let inputs = [
+                price_input(&ev["prices"]["A"]),
+                price_input(&ev["prices"]["B"]),
+            ];
             let mut arena = sim.arena.clone();
-            eng::settle(&mut arena, now, &inputs, u64_(&ev["reserveBalance"]), &sim.limits)
-                .map_err(error_name)?;
+            eng::settle(
+                &mut arena,
+                now,
+                &inputs,
+                u64_(&ev["reserveBalance"]),
+                &sim.limits,
+            )
+            .map_err(error_name)?;
             sim.arena = arena;
             Ok(())
         }
         "claim" => {
             let key = format!("{}:{}", s(&ev["side"]), s(&ev["owner"]));
-            let side = if s(&ev["side"]) == "A" { winner::A } else { winner::B };
+            let side = if s(&ev["side"]) == "A" {
+                winner::A
+            } else {
+                winner::B
+            };
             // program ordering: status, winner, side, then position existence
             if sim.arena.status != arena_status::SETTLED {
                 return Err("InvalidStatus".into());
@@ -669,7 +714,10 @@ fn apply(sim: &mut Sim, ev: &Value) -> Result<(), String> {
         "cancel" => {
             if key_of(s(&ev["actor"])) != sim.authority {
                 // the reducer checks status first, then actor
-                if !matches!(sim.arena.status, arena_status::SCHEDULED | arena_status::LIVE) {
+                if !matches!(
+                    sim.arena.status,
+                    arena_status::SCHEDULED | arena_status::LIVE
+                ) {
                     return Err("InvalidStatus".into());
                 }
                 return Err("Unauthorized".into());
@@ -712,19 +760,31 @@ fn arena_vectors() {
     for v in load("arena") {
         let name = s(&v["name"]).to_string();
         let i = &v["inputs"];
-        let (mut sim, created) = build_arena(&i["config"], i64_(&i["createdAt"]), u64_(&i["rolloverIn"]));
+        let (mut sim, created) =
+            build_arena(&i["config"], i64_(&i["createdAt"]), u64_(&i["rolloverIn"]));
         created.unwrap_or_else(|e| panic!("{name}: creation failed {e}"));
         let e = &v["expected"];
-        assert_eq!(sim.arena.backing_close_ts, i64_(&e["backingCloseTs"]), "{name}");
+        assert_eq!(
+            sim.arena.backing_close_ts,
+            i64_(&e["backingCloseTs"]),
+            "{name}"
+        );
 
         let trace = e["trace"].as_array().unwrap();
         for (idx, ev) in i["events"].as_array().unwrap().iter().enumerate() {
             let r = apply(&mut sim, ev);
             let t = &trace[idx];
             match r {
-                Ok(()) => assert!(b(&t["ok"]), "{name} event {idx} should have failed with {}", t["error"]),
+                Ok(()) => assert!(
+                    b(&t["ok"]),
+                    "{name} event {idx} should have failed with {}",
+                    t["error"]
+                ),
                 Err(code) => {
-                    assert!(!b(&t["ok"]), "{name} event {idx} should have succeeded, got {code}");
+                    assert!(
+                        !b(&t["ok"]),
+                        "{name} event {idx} should have succeeded, got {code}"
+                    );
                     assert_eq!(code, s(&t["error"]), "{name} event {idx}");
                 }
             }
@@ -739,7 +799,11 @@ fn arena_vectors() {
         };
         assert_eq!(sim.arena.status, status, "{name}");
         // accounting
-        assert_eq!(sim.arena.reward_pool_balance, u64_(&e["rewardVault"]), "{name} vault");
+        assert_eq!(
+            sim.arena.reward_pool_balance,
+            u64_(&e["rewardVault"]),
+            "{name} vault"
+        );
         assert_eq!(sim.arena.protocol_fees, u64_(&e["protocolFees"]), "{name}");
         assert_eq!(sim.arena.creator_fees, u64_(&e["creatorFees"]), "{name}");
         assert_eq!(sim.arena.sponsor_total, u64_(&e["sponsorTotal"]), "{name}");
@@ -747,12 +811,24 @@ fn arena_vectors() {
         assert_eq!(sim.arena.rollover_out, u64_(&e["rolloverOut"]), "{name}");
         assert_eq!(sim.arena.total_claimed, u64_(&e["totalClaimed"]), "{name}");
         // sides
-        assert_eq!(sim.arena.sides[0], side_state(&e["sides"]["A"]), "{name} side A");
-        assert_eq!(sim.arena.sides[1], side_state(&e["sides"]["B"]), "{name} side B");
+        assert_eq!(
+            sim.arena.sides[0],
+            side_state(&e["sides"]["A"]),
+            "{name} side A"
+        );
+        assert_eq!(
+            sim.arena.sides[1],
+            side_state(&e["sides"]["B"]),
+            "{name} side B"
+        );
         // prices
         for (k, side) in ["A", "B"].iter().enumerate() {
             if let Some(sp) = e["startPrices"].get(*side) {
-                assert_eq!(sim.arena.start_prices[k], snapshot(sp), "{name} start {side}");
+                assert_eq!(
+                    sim.arena.start_prices[k],
+                    snapshot(sp),
+                    "{name} start {side}"
+                );
             }
             if let Some(ep) = e["endPrices"].get(*side) {
                 assert_eq!(sim.arena.end_prices[k], snapshot(ep), "{name} end {side}");
@@ -772,9 +848,17 @@ fn arena_vectors() {
             assert_eq!(got.winner, want_winner, "{name}");
             assert_eq!(got.perf_bps_a as i128, i128_(&st["perfBpsA"]), "{name}");
             assert_eq!(got.perf_bps_b as i128, i128_(&st["perfBpsB"]), "{name}");
-            assert_eq!(got.pool_at_settlement, u64_(&st["poolAtSettlement"]), "{name}");
+            assert_eq!(
+                got.pool_at_settlement,
+                u64_(&st["poolAtSettlement"]),
+                "{name}"
+            );
             assert_eq!(got.w_total, u128_(&st["wTotal"]), "{name} wTotal");
-            assert_eq!(got.winner_twab_share_bps as u128, u128_(&st["winnerTwabShareBps"]), "{name}");
+            assert_eq!(
+                got.winner_twab_share_bps as u128,
+                u128_(&st["winnerTwabShareBps"]),
+                "{name}"
+            );
             assert_eq!(got.m_settle_q4 as u128, u128_(&st["mSettleQ4"]), "{name}");
             assert_eq!(got.upset_bonus, u64_(&st["upsetBonus"]), "{name}");
             assert_eq!(got.settled_at, i64_(&st["settledAt"]), "{name}");
@@ -783,11 +867,26 @@ fn arena_vectors() {
         let ep = e["positions"].as_object().unwrap();
         assert_eq!(ep.len(), sim.positions.len(), "{name} position count");
         for (key, want) in ep {
-            let p = sim.positions.get(key).unwrap_or_else(|| panic!("{name} missing {key}"));
+            let p = sim
+                .positions
+                .get(key)
+                .unwrap_or_else(|| panic!("{name} missing {key}"));
             assert_eq!(p.units as u128, u128_(&want["units"]), "{name} {key} units");
-            assert_eq!(p.unit_seconds, u128_(&want["unitSeconds"]), "{name} {key} unitSeconds");
-            assert_eq!(p.eff_units, u128_(&want["effUnits"]), "{name} {key} effUnits");
-            assert_eq!(p.eff_unit_seconds, u128_(&want["effUnitSeconds"]), "{name} {key}");
+            assert_eq!(
+                p.unit_seconds,
+                u128_(&want["unitSeconds"]),
+                "{name} {key} unitSeconds"
+            );
+            assert_eq!(
+                p.eff_units,
+                u128_(&want["effUnits"]),
+                "{name} {key} effUnits"
+            );
+            assert_eq!(
+                p.eff_unit_seconds,
+                u128_(&want["effUnitSeconds"]),
+                "{name} {key}"
+            );
             assert_eq!(p.claimed, b(&want["claimed"]), "{name} {key} claimed");
             assert_eq!(p.forfeited, b(&want["forfeited"]), "{name} {key} forfeited");
             assert_eq!(p.fee_paid, u64_(&want["feePaid"]), "{name} {key} fee");
@@ -807,8 +906,14 @@ fn arena_vectors() {
                 Value::String(code) => {
                     let mut arena = sim.arena.clone();
                     let mut pos = p.clone();
-                    let err = eng::claim(&mut arena, &mut pos, i64_(&i["claimAt"])).err().map(error_name);
-                    assert_eq!(err.as_deref(), Some(code.as_str()), "{name} {key} payout error");
+                    let err = eng::claim(&mut arena, &mut pos, i64_(&i["claimAt"]))
+                        .err()
+                        .map(error_name);
+                    assert_eq!(
+                        err.as_deref(),
+                        Some(code.as_str()),
+                        "{name} {key} payout error"
+                    );
                 }
                 other => panic!("payout {other}"),
             }

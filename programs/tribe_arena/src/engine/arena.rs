@@ -7,7 +7,7 @@ use crate::engine::accrual::{
     accrual_delta, accrue_position, accrue_side, apply_deposit, apply_exit, ExitResult,
 };
 use crate::engine::fees::{fee_required, split_fee, FeeSplit};
-use crate::engine::math::{decide_winner, mul_u128, notional_usdc, perf_bps, WinnerSide};
+use crate::engine::math::{add_u128, decide_winner, mul_u128, notional_usdc, perf_bps, WinnerSide};
 use crate::engine::oracle::{validate_price_update, PriceInput};
 use crate::engine::shares::{settlement_twab_share_bps, Valuation};
 use crate::engine::underdog::underdog_multiplier;
@@ -134,7 +134,9 @@ pub fn snapshot_start(arena: &mut Arena, now: i64, inputs: &[PriceInput; 2]) -> 
     require_status(arena, &[arena_status::SCHEDULED])?;
     require!(now >= arena.start_ts, TribeError::TooEarly);
     require!(
-        now <= arena.start_ts.saturating_add(arena.params.settlement_grace_secs),
+        now <= arena
+            .start_ts
+            .saturating_add(arena.params.settlement_grace_secs),
         TribeError::TooLate
     );
     let a = validate_price_update(
@@ -355,18 +357,20 @@ pub fn settle(
 
 // ───────────────────────────────────────── claim
 
-/// `W_i = min(eff_unit_seconds, unit_seconds × m_settle)` after final accrual.
-pub fn position_reward_weight(arena: &Arena, position: &Position) -> Result<u128> {
+/// `W_i = min(eff_unit_seconds, unit_seconds × m_settle)` after final accrual
+/// (computed without copying the position to keep the stack small).
+pub fn position_reward_weight(arena: &Arena, p: &Position) -> Result<u128> {
     require!(
         arena.status == arena_status::SETTLED,
         TribeError::InvalidStatus
     );
-    let mut p = clone_position(position);
     let w = arena.window();
     let until = arena.end_ts.max(p.last_touch_ts);
-    accrue_position(&mut p, until, &w)?;
-    let clamp = mul_u128(p.unit_seconds, arena.settlement.m_settle_q4 as u128)?;
-    Ok(p.eff_unit_seconds.min(clamp))
+    let dt = accrual_delta(p.last_touch_ts, until, &w)?;
+    let unit_seconds = add_u128(p.unit_seconds, mul_u128(p.units as u128, dt)?)?;
+    let eff = add_u128(p.eff_unit_seconds, mul_u128(p.eff_units, dt)?)?;
+    let clamp = mul_u128(unit_seconds, arena.settlement.m_settle_q4 as u128)?;
+    Ok(eff.min(clamp))
 }
 
 pub fn payout_proportional(pool: u64, weight: u128, w_total: u128) -> Result<u64> {
@@ -380,16 +384,18 @@ pub fn payout_proportional(pool: u64, weight: u128, w_total: u128) -> Result<u64
 /// Marks the position claimed and returns the payout; the caller transfers.
 pub fn claim(arena: &mut Arena, position: &mut Position, now: i64) -> Result<u64> {
     require_status(arena, &[arena_status::SETTLED])?;
-    let st = arena.settlement;
-    require!(st.winner != winner::TIE, TribeError::NoWinner);
-    require!(position.side == st.winner, TribeError::NotWinningSide);
+    let win = arena.settlement.winner;
+    let pool = arena.settlement.pool_at_settlement;
+    let w_total = arena.settlement.w_total;
+    require!(win != winner::TIE, TribeError::NoWinner);
+    require!(position.side == win, TribeError::NotWinningSide);
     require!(!position.claimed, TribeError::AlreadyClaimed);
     let w = arena.window();
     let until = arena.end_ts.max(position.last_touch_ts);
     accrue_position(position, until, &w)?;
     let weight = position_reward_weight(arena, position)?;
     require!(weight > 0, TribeError::NoRewardWeight);
-    let amount = payout_proportional(st.pool_at_settlement, weight, st.w_total)?;
+    let amount = payout_proportional(pool, weight, w_total)?;
     require!(amount > 0, TribeError::NothingToClaim);
     require!(
         amount <= arena.reward_pool_balance,
@@ -421,7 +427,9 @@ pub fn cancel_expired(arena: &mut Arena, now: i64) -> Result<()> {
     require_status(arena, &[arena_status::SCHEDULED, arena_status::LIVE])?;
     if arena.status == arena_status::SCHEDULED {
         require!(
-            now > arena.start_ts.saturating_add(arena.params.settlement_grace_secs),
+            now > arena
+                .start_ts
+                .saturating_add(arena.params.settlement_grace_secs),
             TribeError::NotExpired
         );
     } else {
@@ -499,24 +507,4 @@ pub fn sweep_unclaimed(arena: &mut Arena, now: i64, limits: &ProtocolLimits) -> 
         .ok_or_else(|| error!(TribeError::MathOverflow))?;
     arena.claims_swept_at = now;
     Ok(amount)
-}
-
-fn clone_position(p: &Position) -> Position {
-    Position {
-        owner: p.owner,
-        arena: p.arena,
-        side: p.side,
-        units: p.units,
-        unit_seconds: p.unit_seconds,
-        eff_units: p.eff_units,
-        eff_unit_seconds: p.eff_unit_seconds,
-        entry_ts: p.entry_ts,
-        last_touch_ts: p.last_touch_ts,
-        claimed: p.claimed,
-        deposits: p.deposits,
-        fee_paid: p.fee_paid,
-        forfeited: p.forfeited,
-        bump: p.bump,
-        _reserved: p._reserved,
-    }
 }

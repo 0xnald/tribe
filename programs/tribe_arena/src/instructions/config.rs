@@ -23,11 +23,11 @@ pub struct InitConfig<'info> {
         seeds = [CONFIG_SEED],
         bump,
     )]
-    pub config: Account<'info, ProtocolConfig>,
-    pub usdc_mint: InterfaceAccount<'info, Mint>,
+    pub config: Box<Account<'info, ProtocolConfig>>,
+    pub usdc_mint: Box<InterfaceAccount<'info, Mint>>,
     /// Protocol treasury USDC account (any owner chosen by the authority).
     #[account(token::mint = usdc_mint, token::token_program = usdc_token_program)]
-    pub treasury: InterfaceAccount<'info, TokenAccount>,
+    pub treasury: Box<InterfaceAccount<'info, TokenAccount>>,
     /// Upset Reserve: ATA of the config PDA.
     #[account(
         init,
@@ -36,7 +36,7 @@ pub struct InitConfig<'info> {
         associated_token::authority = config,
         associated_token::token_program = usdc_token_program,
     )]
-    pub upset_reserve: InterfaceAccount<'info, TokenAccount>,
+    pub upset_reserve: Box<InterfaceAccount<'info, TokenAccount>>,
     pub usdc_token_program: Interface<'info, TokenInterface>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
@@ -68,6 +68,7 @@ pub fn init_config(ctx: Context<InitConfig>, args: InitConfigArgs) -> Result<()>
     let c = &mut ctx.accounts.config;
     c.authority = ctx.accounts.authority.key();
     c.usdc_mint = ctx.accounts.usdc_mint.key();
+    c.usdc_decimals = ctx.accounts.usdc_mint.decimals;
     c.treasury = ctx.accounts.treasury.key();
     c.upset_reserve = ctx.accounts.upset_reserve.key();
     c.fee_policy = args.fee_policy;
@@ -93,7 +94,7 @@ pub struct SetAsset<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(seeds = [CONFIG_SEED], bump = config.bump, has_one = authority @ TribeError::Unauthorized)]
-    pub config: Account<'info, ProtocolConfig>,
+    pub config: Box<Account<'info, ProtocolConfig>>,
     #[account(
         init_if_needed,
         payer = authority,
@@ -101,9 +102,9 @@ pub struct SetAsset<'info> {
         seeds = [ASSET_SEED, mint.key().as_ref()],
         bump,
     )]
-    pub asset: Account<'info, AssetEntry>,
+    pub asset: Box<Account<'info, AssetEntry>>,
     #[account(mint::token_program = token_program)]
-    pub mint: InterfaceAccount<'info, Mint>,
+    pub mint: Box<InterfaceAccount<'info, Mint>>,
     pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
 }
@@ -136,7 +137,7 @@ pub fn set_asset(ctx: Context<SetAsset>, args: SetAssetArgs) -> Result<()> {
 pub struct SetPaused<'info> {
     pub authority: Signer<'info>,
     #[account(mut, seeds = [CONFIG_SEED], bump = config.bump, has_one = authority @ TribeError::Unauthorized)]
-    pub config: Account<'info, ProtocolConfig>,
+    pub config: Box<Account<'info, ProtocolConfig>>,
 }
 
 pub fn set_paused(ctx: Context<SetPaused>, paused: bool) -> Result<()> {
