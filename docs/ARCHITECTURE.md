@@ -311,6 +311,12 @@ CPI-heavy transactions under WSL2 (see RESEARCH_NOTES).
 
 ## 9. Off-chain services (inside `apps/web`)
 
+> Phase 3 implemented the consumer app on a hybrid layout — mainnet market
+> data, devnet protocol, demo fixtures, provenance on every surface. The
+> frontend architecture, routes, data flow and network configuration are
+> documented in [FRONTEND.md](FRONTEND.md); the indexer/crank below remain
+> Phase 4 work.
+
 - **Indexer**: subscribes to program logs (Helius webhooks in production;
   `onLogs` locally), decodes Anchor events, writes Postgres tables
   (`arenas`, `positions`, `events`, `sponsors`, `users`, `leaderboard_*`).

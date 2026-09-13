@@ -235,3 +235,27 @@ TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb`, not committed). (2) A
   (close it to recover ~3.25 SOL). The TPU path drops a few percent of
   writes per pass; passing a persistent `--buffer` keypair makes retries
   resume instead of restart — the deploy completed on the second pass.
+
+## 9. Phase 3 findings (verified 2026-09-13)
+
+- **Jupiter keyless access.** `lite-api.jup.ag/price/v3` and
+  `lite-api.jup.ag/tokens/v2/search` answer without a key;
+  `lite-api.jup.ag/swap/v2/order` is 404 and `api.jup.ag/swap/v2/order`
+  returns an empty body without `x-api-key`. The deprecated
+  `lite-api.jup.ag/swap/v1/quote` still returns full quotes keyless, so the
+  app uses it for indicative previews and switches to `swap/v2/order` when
+  `JUPITER_API_KEY` is set.
+- **Pyth on devnet.** Sponsored price feeds are published every ~2 min for
+  BONK, SOL, BTC, WIF and ETH (TSLA's is 70+ days stale). The accounts are
+  `PriceUpdateV2`s owned by the receiver (`rec5EK…`), at PDAs of the push
+  oracle program `pythWSnswVUd12oZpeFP8e9CVaEqJg25g1Vtc2biRsT` with seeds
+  `[shard u16 le = 0, feed_id]`. The devnet Arena `9c4aWKn3…` was started and
+  is priced from them.
+- **Public devnet RPC** rate-limits `getProgramAccounts`; web3.js retries
+  429s with back-off by default and can stall a page for 20 s+ — use
+  `disableRetryOnRateLimit` plus a hard timeout, and cache reads.
+- **arweave.net** logo fetches fail intermittently; a cached server-side
+  logo proxy with a token-list fallback removed the blank avatars.
+- **Devnet USDC** for the 0.50 % fee comes from Circle's faucet
+  (`faucet.circle.com`, devnet USDC `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`);
+  it cannot be minted by Tribe's faucet.
