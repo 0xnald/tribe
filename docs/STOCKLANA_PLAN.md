@@ -45,15 +45,15 @@
 
 ## 2. Phases and calendar (ET)
 
-| Phase                                            | When                 | Output                                                                                        | Commits (approx.) |
-| ------------------------------------------------ | -------------------- | --------------------------------------------------------------------------------------------- | ----------------- |
-| **0 — Architecture & product lock**              | Sat 12 Sept          | Seven docs, research notes, workspace + tooling scaffold, core package skeleton               | 8                 |
-| **1 — Core engine** ✅                           | Sat 12               | `packages/core` complete with 110 vectors, 272 tests; seed registry; market-quality model     | 6                 |
-| **2 — Program**                                  | Sun 13 → Mon 14      | Anchor program + tests in WSL; devnet deploy; IDL client package                              | 6                 |
-| **3 — Web foundation & Arena UI**                | Mon 14 → Tue 15      | Design tokens, layout, ArenaCard/Hero, Home, Arena page in demo mode                          | 6                 |
-| **4 — Live wiring**                              | Tue 15 → Wed 16      | Wallet, indexer, Pyth proxy + SSE, Jupiter quote/build, Back flow, My Arenas, crank           | 6                 |
-| **5 — Create, Leaderboard, Share, Victory Roll** | Wed 16 → Thu 17      | Remaining surfaces; OG cards; polish; responsive pass                                         | 5                 |
-| **6 — Mainnet proof, submission**                | Thu 17 → Fri 18 noon | Deploy (mainnet or devnet per §5), run a real Arena, record video, README screenshots, submit | 3                 |
+| Phase                                            | When                 | Output                                                                                              | Commits (approx.) |
+| ------------------------------------------------ | -------------------- | --------------------------------------------------------------------------------------------------- | ----------------- |
+| **0 — Architecture & product lock**              | Sat 12 Sept          | Seven docs, research notes, workspace + tooling scaffold, core package skeleton                     | 8                 |
+| **1 — Core engine** ✅                           | Sat 12               | `packages/core` complete with 110 vectors, 272 tests; seed registry; market-quality model           | 6                 |
+| **2 — Program** ✅                               | Sun 13               | Anchor program (16 instructions), Rust vector parity, 24 bankrun tests, typed client, devnet deploy | 8                 |
+| **3 — Web foundation & Arena UI**                | Mon 14 → Tue 15      | Design tokens, layout, ArenaCard/Hero, Home, Arena page in demo mode                                | 6                 |
+| **4 — Live wiring**                              | Tue 15 → Wed 16      | Wallet, indexer, Pyth proxy + SSE, Jupiter quote/build, Back flow, My Arenas, crank                 | 6                 |
+| **5 — Create, Leaderboard, Share, Victory Roll** | Wed 16 → Thu 17      | Remaining surfaces; OG cards; polish; responsive pass                                               | 5                 |
+| **6 — Mainnet proof, submission**                | Thu 17 → Fri 18 noon | Deploy (mainnet or devnet per §5), run a real Arena, record video, README screenshots, submit       | 3                 |
 
 Total ≈ 39 commits. Submission edits allowed until close; freeze at
 Fri 18 Sept 12:00 ET to leave buffer.
@@ -115,7 +115,9 @@ Fri 18 Sept 12:00 ET to leave buffer.
 
 ## 7. Definition of done for the hackathon build
 
-- `pnpm lint && pnpm typecheck && pnpm test` green; `anchor test` green.
+- `pnpm check` and `pnpm build` green; `scripts/build-program.sh` (fmt, clippy,
+  vector parity, SBF build) and `pnpm --filter @tribe/program-client
+test:program` green.
 - Live deployment loads in < 2 s on mobile; Arena page passes the
   five-second test with three people who have never seen it.
 - One real Back transaction and one real position visible on-chain.

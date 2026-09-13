@@ -124,11 +124,14 @@ cp .env.example .env.local        # fill in keys (see below)
 pnpm dev                          # http://localhost:3000 (demo mode by default)
 ```
 
-Program:
+Program (WSL Ubuntu 24.04 / Linux / macOS — see
+[RESEARCH_NOTES §8](docs/RESEARCH_NOTES.md#8-program-toolchain-findings-phase-2-verified-2026-09-13)):
 
 ```bash
-cd programs/tribe_arena
-anchor build && anchor test
+scripts/wsl-toolchain.sh                          # Rust, Agave 4.2, Anchor 1.2 (once)
+scripts/build-program.sh                          # fmt, clippy, vector parity, SBF build, IDL
+pnpm --filter @tribe/program-client fixtures      # dumps mainnet Token-2022 for the test runtime (once)
+pnpm --filter @tribe/program-client test:program  # 24 bankrun integration tests
 ```
 
 ## Environment variables
@@ -152,14 +155,16 @@ anchor build && anchor test
 ```bash
 pnpm lint          # ESLint + Prettier check
 pnpm typecheck     # tsc --noEmit across the workspace
-pnpm test          # Vitest: reward math, state machine, oracle policy, manipulation cases
+pnpm test          # Vitest: reward math, state machine, oracle policy, manipulation cases (274)
 pnpm test:e2e      # Playwright responsive checks (Phase 3+)
-anchor test        # program integration tests (Phase 2+)
+cargo test -p tribe_arena                         # Rust engine replays the shared vectors
+pnpm --filter @tribe/program-client test:program  # program integration tests (bankrun)
 ```
 
 The economics have shared test vectors used by both TypeScript and Rust
-(`packages/core/src/__fixtures__`), so the two implementations are checked
-for bit-for-bit agreement.
+(`packages/core/test-vectors/*.json`, 112 vectors), so the two
+implementations are checked for bit-for-bit agreement: the TS engine
+generates them, the Rust engine inside the program replays them.
 
 ## Demo mode vs live mode
 
@@ -168,10 +173,32 @@ carries a provenance badge — **LIVE** (on-chain, real prices, real
 transactions), **DEMO** (seeded, simulated prices, no transactions), or
 **FIXTURE**. `TRIBE_MODE=demo` runs the full UI without any external API.
 
+## Program
+
+`programs/tribe_arena` (Anchor 1.2) holds Arena state, per-user position
+vaults, time-weighted accumulators, the reward pool and Pyth-verified
+settlement. Sixteen instructions: `init_config`, `set_asset`, `set_paused`,
+`create_arena`, `fund_reward_pool`, `snapshot_start`, `open_position`,
+`back`, `exit`, `settle`, `claim`, `cancel_arena`, `cancel_expired`,
+`extend_settlement`, `refund_sponsor`, `sweep_unclaimed`. Start, settle and
+cancel-on-expiry are permissionless; principal only ever moves back to its
+owner. Details: [ARCHITECTURE §8](docs/ARCHITECTURE.md#8-program-design-anchor-12-tribe_arena--implemented-in-phase-2)
+and [SECURITY §4](docs/SECURITY.md#4-program-security-review-phase-2-programstribe_arena).
+
+|            |                                                                                                              |
+| ---------- | ------------------------------------------------------------------------------------------------------------ |
+| Program id | `shzfcWWZtWWTMfRuEvdBAsJZUe3mYork3wug5z5U5w4`                                                                |
+| Cluster    | devnet (see [DEPLOYMENTS](docs/DEPLOYMENTS.md) for the deployment record)                                    |
+| Client     | `packages/program-client` — PDAs, instruction builders, fetchers, `open+back` and swap-then-back composition |
+
+Mainnet deployment is deliberately not part of Phase 2.
+
 ## Status
 
-Phase 0 (architecture and product lock) and Phase 1 (core economic engine:
-`packages/core`, 272 tests, 110 shared test vectors) complete. See
+Phase 0 (architecture and product lock), Phase 1 (core economic engine:
+`packages/core`, 274 tests, 112 shared test vectors) and Phase 2 (Anchor
+program with Rust engine parity, 24 integration tests, typed client, devnet
+deployment) complete. See
 [STOCKLANA_PLAN](docs/STOCKLANA_PLAN.md) for phases, the demo script, and
 open decisions. Known limitations are listed in
 [SECURITY §6](docs/SECURITY.md#6-known-limitations-documented-in-readme).

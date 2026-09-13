@@ -178,8 +178,54 @@ pins TS 5.9.3 until typescript-eslint and Vitest support is confirmed.
 
 ## 7. Local environment
 
-- Windows 11, Node 22.11, npm 10.9, corepack 0.29, git 2.41, Docker 29.6.
-- No Solana CLI / Anchor / Rust on Windows. WSL Ubuntu 22.04 has cargo
-  (rustc 1.73 — must upgrade) — Anchor builds will run there.
-- GitHub repo `0xnald/tribe` exists and is empty; HTTPS credential manager is
-  configured (push will prompt for auth on first use).
+- Windows 11, Node 22.20 (nvm; rolldown/Vitest 5 need ≥ 22.12), pnpm 12.4.1
+  via a shim (corepack 0.29 cannot resolve pnpm 12), git 2.41, Docker 29.6.
+- No Solana CLI / Anchor / Rust on Windows; the program is built and tested
+  in WSL (see §8). The repo is mirrored into WSL with `rsync` because
+  `cargo build-sbf` on a `/mnt/c` checkout is several times slower.
+- GitHub repo `0xnald/tribe`; HTTPS credential manager is configured.
+
+## 8. Program toolchain findings (Phase 2, verified 2026-09-13)
+
+Everything below cost real time and is encoded in `scripts/wsl-toolchain.sh`,
+`scripts/build-program.sh` and the test harness.
+
+- **Ubuntu 24.04 is required in WSL.** The prebuilt Anchor 1.2.0 binary
+  (`avm install 1.2.0`) links against glibc 2.39; Ubuntu 22.04 (glibc 2.35)
+  fails at startup. Rust stable 1.98, Agave 4.2.2 and Anchor 1.2.0 were
+  installed in a fresh Ubuntu-24.04 distribution.
+- **Lockfile unification.** `pyth-solana-receiver-sdk 2.0.0` depends on
+  `pythnet-sdk`, which resolves `anchor-lang 0.32.1` next to the workspace's
+  1.2.0. Two Anchor versions in one SBF build fail with a
+  `borsh::maybestd` error. Fix: `cargo update -p anchor-lang@0.32.1
+--precise 1.2.0` (the SDK compiles against 1.2), and commit `Cargo.lock`.
+- **SBF stack frames are 4 KiB.** `cargo check`/`clippy` pass, but
+  `cargo build-sbf` reports frame overflows for large Anchor account
+  contexts (`try_accounts`) and for handlers that clone big structs. Box
+  every account, avoid cloning `Position`/`Arena`, and keep contexts small
+  (`open_position` was split out of `back` for this reason).
+- **SBPF ISA.** Agave 4.2's `cargo build-sbf` emits SBPF v3 by default;
+  neither LiteSVM 0.8 nor bankrun 0.4 (program-test 1.18) can load it. Build
+  with `cargo build-sbf --arch v0`; devnet/mainnet run both.
+- **LiteSVM 0.8 (Node) aborts under WSL2.** After ~6 CPI-heavy
+  transactions (ATA creation loops) the native binding dies with
+  `std::bad_alloc`; reproduced in plain Node, with and without
+  `--expose-gc`, across litesvm 0.5–0.8, independent of transaction history
+  and blockhash settings. Plain transfers never trigger it. Not investigated
+  further; **solana-bankrun 0.4.0** runs the same suite in ~4 s.
+- **Bankrun caveats.** (1) Its bundled Token-2022 predates
+  `ScaledUiAmount`/`Pausable`, so the mainnet Token-2022 binary is loaded at
+  the canonical address from `tests/fixtures` (`solana program dump -u m
+TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb`, not committed). (2) A
+  byte-identical transaction re-sent in the same bank hangs the client
+  (duplicate signature); the harness warps one slot after every attempt,
+  failed ones included. (3) `setClock` values below the genesis-derived
+  estimate are overwritten on the next warp; tests use a far-future epoch
+  and only move the clock forward. (4) No Windows binary — Linux/macOS only.
+- **Anchor 1.x API deltas** vs 0.31: `CpiContext::new(program_id, ...)`
+  takes a `Pubkey`; `Interface<TokenInterface>`/`InterfaceAccount` for
+  Token-2022-aware accounts; `anchor idl build -p <name>` writes the IDL and
+  the TS type file (`@anchor-lang/core`).
+- **Devnet airdrops** from `api.devnet.solana.com` are rate-limited per IP
+  (all sizes refused for hours at a time); fund the deployer from
+  `faucet.solana.com` when the CLI faucet refuses.

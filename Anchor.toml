@@ -16,5 +16,5 @@ cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-# Program tests run under LiteSVM (deterministic clock + Pyth fixtures); see packages/program-client.
-test = "echo 'use: pnpm --filter @tribe/program-client test' && exit 1"
+# Program tests run under bankrun (deterministic clock + Pyth fixtures); see packages/program-client.
+test = "echo 'use: pnpm --filter @tribe/program-client test:program' && exit 1"

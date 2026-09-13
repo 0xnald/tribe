@@ -546,11 +546,9 @@ describe('happy path: BONK vs TSLAx, BONK wins', () => {
     const a = await fetchArena(arena);
     await expectError(
       async () =>
-        await send(
-          W.h,
-          await W.client.openAndBack(W.alice.publicKey, arena, a, W.cfg, 0, 1n, 1n),
-          [W.alice],
-        ),
+        await send(W.h, await W.client.openAndBack(W.alice.publicKey, arena, a, W.cfg, 0, 1n, 1n), [
+          W.alice,
+        ]),
       'InvalidStatus',
     );
     // too early

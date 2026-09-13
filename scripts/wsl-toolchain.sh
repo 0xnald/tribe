@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Reproducible Solana/Anchor toolchain for WSL Ubuntu 22.04 (docs/ARCHITECTURE.md §11).
+# Reproducible Solana/Anchor toolchain for WSL Ubuntu 24.04 (docs/RESEARCH_NOTES.md §8).
+# Ubuntu 22.04 does not work: the prebuilt Anchor 1.2 binary needs glibc 2.39.
 set -euxo pipefail
 export PATH="$HOME/.cargo/bin:$HOME/.local/share/solana/install/active_release/bin:$HOME/.avm/bin:$PATH"
 
