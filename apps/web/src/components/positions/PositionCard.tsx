@@ -89,7 +89,7 @@ export function PositionCard({
           <p className="display text-2xl font-extrabold">
             {settled && ins.won !== null ? (
               ins.won ? (
-                <span className="inline-flex items-center gap-1.5 text-volt">
+                <span className="inline-flex items-center gap-1.5 text-volt-fg">
                   <Trophy size={20} aria-hidden /> {s.asset.symbol} won
                 </span>
               ) : (
@@ -154,7 +154,7 @@ export function PositionCard({
           href={explorerTxUrl(position.txSig)}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-1 self-start font-mono text-xs text-[#9db3ff] hover:underline"
+          className="inline-flex items-center gap-1 self-start font-mono text-xs text-devnet-fg hover:underline"
         >
           {position.txSig.slice(0, 8)}…{position.txSig.slice(-6)}{' '}
           <ExternalLink size={12} aria-hidden />
@@ -203,7 +203,7 @@ function Kv({ k, v, tone }: { k: string; v: string; tone?: 'gold' | undefined })
   return (
     <div>
       <dt className="micro text-fg-muted">{k}</dt>
-      <dd className={`tnum font-semibold ${tone === 'gold' ? 'text-gold' : ''}`}>{v}</dd>
+      <dd className={`tnum font-semibold ${tone === 'gold' ? 'text-gold-fg' : ''}`}>{v}</dd>
     </div>
   );
 }

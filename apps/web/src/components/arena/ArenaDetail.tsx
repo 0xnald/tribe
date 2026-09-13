@@ -30,7 +30,7 @@ export function ArenaDetail({ initial, serverNow }: { initial: ArenaView; server
         <span className="text-fg">
           {a.asset.symbol} vs {b.asset.symbol}
         </span>
-        {live.stale ? <span className="ml-3 text-ember">· live refresh paused</span> : null}
+        {live.stale ? <span className="ml-3 text-ember-fg">· live refresh paused</span> : null}
       </nav>
 
       <ArenaHero arena={arena} now={now} />
@@ -83,7 +83,7 @@ export function ArenaDetail({ initial, serverNow }: { initial: ArenaView; server
               <dd className="text-right">
                 {arena.creator.label}
                 {arena.creator.firstParty ? (
-                  <span className="micro ml-2 rounded-full bg-[color-mix(in_oklab,var(--volt)_18%,transparent)] px-1.5 py-0.5 text-volt">
+                  <span className="micro ml-2 rounded-full bg-[color-mix(in_oklab,var(--volt)_18%,transparent)] px-1.5 py-0.5 text-volt-fg">
                     Tribe
                   </span>
                 ) : null}
@@ -106,7 +106,7 @@ export function ArenaDetail({ initial, serverNow }: { initial: ArenaView; server
                       href={explorerAddressUrl(arena.onchain.arena)}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 font-mono text-[#9db3ff] hover:underline"
+                      className="inline-flex items-center gap-1 font-mono text-devnet-fg hover:underline"
                     >
                       {shortAddress(arena.onchain.arena)} <ExternalLink size={12} aria-hidden />
                     </a>

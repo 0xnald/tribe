@@ -110,7 +110,7 @@ export function Explore({ initial, serverNow }: { initial: ArenaView[]; serverNo
             <p className="text-sm text-fg-muted">
               Pick a side. Own the asset. Hold your conviction.
               {live.stale ? (
-                <span className="ml-2 text-ember">
+                <span className="ml-2 text-ember-fg">
                   · refresh paused ({live.error ?? 'offline'})
                 </span>
               ) : null}
@@ -146,7 +146,7 @@ export function Explore({ initial, serverNow }: { initial: ArenaView[]; serverNo
             <span className="font-semibold">{narrative}</span>
             <button
               type="button"
-              className="text-volt hover:underline"
+              className="text-volt-fg hover:underline"
               onClick={() => setNarrative(null)}
             >
               clear
@@ -204,7 +204,7 @@ export function Explore({ initial, serverNow }: { initial: ArenaView[]; serverNo
                 }}
                 className="flex flex-col items-start gap-2 rounded-[16px] border border-line bg-bg-elev p-4 text-left transition-colors hover:border-line-strong"
               >
-                <Icon size={20} className="text-volt" strokeWidth={1.75} aria-hidden />
+                <Icon size={20} className="text-volt-fg" strokeWidth={1.75} aria-hidden />
                 <span className="display text-base font-bold leading-tight">{title}</span>
                 <span className="text-xs text-fg-muted">{blurb}</span>
                 <span className="micro mt-auto text-fg-faint">

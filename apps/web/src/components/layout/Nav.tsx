@@ -71,7 +71,7 @@ export function BottomTabs() {
           <Link
             key={href}
             href={href}
-            className={`flex h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-semibold ${active ? 'text-volt' : 'text-fg-muted'}`}
+            className={`flex h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-semibold ${active ? 'text-volt-fg' : 'text-fg-muted'}`}
             aria-current={active ? 'page' : undefined}
           >
             <Icon size={20} strokeWidth={active ? 2.25 : 1.75} aria-hidden />

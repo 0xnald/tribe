@@ -31,13 +31,19 @@ export default function CreatePage() {
           return (
             <div
               key={`${a}-${b}`}
-              className="flex items-center justify-between rounded-[16px] border border-line bg-bg-elev p-4"
+              className="flex items-center justify-between gap-2 rounded-[16px] border border-line bg-bg-elev p-3"
             >
-              <span className="display text-lg font-bold" style={{ color: A.visual.color }}>
+              <span
+                className="asset-tint display rounded-[10px] px-3 py-1.5 text-lg font-bold"
+                style={{ ['--asset' as string]: A.visual.color }}
+              >
                 {A.displaySymbol}
               </span>
-              <span className="display-tight text-fg-faint">VS</span>
-              <span className="display text-lg font-bold" style={{ color: B.visual.color }}>
+              <span className="display-tight text-fg-muted">VS</span>
+              <span
+                className="asset-tint display rounded-[10px] px-3 py-1.5 text-lg font-bold"
+                style={{ ['--asset' as string]: B.visual.color }}
+              >
                 {B.displaySymbol}
               </span>
             </div>

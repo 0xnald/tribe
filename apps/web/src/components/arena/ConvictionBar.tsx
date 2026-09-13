@@ -58,7 +58,7 @@ export function ConvictionBar({
 
 export function MultiplierTag({ m }: { m: number }) {
   return (
-    <span className="micro inline-flex h-5 items-center rounded-full bg-[color-mix(in_oklab,var(--gold)_22%,transparent)] px-1.5 whitespace-nowrap text-gold">
+    <span className="micro inline-flex h-5 items-center rounded-full bg-[color-mix(in_oklab,var(--gold)_22%,transparent)] px-1.5 whitespace-nowrap text-gold-fg">
       {fmtMultiplier(m)}
       <span className="hidden sm:inline">&nbsp;underdog</span>
     </span>

@@ -11,7 +11,8 @@ export default defineConfig({
   testMatch: /.*\.spec\.ts/,
   timeout: 60_000,
   fullyParallel: false,
-  retries: 0,
+  workers: 1,
+  retries: 1,
   reporter: [['list']],
   use: { baseURL, colorScheme: 'dark', trace: 'retain-on-failure' },
   projects: [

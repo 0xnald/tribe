@@ -42,7 +42,7 @@ export function Countdown({
     <span className={`inline-flex flex-col ${className}`}>
       {showLabel ? <span className="micro text-fg-muted">{label}</span> : null}
       <span
-        className={`tnum font-mono font-semibold tracking-tight ${sz} ${urgent ? 'text-ember' : 'text-fg'}`}
+        className={`tnum font-mono font-semibold tracking-tight ${sz} ${urgent ? 'text-ember-fg' : 'text-fg'}`}
         aria-hidden
       >
         {done ? '—' : fmtCountdown(secs)}

@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import { arenaCountdown, isBackable, type ArenaView } from '@/lib/arena/model';
 import { fmtCountdown, fmtUsd } from '@/lib/format';
+import { onAsset } from '@/lib/color';
 import { useBackSheet } from '@/providers/Providers';
 
 import { AssetLogo } from './AssetIdentity';
@@ -127,7 +128,7 @@ export function ArenaCard({
             </span>
             {arena.rewardPoolUsd > 0 ? (
               <span>
-                Pool <span className="text-gold">{fmtUsd(arena.rewardPoolUsd)}</span>
+                Pool <span className="text-gold-fg">{fmtUsd(arena.rewardPoolUsd)}</span>
               </span>
             ) : null}
             <span className="ml-auto">{arena.narrative}</span>
@@ -138,16 +139,16 @@ export function ArenaCard({
           <div className="pointer-events-auto grid grid-cols-2 gap-2">
             <button
               type="button"
-              className="asset-fill h-11 rounded-[12px] px-3 text-sm font-bold text-[#0e0f12] hover:brightness-95 active:scale-[0.98]"
-              style={{ ['--asset' as string]: a.asset.color }}
+              className="asset-fill h-11 rounded-[12px] px-3 text-sm font-bold hover:brightness-95 active:scale-[0.98]"
+              style={{ ['--asset' as string]: a.asset.color, color: onAsset(a.asset.color) }}
               onClick={() => openBack(arena, 'a')}
             >
               BACK {a.asset.symbol}
             </button>
             <button
               type="button"
-              className="asset-fill h-11 rounded-[12px] px-3 text-sm font-bold text-[#0e0f12] hover:brightness-95 active:scale-[0.98]"
-              style={{ ['--asset' as string]: b.asset.color }}
+              className="asset-fill h-11 rounded-[12px] px-3 text-sm font-bold hover:brightness-95 active:scale-[0.98]"
+              style={{ ['--asset' as string]: b.asset.color, color: onAsset(b.asset.color) }}
               onClick={() => openBack(arena, 'b')}
             >
               BACK {b.asset.symbol}

@@ -250,7 +250,7 @@ export function MyArenas({
       ) : null}
 
       {devnetRows === 'error' ? (
-        <p className="text-sm text-ember">
+        <p className="text-sm text-ember-fg">
           Couldn&apos;t load devnet positions right now. Demo positions are still shown.
         </p>
       ) : null}

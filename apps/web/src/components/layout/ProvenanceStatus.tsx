@@ -20,11 +20,11 @@ export function ProvenanceStatus({ className = '' }: { className?: string }) {
       content={
         <div className="space-y-1.5">
           <p>
-            <strong className="text-volt">Markets:</strong> prices, logos, liquidity and market
+            <strong className="text-volt-fg">Markets:</strong> prices, logos, liquidity and market
             hours come from Solana {cfg.market.cluster} (Jupiter, xStocks, Pyth).
           </p>
           <p>
-            <strong className="text-[#9db3ff]">Protocol:</strong> the Tribe Arena program runs on{' '}
+            <strong className="text-devnet-fg">Protocol:</strong> the Tribe Arena program runs on{' '}
             {cfg.protocol.cluster}. Devnet Arenas use devnet test tokens — never your mainnet
             assets.
           </p>

@@ -29,16 +29,16 @@
 Dark is the default theme (the Arena reads best on ink); light is fully
 supported via `prefers-color-scheme` and a manual toggle.
 
-| Token           | Dark          | Light          | Use                     |
-| --------------- | ------------- | -------------- | ----------------------- |
-| `--bg`          | `#0E0F12` Ink | `#F6F3EC` Bone | page background         |
-| `--bg-elev`     | `#15171C`     | `#FFFFFF`      | cards, sheets           |
-| `--bg-sunken`   | `#0A0B0D`     | `#EEEAE1`      | wells, bars background  |
-| `--line`        | `#262930`     | `#E2DDD2`      | hairlines               |
-| `--line-strong` | `#3A3E48`     | `#C9C3B6`      | focus/hover borders     |
-| `--fg`          | `#F4F1EA`     | `#121317`      | primary text            |
-| `--fg-muted`    | `#9A9FAA`     | `#5F6470`      | secondary text          |
-| `--fg-faint`    | `#5C616B`     | `#9A9FAA`      | tertiary text, disabled |
+| Token           | Dark          | Light          | Use                                                         |
+| --------------- | ------------- | -------------- | ----------------------------------------------------------- |
+| `--bg`          | `#0E0F12` Ink | `#F6F3EC` Bone | page background                                             |
+| `--bg-elev`     | `#15171C`     | `#FFFFFF`      | cards, sheets                                               |
+| `--bg-sunken`   | `#0A0B0D`     | `#EEEAE1`      | wells, bars background                                      |
+| `--line`        | `#262930`     | `#E2DDD2`      | hairlines                                                   |
+| `--line-strong` | `#3A3E48`     | `#C9C3B6`      | focus/hover borders                                         |
+| `--fg`          | `#F4F1EA`     | `#121317`      | primary text                                                |
+| `--fg-muted`    | `#9A9FAA`     | `#5F6470`      | secondary text                                              |
+| `--fg-faint`    | `#8A8F9A`     | `#5D6270`      | tertiary text (still 4.5:1 on cards); disabled uses opacity |
 
 ### 2.2 Tribe accents
 
@@ -67,7 +67,7 @@ set in asset colour; it sits on an asset-tinted surface with `--fg`.
 | BONK  | `#FF8A1F` | orange                                                                          |
 | TSLAx | `#E31937` | Tesla red                                                                       |
 | SOL   | `#19E0A0` | Solana green                                                                    |
-| SPYx  | `#2E6BE6` | index blue                                                                      |
+| SPYx  | `#2559CC` | index blue (darkened in Phase 3 so Bone text on it passes 4.5:1)                |
 | BTC   | `#F7931A` | bitcoin orange (never paired with BONK)                                         |
 | MSTRx | `#FF5E1F` | strategy orange-red (paired with BTC: BTC uses `--gold` tint variant `#F2C14E`) |
 | PENGU | `#7FD1FF` | ice blue                                                                        |
@@ -75,11 +75,17 @@ set in asset colour; it sits on an asset-tinted surface with `--fg`.
 | NVDAx | `#76B900` | NVIDIA green                                                                    |
 | AAPLx | `#B8BCC6` | space grey                                                                      |
 | WIF   | `#D9A066` | tan                                                                             |
-| GMEx  | `#D42B2B` | GME red                                                                         |
+| GMEx  | `#C62828` | GME red (darkened in Phase 3 so Bone text on it passes 4.5:1)                   |
 | GLDx  | `#E6B422` | gold                                                                            |
 
 Tints: `color-mix(in oklab, var(--asset) 14%, var(--bg-elev))` for surfaces,
 `… 32%` for bars in light mode, full hue for bars in dark mode.
+
+Text on an asset fill (`BACK BONK`) is Ink or Bone, whichever contrasts
+more (`apps/web/src/lib/color.ts:onAsset`), so dark hues (DISx, SPYx, GMEx)
+get Bone. Accents used _as text_ have theme-safe variants
+(`--volt-fg`, `--gold-fg`, `--ember-fg`, `--devnet-fg`, and darker
+`--rise`/`--fall` in light) so every label passes 4.5:1 in both themes.
 
 ### 2.4 Contrast
 

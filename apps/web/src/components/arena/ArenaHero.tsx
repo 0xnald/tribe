@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import { arenaCountdown, isBackable, sideOf, type ArenaView } from '@/lib/arena/model';
 import { fmtCountdown, fmtMultiplier, fmtUsd } from '@/lib/format';
+import { onAsset } from '@/lib/color';
 import { useBackSheet } from '@/providers/Providers';
 
 import { AssetLogo } from './AssetIdentity';
@@ -124,7 +125,7 @@ export function ArenaHero({
             </p>
           ) : arena.status === 'settled' && arena.winner ? (
             <p className="display inline-flex items-center gap-2 text-xl font-bold sm:text-2xl">
-              <Trophy size={20} className="text-volt" aria-hidden />
+              <Trophy size={20} className="text-volt-fg" aria-hidden />
               {arena.winner === 'tie'
                 ? 'DRAW — pool rolls over'
                 : `${sideOf(arena, arena.winner).asset.symbol} WINS`}
@@ -173,7 +174,7 @@ export function ArenaHero({
             label="Reward pool"
             value={
               arena.rewardPoolUsd > 0 ? (
-                <span className="text-gold">{fmtUsd(arena.rewardPoolUsd)}</span>
+                <span className="text-gold-fg">{fmtUsd(arena.rewardPoolUsd)}</span>
               ) : (
                 'Fees so far'
               )
@@ -191,8 +192,8 @@ export function ArenaHero({
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <button
               type="button"
-              className="asset-fill h-12 rounded-[14px] px-4 text-base font-extrabold tracking-wide text-[#0e0f12] hover:brightness-95 active:scale-[0.98] sm:h-14 sm:text-lg"
-              style={{ ['--asset' as string]: a.asset.color }}
+              className="asset-fill h-12 rounded-[14px] px-4 text-base font-extrabold tracking-wide hover:brightness-95 active:scale-[0.98] sm:h-14 sm:text-lg"
+              style={{ ['--asset' as string]: a.asset.color, color: onAsset(a.asset.color) }}
               onClick={() => openBack(arena, 'a')}
               data-testid="hero-back-a"
             >
@@ -200,8 +201,8 @@ export function ArenaHero({
             </button>
             <button
               type="button"
-              className="asset-fill h-12 rounded-[14px] px-4 text-base font-extrabold tracking-wide text-[#0e0f12] hover:brightness-95 active:scale-[0.98] sm:h-14 sm:text-lg"
-              style={{ ['--asset' as string]: b.asset.color }}
+              className="asset-fill h-12 rounded-[14px] px-4 text-base font-extrabold tracking-wide hover:brightness-95 active:scale-[0.98] sm:h-14 sm:text-lg"
+              style={{ ['--asset' as string]: b.asset.color, color: onAsset(b.asset.color) }}
               onClick={() => openBack(arena, 'b')}
               data-testid="hero-back-b"
             >
@@ -219,7 +220,7 @@ export function ArenaHero({
           {linkTo ? (
             <Link
               href={`/arena/${arena.slug}`}
-              className="text-sm font-semibold text-volt hover:underline"
+              className="text-sm font-semibold text-volt-fg hover:underline"
             >
               Open Arena →
             </Link>
@@ -257,7 +258,7 @@ function HeroSide({
           </span>
           <span className="micro mt-1 text-fg-muted">
             {side.asset.classTag}
-            {winner ? <span className="ml-2 text-volt">WINNER</span> : null}
+            {winner ? <span className="ml-2 text-volt-fg">WINNER</span> : null}
           </span>
         </div>
       </div>
@@ -279,7 +280,7 @@ function Stat({
     <div className="rounded-[14px] border border-line bg-[color-mix(in_oklab,var(--bg)_55%,transparent)] px-3 py-2.5">
       <dt className="micro text-fg-muted">{label}</dt>
       <dd className="tnum mt-0.5 text-lg font-semibold">{value}</dd>
-      {hint ? <dd className="micro mt-0.5 whitespace-nowrap text-gold">{hint}</dd> : null}
+      {hint ? <dd className="micro mt-0.5 whitespace-nowrap text-gold-fg">{hint}</dd> : null}
     </div>
   );
 }

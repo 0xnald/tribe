@@ -323,7 +323,7 @@ export const SEED_ASSETS: readonly RegistryAsset[] = [
     pythFeedId: '19e09bb805456ada3979a7d1cbb4b6d63babc3a0f8e8a9509f68afa5c4c11cd5',
     xstockPythFeedId: '2817b78438c769357182c04346fddaad1178c82f4048828fe0997c3c64624e14',
     chainlinkFeedId: '0x000ac6ba1b453a15c1fe9dcd82265ca47bcd04e7b3667de1623617c45cef2a77',
-    color: '#2E6BE6',
+    color: '#2559CC',
     classTag: 'INDEX',
     category: 'Etf',
     assetClass: 'Etf',
@@ -393,7 +393,7 @@ export const SEED_ASSETS: readonly RegistryAsset[] = [
     pythFeedId: '6f9cd89ef1b7fd39f667101a91ad578b6c6ace4579d5f7f285a4b06aa4504be6',
     xstockPythFeedId: null, // issuer lists a Pyth Lazer id (3387) only
     chainlinkFeedId: null,
-    color: '#D42B2B',
+    color: '#C62828',
     classTag: 'STOCK',
     category: 'Stock',
     assetClass: 'Equity',

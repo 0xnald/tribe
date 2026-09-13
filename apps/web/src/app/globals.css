@@ -16,6 +16,10 @@
   --color-rise: var(--rise);
   --color-fall: var(--fall);
   --color-gold: var(--gold);
+  --color-volt-fg: var(--volt-fg);
+  --color-gold-fg: var(--gold-fg);
+  --color-ember-fg: var(--ember-fg);
+  --color-devnet-fg: var(--devnet-fg);
 
   --font-display: var(--font-display), 'Bricolage Grotesque', Inter, system-ui, sans-serif;
   --font-sans: var(--font-sans), Inter, system-ui, sans-serif;

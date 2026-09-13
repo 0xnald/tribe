@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
+import { onAsset } from '@/lib/color';
+
 export type ButtonVariant = 'primary' | 'asset' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
@@ -9,7 +11,7 @@ const base =
 
 const variants: Record<ButtonVariant, string> = {
   primary: 'bg-volt text-[#0e0f12] hover:brightness-95',
-  asset: 'asset-fill text-[#0e0f12] hover:brightness-95',
+  asset: 'asset-fill text-[var(--on-asset,#0e0f12)] hover:brightness-95',
   secondary:
     'border border-line-strong bg-transparent text-fg hover:bg-[color-mix(in_oklab,var(--fg)_6%,transparent)]',
   ghost:
@@ -49,7 +51,9 @@ export function Button({
   type = 'button',
   ...rest
 }: ButtonProps) {
-  const s = assetColor ? { ...style, ['--asset' as string]: assetColor } : style;
+  const s = assetColor
+    ? { ...style, ['--asset' as string]: assetColor, ['--on-asset' as string]: onAsset(assetColor) }
+    : style;
   return (
     <button type={type} className={buttonClass(variant, size, className)} style={s} {...rest}>
       {children}

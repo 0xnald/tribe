@@ -115,7 +115,7 @@ describe('Countdown', () => {
         <Countdown arena={a} now={a.backingCloseTs - 30} />
       </TooltipProvider>,
     );
-    expect(screen.getByText('00:00:30')).toHaveClass('text-ember');
+    expect(screen.getByText('00:00:30')).toHaveClass('text-ember-fg');
   });
 });
 

@@ -19,9 +19,9 @@ export function ProvenanceBadge({
   detail?: string;
 }) {
   const styles: Record<Provenance, string> = {
-    live: 'border-transparent bg-[color-mix(in_oklab,var(--volt)_18%,transparent)] text-volt',
+    live: 'border-transparent bg-[color-mix(in_oklab,var(--volt)_18%,transparent)] text-volt-fg',
     devnet:
-      'border-transparent bg-[color-mix(in_oklab,var(--ultra)_22%,transparent)] text-[#9db3ff]',
+      'border-transparent bg-[color-mix(in_oklab,var(--ultra)_22%,transparent)] text-devnet-fg',
     demo: 'border-line-strong border-dashed text-fg-muted',
   };
   return (

@@ -12,6 +12,7 @@ import { useNow } from '@/hooks/useNow';
 import { useTokenBalance } from '@/hooks/useTokenBalance';
 import { isBackable, otherSide, sideOf, type ArenaView, type SideKey } from '@/lib/arena/model';
 import { buildPreview, type BackPreview } from '@/lib/back/preview';
+import { onAsset } from '@/lib/color';
 import { explorerTxUrl } from '@/lib/config/network';
 import { fmtAmount, fmtDuration, fmtMultiplier, fmtPct, fmtPrice, fmtUsd } from '@/lib/format';
 import type { PositionRecord } from '@/lib/positions/model';
@@ -263,7 +264,10 @@ function BackFlow({
   return (
     <div
       className="flex flex-col gap-5"
-      style={{ ['--asset' as string]: s.asset.color }}
+      style={{
+        ['--asset' as string]: s.asset.color,
+        ['--on-asset' as string]: onAsset(s.asset.color),
+      }}
       data-testid="back-sheet"
       data-step={step}
     >
@@ -433,7 +437,7 @@ function SideStep({
 function SidePill({ s, chosen }: { s: ArenaView['sides'][number]; chosen: boolean }) {
   return (
     <div
-      className={`flex flex-col gap-1 rounded-[14px] border p-3 ${chosen ? 'asset-tint border-[color-mix(in_oklab,var(--asset)_60%,transparent)]' : 'border-line opacity-70'}`}
+      className={`flex flex-col gap-1 rounded-[14px] border p-3 ${chosen ? 'asset-tint border-[color-mix(in_oklab,var(--asset)_60%,transparent)]' : 'border-dashed border-line'}`}
       style={{ ['--asset' as string]: s.asset.color }}
     >
       <span className="micro text-fg-muted">{chosen ? 'You back' : 'Against'}</span>
@@ -582,7 +586,7 @@ function MethodStep({
               {faucet === 'busy' ? 'Minting…' : `Get devnet ${symbol}`}
             </Button>
             {faucet === 'done' ? <span className="text-rise">Sent {faucetMsg}</span> : null}
-            {faucet === 'error' ? <span className="text-ember">{faucetMsg}</span> : null}
+            {faucet === 'error' ? <span className="text-ember-fg">{faucetMsg}</span> : null}
             {!connected ? <span>Connect a wallet first.</span> : null}
           </div>
         </div>
@@ -708,12 +712,12 @@ function AmountStep({
         </p>
       ) : null}
       {preview.belowMinimum ? (
-        <p className="inline-flex items-center gap-2 text-sm text-ember">
+        <p className="inline-flex items-center gap-2 text-sm text-ember-fg">
           <TriangleAlert size={16} aria-hidden /> Minimum backing is {fmtUsd(preview.minimumUsd)}.
         </p>
       ) : null}
       {insufficient ? (
-        <p className="inline-flex items-center gap-2 text-sm text-ember">
+        <p className="inline-flex items-center gap-2 text-sm text-ember-fg">
           <TriangleAlert size={16} aria-hidden /> Not enough {usdc ? 'USDC' : symbol} in this
           wallet.
         </p>
@@ -781,7 +785,7 @@ function PreviewStep({
         ))}
       </dl>
       <p className="inline-flex items-start gap-2 text-xs text-fg-muted">
-        <ShieldCheck size={16} className="mt-0.5 shrink-0 text-volt" aria-hidden />
+        <ShieldCheck size={16} className="mt-0.5 shrink-0 text-volt-fg" aria-hidden />
         Your Arena units are held in your Tribe Position Vault while participating. You keep
         economic ownership and can exit according to Arena rules. Losing principal never moves to
         the winners.
@@ -932,7 +936,7 @@ function SuccessStep({
           href={explorerTxUrl(sig)}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-1 self-center font-mono text-xs text-[#9db3ff] hover:underline"
+          className="inline-flex items-center gap-1 self-center font-mono text-xs text-devnet-fg hover:underline"
         >
           {sig.slice(0, 8)}…{sig.slice(-8)} <ExternalLink size={12} aria-hidden />
         </a>
@@ -972,7 +976,7 @@ function Cell({
     <div className="rounded-[12px] bg-bg-sunken px-3 py-2">
       <dt className="micro text-fg-muted">{k}</dt>
       <dd
-        className={`tnum mt-0.5 font-semibold ${tone === 'gold' ? 'text-gold' : tone === 'ember' ? 'text-ember' : ''}`}
+        className={`tnum mt-0.5 font-semibold ${tone === 'gold' ? 'text-gold-fg' : tone === 'ember' ? 'text-ember-fg' : ''}`}
       >
         {v}
       </dd>

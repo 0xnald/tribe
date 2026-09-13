@@ -24,7 +24,7 @@ export function RewardSummary({ arena, now }: { arena: ArenaView; now: number })
         <h2 id="rewards-heading" className="display text-xl font-bold">
           Arena Rewards
         </h2>
-        <span className="display tnum text-2xl font-extrabold text-gold">
+        <span className="display tnum text-2xl font-extrabold text-gold-fg">
           {fmtUsd(arena.rewardPoolUsd)}
         </span>
       </div>
@@ -46,7 +46,7 @@ export function RewardSummary({ arena, now }: { arena: ArenaView; now: number })
       </p>
       <button
         type="button"
-        className="inline-flex items-center gap-1 self-start text-sm font-semibold text-volt"
+        className="inline-flex items-center gap-1 self-start text-sm font-semibold text-volt-fg"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
       >
@@ -91,7 +91,7 @@ function Row({ k, v, tone }: { k: string; v: string; tone?: 'gold' }) {
   return (
     <div className="rounded-[12px] bg-bg-sunken px-3 py-2">
       <dt className="micro text-fg-muted">{k}</dt>
-      <dd className={`tnum mt-0.5 font-semibold ${tone === 'gold' ? 'text-gold' : ''}`}>{v}</dd>
+      <dd className={`tnum mt-0.5 font-semibold ${tone === 'gold' ? 'text-gold-fg' : ''}`}>{v}</dd>
     </div>
   );
 }
@@ -180,7 +180,7 @@ function MarketRow({
         ) : (
           <span className="tnum font-mono">
             {fmtPrice(q.usdPrice ?? 0)}
-            {q.state === 'stale' ? <span className="ml-1 text-ember">·stale</span> : null}
+            {q.state === 'stale' ? <span className="ml-1 text-ember-fg">·stale</span> : null}
           </span>
         )}
       </div>
