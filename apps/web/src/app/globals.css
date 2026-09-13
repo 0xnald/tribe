@@ -38,3 +38,194 @@ body {
   font-family: var(--font-sans);
   font-feature-settings: 'tnum', 'ss01';
 }
+
+/* ── Layout ─────────────────────────────────────────────── */
+.container-x {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+@media (min-width: 768px) {
+  .container-x {
+    padding-inline: 24px;
+  }
+}
+@media (min-width: 1024px) {
+  .container-x {
+    padding-inline: 32px;
+  }
+}
+
+/* ── Type helpers ───────────────────────────────────────── */
+.micro {
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+.display {
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 92;
+  letter-spacing: -0.02em;
+}
+.display-tight {
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 80;
+  letter-spacing: -0.03em;
+}
+
+/* ── Focus ──────────────────────────────────────────────── */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ultra);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ── Asset tint surfaces ────────────────────────────────── */
+.asset-tint {
+  background: color-mix(in oklab, var(--asset) 14%, var(--bg-elev));
+}
+.asset-tint-strong {
+  background: color-mix(in oklab, var(--asset) 26%, var(--bg-elev));
+}
+.asset-fill {
+  background: var(--asset);
+}
+.asset-ring {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--asset) 45%, transparent);
+}
+
+/* ── Live dot ───────────────────────────────────────────── */
+.live-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--volt);
+}
+.live-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  border: 2px solid var(--volt);
+  opacity: 0;
+  animation: live-pulse 1.2s ease-out infinite;
+}
+@keyframes live-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+/* ── Skeleton ───────────────────────────────────────────── */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-sunken);
+  border-radius: var(--r-md);
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--fg) 6%, transparent),
+    transparent
+  );
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ── Sheet / dialog motion ──────────────────────────────── */
+@keyframes sheet-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.anim-sheet {
+  animation: sheet-up var(--dur-slow) var(--ease-out);
+}
+.anim-fade {
+  animation: fade-in var(--dur-base) var(--ease-out);
+}
+
+/* ── Winner / lead moments ──────────────────────────────── */
+@keyframes lead-sweep {
+  from {
+    background-size: 0% 3px;
+  }
+  to {
+    background-size: 100% 3px;
+  }
+}
+.lead-underline {
+  background-image: linear-gradient(var(--ember), var(--ember));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% 3px;
+  animation: lead-sweep var(--dur-moment) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot::after,
+  .skeleton::after {
+    animation: none;
+  }
+  .anim-sheet,
+  .anim-fade,
+  .lead-underline {
+    animation: none;
+  }
+}
+
+/* Scrollbar-free horizontal rails */
+.rail {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+/* Number inputs without spinners */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

@@ -1,0 +1,60 @@
+'use client';
+
+import { useCallback, useSyncExternalStore } from 'react';
+
+import type { PositionRecord } from '@/lib/positions/model';
+
+/**
+ * Demo positions live in localStorage only (provenance `demo`, never a
+ * transaction). Devnet positions are read from chain, not stored here.
+ */
+const KEY = 'tribe.demoPositions.v1';
+const listeners = new Set<() => void>();
+let cache: PositionRecord[] | null = null;
+const EMPTY: PositionRecord[] = [];
+
+function read(): PositionRecord[] {
+  if (cache) return cache;
+  try {
+    const raw = typeof window !== 'undefined' ? window.localStorage.getItem(KEY) : null;
+    cache = raw ? (JSON.parse(raw) as PositionRecord[]) : [];
+  } catch {
+    cache = [];
+  }
+  return cache;
+}
+
+function write(next: PositionRecord[]): void {
+  cache = next;
+  try {
+    window.localStorage.setItem(KEY, JSON.stringify(next));
+  } catch {
+    /* private mode etc. — keep in memory */
+  }
+  listeners.forEach((l) => l());
+}
+
+function subscribe(l: () => void): () => void {
+  listeners.add(l);
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === KEY) {
+      cache = null;
+      l();
+    }
+  };
+  window.addEventListener('storage', onStorage);
+  return () => {
+    listeners.delete(l);
+    window.removeEventListener('storage', onStorage);
+  };
+}
+
+export function useDemoPositions() {
+  const positions = useSyncExternalStore(subscribe, read, () => EMPTY);
+  const add = useCallback((p: PositionRecord) => write([p, ...read()]), []);
+  const update = useCallback((id: string, patch: Partial<PositionRecord>) => {
+    write(read().map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  }, []);
+  const clear = useCallback(() => write([]), []);
+  return { positions, add, update, clear };
+}
