@@ -129,7 +129,7 @@ export function PositionCard({
           }
         />
         <Kv
-          k={settled ? 'Arena reward' : 'Est. reward share'}
+          k={settled ? 'Arena reward' : 'Est. reward if held'}
           v={
             settled && ins.won === false
               ? '—'

@@ -42,6 +42,7 @@ export function ArenaCard({
       }`}
       data-testid="arena-card"
       data-slug={arena.slug}
+      data-provenance={arena.provenance}
     >
       {/* asset-tinted halves */}
       <div className="pointer-events-none absolute inset-0 -z-10 flex" aria-hidden>

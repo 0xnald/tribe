@@ -27,7 +27,14 @@ function parseEnv(): Record<string, DevnetAssetAlias> {
   }
 }
 
+/** Mints created by packages/program-client/tests/devnet-setup.test.ts on 2026-09-13 (devnet, public). */
+const DEFAULTS: Record<string, DevnetAssetAlias> = {
+  FhvxjAUEQ5W1zrfXGnd6QuzLaTaiDkbEY2aEWvjLCSuT: { standsFor: 'BONK', label: 'tBONK' },
+  '348Kk3CBtzwTHvLMN3wd9yipsqvzJ1u4ST6E7mBNKZe3': { standsFor: 'SOL', label: 'tSOL' },
+};
+
 export const DEVNET_ASSETS: Record<string, DevnetAssetAlias> = {
+  ...DEFAULTS,
   ...parseEnv(),
 };
 

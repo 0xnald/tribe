@@ -38,10 +38,12 @@ export function useTokenBalance(
   layer: 'market' | 'protocol',
   mint: string | null,
   owner: string | null,
+  /** Bump to force a refetch (e.g. after a faucet drip). */
+  refresh = 0,
 ): TokenBalance {
   const cfg = getNetworkConfig();
   const net = cfg[layer];
-  const key = mint && owner ? `${net.rpcUrl}|${mint}|${owner}` : null;
+  const key = mint && owner ? `${net.rpcUrl}|${mint}|${owner}|${refresh}` : null;
   const [loaded, setLoaded] = useState<Loaded | null>(null);
 
   useEffect(() => {

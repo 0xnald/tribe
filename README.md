@@ -100,7 +100,15 @@ Full document: [ARCHITECTURE](docs/ARCHITECTURE.md) ·
 
 ## Screenshots
 
-_Placeholders — captured in Phase 3 (Home, Arena, Back flow, My Arenas) into `docs/assets/screens/`._
+| Explore (desktop)                                | Arena (mobile)                                 | Back preview                                                 | My Arenas                                              |
+| ------------------------------------------------ | ---------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------ |
+| ![Explore](docs/assets/screens/home-desktop.png) | ![Arena](docs/assets/screens/arena-mobile.png) | ![Back preview](docs/assets/screens/back-preview-mobile.png) | ![My Arenas](docs/assets/screens/my-arenas-mobile.png) |
+
+The app runs a deliberate hybrid during the hackathon: **live mainnet
+market data** (Jupiter, xStocks, Pyth) next to the **Tribe program on
+devnet**, plus clearly marked **demo** Arenas. Every Arena, price and
+position carries a LIVE / DEVNET / DEMO badge. See
+[FRONTEND](docs/FRONTEND.md).
 
 ## Repository
 
@@ -120,9 +128,13 @@ Rust, Agave CLI 4.2, Anchor 1.2 (built in WSL on Windows).
 
 ```bash
 pnpm install
-cp .env.example .env.local        # fill in keys (see below)
-pnpm dev                          # http://localhost:3000 (demo mode by default)
+cp .env.example apps/web/.env.local   # optional — the defaults run keyless
+pnpm dev                              # http://localhost:3000
 ```
+
+Open `/` (Explore), `/arena/bonk-vs-tslax` (featured Arena), `/my-arenas`.
+No wallet, faucet or cluster switch is needed to understand the product;
+devnet transactions need a Solana wallet on devnet (see FRONTEND §5).
 
 Program (WSL Ubuntu 24.04 / Linux / macOS — see
 [RESEARCH_NOTES §8](docs/RESEARCH_NOTES.md#8-program-toolchain-findings-phase-2-verified-2026-09-13)):
@@ -136,27 +148,28 @@ pnpm --filter @tribe/program-client test:program  # 24 bankrun integration tests
 
 ## Environment variables
 
-| Variable                                 | Purpose                                               |
-| ---------------------------------------- | ----------------------------------------------------- |
-| `NEXT_PUBLIC_SOLANA_CLUSTER`             | `mainnet-beta` or `devnet`                            |
-| `NEXT_PUBLIC_RPC_URL` / `RPC_URL`        | browser / server RPC endpoints                        |
-| `NEXT_PUBLIC_TRIBE_PROGRAM_ID`           | deployed `tribe_arena` id                             |
-| `TRIBE_MODE`                             | `live` or `demo`                                      |
-| `PYTH_HERMES_URL`, `PYTH_HERMES_API_KEY` | Pyth Hermes (API key required since Aug 2026)         |
-| `JUPITER_API_KEY`                        | Jupiter APIs                                          |
-| `XSTOCKS_API_URL`                        | defaults to `https://api.xstocks.fi/api/v2`           |
-| `DATABASE_URL`                           | Postgres; empty uses embedded PGlite                  |
-| `CRANK_KEYPAIR`                          | base58 keypair for start/settle cranks (fee SOL only) |
-| `HELIUS_WEBHOOK_SECRET`                  | indexer webhook auth                                  |
-| `NEXT_PUBLIC_APP_URL`                    | absolute URL for share links and OG images            |
+| Variable                                                                   | Purpose                                                                |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `NEXT_PUBLIC_MARKET_CLUSTER`, `NEXT_PUBLIC_MARKET_RPC_URL`                 | market layer (prices, logos, balances) — mainnet-beta                  |
+| `NEXT_PUBLIC_TRIBE_PROTOCOL_CLUSTER`, `NEXT_PUBLIC_TRIBE_PROTOCOL_RPC_URL` | protocol layer (tribe_arena) — devnet today, mainnet-beta later        |
+| `NEXT_PUBLIC_TRIBE_PROGRAM_ID`                                             | deployed `tribe_arena` id (default: devnet deployment)                 |
+| `NEXT_PUBLIC_DEVNET_ASSETS`                                                | devnet stand-in mints → mainnet asset (defaults built in)              |
+| `NEXT_PUBLIC_TRIBE_MODE`                                                   | `live` (default) or `demo` (fixtures only, no external calls)          |
+| `NEXT_PUBLIC_APP_URL`                                                      | absolute URL for share links and OG images                             |
+| `JUPITER_API_KEY`                                                          | optional; keyless lite-api is used without it                          |
+| `PYTH_HERMES_URL`, `PYTH_HERMES_API_KEY`                                   | optional; feed metadata is public, price updates need a key            |
+| `XSTOCKS_API_URL`                                                          | defaults to `https://api.xstocks.fi/api/v2`                            |
+| `DEVNET_FAUCET_KEYPAIR`                                                    | server-side mint authority for devnet test tokens (enables the faucet) |
+| `DATABASE_URL`, `CRANK_KEYPAIR`, `HELIUS_WEBHOOK_SECRET`                   | later phases (indexer, crank)                                          |
 
 ## Testing
 
 ```bash
 pnpm lint          # ESLint + Prettier check
 pnpm typecheck     # tsc --noEmit across the workspace
-pnpm test          # Vitest: reward math, state machine, oracle policy, manipulation cases (274)
-pnpm test:e2e      # Playwright responsive checks (Phase 3+)
+pnpm test          # Vitest: core engine (274) + web lib/components (38) + client (4)
+pnpm --filter @tribe/web test:e2e   # Playwright core paths, desktop + mobile (builds and serves on :3100)
+pnpm --filter @tribe/web shots      # screenshots of every page at 360/390/430/768/1280/1600
 cargo test -p tribe_arena                         # Rust engine replays the shared vectors
 pnpm --filter @tribe/program-client test:program  # program integration tests (bankrun)
 ```
@@ -196,9 +209,10 @@ Mainnet deployment is deliberately not part of Phase 2.
 ## Status
 
 Phase 0 (architecture and product lock), Phase 1 (core economic engine:
-`packages/core`, 274 tests, 112 shared test vectors) and Phase 2 (Anchor
+`packages/core`, 274 tests, 112 shared test vectors), Phase 2 (Anchor
 program with Rust engine parity, 24 integration tests, typed client, devnet
-deployment) complete. See
+deployment) and Phase 3 (consumer app: Explore, Arena, Back flow, My
+Arenas; live mainnet market data; a live devnet Arena) complete. See
 [STOCKLANA_PLAN](docs/STOCKLANA_PLAN.md) for phases, the demo script, and
 open decisions. Known limitations are listed in
 [SECURITY §6](docs/SECURITY.md#6-known-limitations-documented-in-readme).

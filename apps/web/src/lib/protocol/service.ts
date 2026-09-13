@@ -159,6 +159,7 @@ function identityFor(mint: string, decimals: number): AssetIdentity {
       symbol: alias?.label ?? reg.displaySymbol,
       name: `${reg.name} (devnet stand-in)`,
       mint,
+      marketMint: reg.mint,
       decimals,
       color: reg.visual.color,
       logoUrl: reg.visual.logoUrl,

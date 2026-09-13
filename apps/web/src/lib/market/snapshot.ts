@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { findAsset } from '@tribe/core';
+import { SEED_ASSETS, findAsset } from '@tribe/core';
 
 import type { ArenaView, MarketQuote, MarketStatus, SideMarket } from '../arena/model';
 import { getJupiterIcon, getJupiterPrices } from './jupiter';
@@ -13,7 +13,7 @@ import { getXStockStatus } from './xstocks';
  * performance numbers: for demo Arenas those stay simulated and labelled.
  */
 export async function withMarket(arenas: ArenaView[]): Promise<ArenaView[]> {
-  const mints = arenas.flatMap((a) => a.sides.map((s) => s.asset.mint));
+  const mints = arenas.flatMap((a) => a.sides.map((s) => s.asset.marketMint ?? s.asset.mint));
   const quotes = await getJupiterPrices(mints).catch(() => new Map<string, MarketQuote>());
   const statusCache = new Map<string, Promise<MarketStatus>>();
   const iconCache = new Map<string, Promise<string | null>>();
@@ -39,9 +39,10 @@ export async function withMarket(arenas: ArenaView[]): Promise<ArenaView[]> {
     arenas.map(async (a) => {
       const sides = await Promise.all(
         a.sides.map(async (s) => {
-          const quote = quotes.get(s.asset.mint) ?? unavailable(s.asset.mint);
-          const status = await statusFor(s.asset.symbol);
-          const logoUrl = s.asset.logoUrl ?? (await iconFor(s.asset.mint));
+          const marketMint = s.asset.marketMint ?? s.asset.mint;
+          const quote = quotes.get(marketMint) ?? unavailable(marketMint);
+          const status = await statusFor(marketSymbol(s.asset));
+          const logoUrl = s.asset.logoUrl ?? (await iconFor(marketMint));
           const market: SideMarket = { quote, status };
           return { side: { ...s, asset: { ...s.asset, logoUrl } }, market };
         }),
@@ -55,6 +56,13 @@ export async function withMarket(arenas: ArenaView[]): Promise<ArenaView[]> {
       };
     }),
   );
+}
+
+/** Registry symbol used for market status (devnet stand-ins map to the asset they represent). */
+function marketSymbol(asset: ArenaView['sides'][number]['asset']): string {
+  if (!asset.marketMint) return asset.symbol;
+  const reg = SEED_ASSETS.find((r) => r.mint === asset.marketMint);
+  return reg?.displaySymbol ?? asset.symbol;
 }
 
 function unavailable(mint: string): MarketQuote {

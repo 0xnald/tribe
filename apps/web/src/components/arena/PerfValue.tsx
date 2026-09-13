@@ -21,7 +21,7 @@ export function PerfValue({
     sm: 'text-sm',
     md: 'text-xl',
     lg: 'text-3xl md:text-4xl',
-    hero: 'text-[44px] leading-none sm:text-[56px] lg:text-[80px]',
+    hero: 'text-[34px] leading-none sm:text-[56px] lg:text-[80px]',
   }[size];
   const arrowSz = {
     sm: 'text-[10px]',

@@ -37,7 +37,7 @@ export function Nav() {
             <Link
               key={href}
               href={href}
-              className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                 isActive(path, href)
                   ? 'bg-[color-mix(in_oklab,var(--fg)_8%,transparent)] text-fg'
                   : 'text-fg-muted hover:text-fg'

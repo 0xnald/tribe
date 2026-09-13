@@ -83,21 +83,27 @@ export function ArenaHero({
         </span>
 
         {/* matchup */}
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-6">
+        <div className="relative grid grid-cols-2 items-start gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-6">
           <HeroSide
             side={a}
             align="left"
             lead={arena.leader === 'a'}
             winner={arena.winner === 'a'}
           />
-          <div className="flex flex-col items-center gap-1">
+          <div className="hidden flex-col items-center sm:flex">
             <span
-              className="display-tight select-none text-3xl font-black text-fg-faint sm:text-5xl md:text-7xl"
+              className="display-tight text-fg-faint select-none text-5xl font-black md:text-7xl"
               aria-hidden
             >
               VS
             </span>
           </div>
+          <span
+            className="display-tight pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 rounded-full border border-line bg-bg-elev px-2 py-0.5 text-xs font-black text-fg-faint sm:hidden"
+            aria-hidden
+          >
+            VS
+          </span>
           <HeroSide
             side={b}
             align="right"
@@ -133,8 +139,9 @@ export function ArenaHero({
           )}
           {!finished && arena.status !== 'scheduled' ? (
             <p className="text-sm text-fg-muted">
-              {Math.round(a.backingShare * 100)}% of Tribe backing {a.asset.symbol} ·{' '}
-              {fmtUsd(arena.totalBackingUsd)} backing
+              {arena.totalBackingUsd > 0
+                ? `${Math.round(a.backingShare * 100)}% of Tribe backing ${a.asset.symbol} · ${fmtUsd(arena.totalBackingUsd)} backing`
+                : 'No backing yet — pick a side and be first in.'}
             </p>
           ) : null}
         </div>
@@ -241,10 +248,10 @@ function HeroSide({
       style={{ ['--asset' as string]: side.asset.color }}
     >
       <div className={`flex items-center gap-2 sm:gap-3 ${right ? 'flex-row-reverse' : ''}`}>
-        <AssetLogo asset={side.asset} size={44} className="sm:!size-14 md:!size-16" />
+        <AssetLogo asset={side.asset} size={40} className="sm:!size-14 md:!size-16" />
         <div className={`flex min-w-0 flex-col ${right ? 'items-end' : 'items-start'}`}>
           <span
-            className={`display truncate text-2xl font-extrabold leading-none sm:text-4xl md:text-5xl ${lead ? 'lead-underline' : ''}`}
+            className={`display truncate text-xl font-extrabold leading-none sm:text-4xl md:text-5xl ${lead ? 'lead-underline' : ''}`}
           >
             {side.asset.symbol}
           </span>
@@ -272,7 +279,7 @@ function Stat({
     <div className="rounded-[14px] border border-line bg-[color-mix(in_oklab,var(--bg)_55%,transparent)] px-3 py-2.5">
       <dt className="micro text-fg-muted">{label}</dt>
       <dd className="tnum mt-0.5 text-lg font-semibold">{value}</dd>
-      {hint ? <dd className="micro mt-0.5 text-gold">{hint}</dd> : null}
+      {hint ? <dd className="micro mt-0.5 whitespace-nowrap text-gold">{hint}</dd> : null}
     </div>
   );
 }

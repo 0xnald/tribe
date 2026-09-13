@@ -24,6 +24,8 @@ export interface AssetIdentity {
   color: string;
   logoUrl: string | null;
   classTag: string; // MEME · STOCK · INDEX · L1 · BTC
+  /** Mainnet mint whose market data and logo represent this asset (devnet stand-ins point at the real asset). */
+  marketMint?: string;
   category: 'Meme' | 'L1' | 'BtcWrapper' | 'Stock' | 'Etf' | 'Commodity';
   isXStock: boolean;
   marketHours: 'Always' | 'UsEquityRth';

@@ -14,7 +14,7 @@ import type { ArenaView } from './model';
 export async function listArenas(now = Math.floor(Date.now() / 1000)): Promise<ArenaView[]> {
   const fixtures = listFixtureArenas(now);
   const devnet = await listDevnetArenas(now).catch(() => []);
-  const all = [...devnet.map((d) => d.view), ...fixtures];
+  const all = [...fixtures, ...devnet.map((d) => d.view)];
   return decorate(all);
 }
 

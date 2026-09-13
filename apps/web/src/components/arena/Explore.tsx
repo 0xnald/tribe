@@ -73,10 +73,11 @@ export function Explore({ initial, serverNow }: { initial: ArenaView[]; serverNo
     [arenas],
   );
   const feed = useMemo(() => {
-    let list = applyFilter(arenas, filter, now);
+    // the hero already shows the featured Arena; don't repeat it directly underneath
+    let list = applyFilter(arenas, filter, now).filter((a) => a.id !== featured?.id);
     if (narrative) list = list.filter((a) => a.narrative === narrative);
     return list;
-  }, [arenas, filter, narrative, now]);
+  }, [arenas, filter, narrative, now, featured]);
   const hasDevnet = arenas.some((a) => a.provenance === 'devnet');
 
   return (

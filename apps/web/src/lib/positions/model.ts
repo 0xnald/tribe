@@ -39,9 +39,11 @@ export interface PositionInsight {
   leadPct: number;
   leading: boolean;
   timeHeldSecs: number;
-  /** Reward weight estimate: usd × hours held × multiplier. */
+  /** Reward weight accrued so far: usd × hours held × multiplier. */
   weight: number;
-  /** Estimated share of the reward pool (0..1), never guaranteed. */
+  /** Weight if held to the Arena end (equals `weight` once the Arena is over). */
+  projectedWeight: number;
+  /** Estimated share of the reward pool (0..1) if held to the end — never guaranteed. */
   estShare: number;
   estRewardUsd: number;
   won: boolean | null;
@@ -56,14 +58,16 @@ export function positionInsight(p: PositionRecord, arena: ArenaView, now: number
   const ownPct = priceEntry > 0 ? ((mine.price - priceEntry) / priceEntry) * 100 : 0;
   const end = Math.min(now, arena.endTs);
   const timeHeldSecs = Math.max(0, end - p.entryTs);
-  const weight =
-    p.status === 'exited' && p.forfeited
-      ? 0
-      : p.usdAtEntry * (timeHeldSecs / 3600) * p.multiplierAtEntry;
-  // Side aggregate weight estimate: everyone on the side, average hold ≈ 60 % of elapsed.
-  const elapsed = Math.max(1, end - arena.startTs);
-  const sideWeight = Math.max(1, mine.backingUsd * (elapsed / 3600) * 0.6);
-  const estShare = weight > 0 ? weight / (sideWeight + weight) : 0;
+  const forfeited = p.status === 'exited' && p.forfeited;
+  const weight = forfeited ? 0 : p.usdAtEntry * (timeHeldSecs / 3600) * p.multiplierAtEntry;
+  const fullHoldSecs = Math.max(0, arena.endTs - p.entryTs);
+  const projectedWeight = forfeited
+    ? 0
+    : p.usdAtEntry * (fullHoldSecs / 3600) * p.multiplierAtEntry;
+  // Side aggregate weight over the whole window: everyone on the side, average hold ≈ 60 %.
+  const duration = Math.max(1, arena.endTs - arena.startTs);
+  const sideWeight = Math.max(1, mine.backingUsd * (duration / 3600) * 0.6);
+  const estShare = projectedWeight > 0 ? projectedWeight / (sideWeight + projectedWeight) : 0;
   const leadPct = mine.perfPct - theirs.perfPct;
   const leading = leadPct > 0.005;
   const settled = arena.status === 'settled';
@@ -94,6 +98,7 @@ export function positionInsight(p: PositionRecord, arena: ArenaView, now: number
     leading,
     timeHeldSecs,
     weight,
+    projectedWeight,
     estShare,
     estRewardUsd,
     won,

@@ -102,6 +102,7 @@ function BackFlow({
   );
   const [tx, setTx] = useState<{ state: TxState; sig?: string; error?: string }>({ state: 'idle' });
   const [record, setRecord] = useState<PositionRecord | null>(null);
+  const [faucetTick, setFaucetTick] = useState(0);
 
   const owner = wallet.publicKey?.toBase58() ?? null;
   const usdcBal = useTokenBalance(
@@ -113,6 +114,7 @@ function BackFlow({
     isDevnet ? 'protocol' : 'market',
     step !== 'side' ? s.asset.mint : null,
     owner,
+    faucetTick,
   );
 
   const amount = Number(amountStr) || 0;
@@ -313,6 +315,8 @@ function BackFlow({
           usdcBal={usdcBal}
           assetBal={assetBal}
           connected={!!owner}
+          owner={owner}
+          onFaucet={() => setFaucetTick((n) => n + 1)}
           onNext={() => {
             setAmountStr(method === 'usdc' ? '100' : '');
             setStep('amount');
@@ -451,6 +455,8 @@ function MethodStep({
   usdcBal,
   assetBal,
   connected,
+  owner,
+  onFaucet,
   onNext,
 }: {
   method: Method;
@@ -460,8 +466,38 @@ function MethodStep({
   usdcBal: ReturnType<typeof useTokenBalance>;
   assetBal: ReturnType<typeof useTokenBalance>;
   connected: boolean;
+  owner: string | null;
+  onFaucet: () => void;
   onNext: () => void;
 }) {
+  const [faucet, setFaucet] = useState<'idle' | 'busy' | 'done' | 'error'>('idle');
+  const [faucetMsg, setFaucetMsg] = useState('');
+  const drip = async () => {
+    if (!owner) return;
+    setFaucet('busy');
+    try {
+      const r = await fetch('/api/devnet/faucet', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ owner }),
+      });
+      const j = (await r.json()) as {
+        error?: string;
+        minted?: Array<{ label: string; amount: string }>;
+      };
+      if (!r.ok) throw new Error(j.error ?? 'faucet failed');
+      setFaucetMsg(
+        (j.minted ?? [])
+          .map((m) => `${Number(m.amount).toLocaleString('en-US')} ${m.label}`)
+          .join(' + '),
+      );
+      setFaucet('done');
+      onFaucet();
+    } catch (e) {
+      setFaucetMsg(e instanceof Error ? e.message : 'faucet failed');
+      setFaucet('error');
+    }
+  };
   const opts: Array<{
     id: Method;
     title: string;
@@ -529,6 +565,27 @@ function MethodStep({
         <p className="text-xs text-fg-muted">
           Connect a wallet later to see balances — you can preview everything first.
         </p>
+      ) : null}
+      {isDevnet ? (
+        <div className="flex flex-col gap-2 rounded-[12px] border border-dashed border-line-strong px-3 py-2.5 text-xs text-fg-muted">
+          <p>
+            Devnet demo: you need devnet {symbol} for the position and a little devnet USDC for the
+            0.50% fee (Circle&apos;s devnet faucet). Test tokens come from Tribe&apos;s faucet.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={!connected || faucet === 'busy'}
+              onClick={() => void drip()}
+            >
+              {faucet === 'busy' ? 'Minting…' : `Get devnet ${symbol}`}
+            </Button>
+            {faucet === 'done' ? <span className="text-rise">Sent {faucetMsg}</span> : null}
+            {faucet === 'error' ? <span className="text-ember">{faucetMsg}</span> : null}
+            {!connected ? <span>Connect a wallet first.</span> : null}
+          </div>
+        </div>
       ) : null}
       <Button variant="asset" size="lg" onClick={onNext} className="w-full" data-testid="back-next">
         Continue

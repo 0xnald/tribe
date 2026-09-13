@@ -1,8 +1,9 @@
 /**
  * Tiny in-memory TTL cache for third-party market calls (server only).
  * Serves stale values while a refresh is in flight so pages never block on
- * an upstream hiccup; callers receive `stale: true` when the last refresh
- * failed, and `null` when nothing was ever loaded (never a substitute).
+ * an upstream hiccup; callers receive `stale: true` once refreshes have
+ * been failing for 3× the TTL, and `null` when nothing was ever loaded
+ * (never a substitute).
  */
 interface Entry<T> {
   value: T;

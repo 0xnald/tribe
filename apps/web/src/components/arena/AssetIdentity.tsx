@@ -11,12 +11,15 @@ export function AssetLogo({
   size = 32,
   className = '',
 }: {
-  asset: Pick<AssetId, 'symbol' | 'logoUrl' | 'color'>;
+  asset: Pick<AssetId, 'symbol' | 'logoUrl' | 'color'> & { mint?: string; marketMint?: string };
   size?: number;
   className?: string;
 }) {
   const [failed, setFailed] = useState(false);
-  const showImg = asset.logoUrl && !failed;
+  // Served through the logo proxy (cached server-side); falls back to the monogram on any error.
+  const logoMint = asset.marketMint ?? asset.mint;
+  const src = logoMint ? `/api/logo/${logoMint}` : asset.logoUrl;
+  const showImg = src && !failed;
   return (
     <span
       className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-[color-mix(in_oklab,var(--asset)_22%,var(--bg-sunken))] ring-1 ring-[color-mix(in_oklab,var(--asset)_50%,transparent)] ${className}`}
@@ -25,7 +28,7 @@ export function AssetLogo({
     >
       {showImg ? (
         <Image
-          src={asset.logoUrl as string}
+          src={src as string}
           alt=""
           width={size}
           height={size}

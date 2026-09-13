@@ -120,6 +120,11 @@ export function MarketPanel({ arena }: { arena: ArenaView }) {
           Demo Arena performance is simulated. The market rows below are live mainnet data for
           context.
         </p>
+      ) : arena.provenance === 'devnet' ? (
+        <p className="text-xs text-fg-muted">
+          Devnet test tokens stand in for the real assets. Arena performance comes from the Pyth
+          devnet feeds; the market rows show the mainnet assets they represent.
+        </p>
       ) : null}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {arena.sides.map((s, i) => (

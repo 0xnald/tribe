@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import type { ArenaView, PerfPoint } from '@/lib/arena/model';
 import { fmtPct, fmtTime } from '@/lib/format';
@@ -11,9 +11,24 @@ import { fmtPct, fmtTime } from '@/lib/format';
  * Hover / touch reveals both values at a point in time; keyboard users can
  * arrow through the same points.
  */
-const W = 720;
 const H = 260;
 const PAD = { l: 44, r: 12, t: 12, b: 24 };
+
+/** Container width so text stays at real pixel size on phones (no viewBox downscaling). */
+function useWidth(ref: React.RefObject<HTMLDivElement | null>, fallback: number): number {
+  const [w, setW] = useState(fallback);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width;
+      if (width && width > 0) setW(Math.round(width));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
+  return w;
+}
 
 export function RelativePerformanceChart({
   arena,
@@ -27,6 +42,8 @@ export function RelativePerformanceChart({
   const [a, b] = arena.sides;
   const id = useId();
   const svgRef = useRef<SVGSVGElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const W = useWidth(boxRef, 720);
   const [idx, setIdx] = useState<number | null>(null);
 
   const model = useMemo(() => {
@@ -53,7 +70,7 @@ export function RelativePerformanceChart({
       (v) => v > min && v < max,
     );
     return { x, y, pathA: path('a'), pathB: path('b'), zeroY: y(0), ticks, t0, t1 };
-  }, [history]);
+  }, [history, W]);
 
   if (!model) {
     return (
@@ -88,7 +105,7 @@ export function RelativePerformanceChart({
   const leaderNow = cur ? (cur.a > cur.b ? a : cur.b > cur.a ? b : null) : null;
 
   return (
-    <div className={`flex flex-col gap-3 ${className}`}>
+    <div ref={boxRef} className={`flex flex-col gap-3 ${className}`}>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
         <Legend color={a.asset.color} label={a.asset.symbol} value={cur?.a ?? 0} />
         <Legend color={b.asset.color} label={b.asset.symbol} value={cur?.b ?? 0} />
@@ -100,6 +117,8 @@ export function RelativePerformanceChart({
       <svg
         ref={svgRef}
         viewBox={`0 0 ${W} ${H}`}
+        width={W}
+        height={H}
         className="h-auto w-full touch-pan-y select-none"
         role="img"
         aria-label={`Relative performance since Arena start. ${a.asset.symbol} ${fmtPct(a.perfPct)}, ${b.asset.symbol} ${fmtPct(b.perfPct)}.`}

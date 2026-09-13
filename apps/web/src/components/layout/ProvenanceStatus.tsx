@@ -34,13 +34,14 @@ export function ProvenanceStatus({ className = '' }: { className?: string }) {
     >
       <button
         type="button"
-        className={`micro inline-flex h-7 items-center gap-2 rounded-full border border-line px-2.5 text-fg-muted hover:border-line-strong hover:text-fg ${className}`}
+        className={`micro inline-flex h-7 items-center gap-2 whitespace-nowrap rounded-full border border-line px-2.5 text-fg-muted hover:border-line-strong hover:text-fg ${className}`}
         aria-label={`${market}, ${proto}. Open for details.`}
       >
         <span className="live-dot" aria-hidden />
-        <span className="hidden sm:inline">{market}</span>
-        <span className="hidden sm:inline text-fg-faint">·</span>
-        <span>{proto}</span>
+        <span className="hidden lg:inline">{market}</span>
+        <span className="hidden text-fg-faint lg:inline">·</span>
+        <span className="hidden sm:inline">{proto}</span>
+        <span className="sm:hidden">{proto.split(' ')[0]}</span>
       </button>
     </Tooltip>
   );

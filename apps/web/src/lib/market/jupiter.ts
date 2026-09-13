@@ -106,20 +106,26 @@ interface OrderResponse {
   routePlan?: Array<{ swapInfo?: { label?: string } }>;
 }
 
-/** Indicative USDC→asset quote (`swap/v2/order` without a taker). Mainnet. */
+/**
+ * Indicative USDC→asset quote. With an API key: `swap/v2/order` without a
+ * taker (api.jup.ag). Keyless: lite-api `swap/v1/quote` (deprecated but
+ * open) — same fields for what the preview needs. Mainnet only.
+ */
 export async function getJupiterQuote(
   inputMint: string,
   outputMint: string,
   amount: bigint,
 ): Promise<JupiterOrderQuote | null> {
   const { url, headers } = base();
+  const keyed = url === PRO;
   const q = new URLSearchParams({
     inputMint,
     outputMint,
     amount: amount.toString(),
     slippageBps: '50',
   });
-  const r = await fetch(`${url}/swap/v2/order?${q.toString()}`, {
+  const path = keyed ? '/swap/v2/order' : '/swap/v1/quote';
+  const r = await fetch(`${url}${path}?${q.toString()}`, {
     headers,
     signal: AbortSignal.timeout(8000),
     cache: 'no-store',
