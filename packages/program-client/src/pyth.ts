@@ -12,7 +12,7 @@ import { PublicKey } from '@solana/web3.js';
  *                            publish_time i64, prev_publish_time i64, ema_price i64, ema_conf u64 }
  *   posted_slot            u64
  *
- * Used by tests to fabricate receiver-owned fixtures under LiteSVM, and by
+ * Used by tests to fabricate receiver-owned fixtures under bankrun, and by
  * the crank to decode live accounts.
  */
 
