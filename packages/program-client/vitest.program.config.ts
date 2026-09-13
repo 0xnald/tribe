@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config';
 
-/** LiteSVM program tests — require the built .so (Linux/macOS only; run in WSL). */
+/** Bankrun program tests — require the built .so (Linux/macOS only; run in WSL). */
 export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],

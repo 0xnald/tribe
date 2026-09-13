@@ -1,14 +1,19 @@
 /**
- * LiteSVM harness for tribe_arena program tests.
+ * Bankrun (solana-program-test) harness for tribe_arena program tests.
  *
- * Why LiteSVM (not solana-test-validator): Pyth `PriceUpdateV2` accounts are
- * produced by the receiver program from Wormhole-verified VAAs and cannot be
- * fabricated on a validator, and Arena windows are hours long. LiteSVM lets
- * tests set arbitrary receiver-owned accounts and the clock, so the exact
- * production validation path (owner check, discriminator, verification
- * level, feed id, publish-time windows) runs unchanged.
+ * Why an in-process SVM (not solana-test-validator): Pyth `PriceUpdateV2`
+ * accounts are produced by the receiver program from Wormhole-verified VAAs
+ * and cannot be fabricated on a validator, and Arena windows are hours long.
+ * Bankrun lets tests write arbitrary receiver-owned accounts and set the
+ * clock, so the exact production validation path (owner check,
+ * discriminator, verification level, feed id, publish-time windows) runs
+ * unchanged.
+ *
+ * Bankrun bundles an old Token-2022 (no ScaledUiAmount / Pausable). The
+ * mainnet Token-2022 binary is loaded from `tests/fixtures` instead
+ * (see fixtures/README.md), so xStocks-like mints behave as in production.
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import {
@@ -36,126 +41,161 @@ import {
   TransactionInstruction,
   type Signer,
 } from '@solana/web3.js';
-import { Clock, FailedTransactionMetadata, LiteSVM, TransactionMetadata } from 'litesvm';
+import {
+  type AccountInfoBytes,
+  type BanksClient,
+  Clock,
+  type ProgramTestContext,
+  start,
+} from 'solana-bankrun';
 
 import { PYTH_RECEIVER_PROGRAM_ID, encodePriceUpdateV2, type PriceUpdateV2Fields } from '../src';
 
-export const PROGRAM_SO = join(
-  import.meta.dirname,
-  '..',
-  '..',
-  '..',
-  'programs',
-  'tribe_arena',
-  'target',
-  'deploy',
-  'tribe_arena.so',
-);
+const PROGRAM_DIR = join(import.meta.dirname, '..', '..', '..', 'programs', 'tribe_arena');
+export const PROGRAM_DEPLOY_DIR = join(PROGRAM_DIR, 'target', 'deploy');
+export const PROGRAM_SO = join(PROGRAM_DEPLOY_DIR, 'tribe_arena.so');
+export const FIXTURES_DIR = join(import.meta.dirname, 'fixtures');
 
 export function loadIdl(): unknown {
   return JSON.parse(
-    readFileSync(
-      join(
-        import.meta.dirname,
-        '..',
-        '..',
-        '..',
-        'programs',
-        'tribe_arena',
-        'target',
-        'idl',
-        'tribe_arena.json',
-      ),
-      'utf8',
-    ),
+    readFileSync(join(PROGRAM_DIR, 'target', 'idl', 'tribe_arena.json'), 'utf8'),
   ) as unknown;
 }
 
 export interface Svm {
-  svm: LiteSVM;
+  ctx: ProgramTestContext;
+  client: BanksClient;
   payer: Keypair;
   programId: PublicKey;
+  /** Thin view used by tests. */
+  svm: {
+    getAccount(address: PublicKey): Promise<AccountInfoBytes | null>;
+    getClock(): Promise<Clock>;
+    setAccount(address: PublicKey, info: AccountInfoBytes): void;
+  };
 }
 
-export function createSvm(programId: PublicKey): Svm {
-  const svm = new LiteSVM()
-    .withSysvars()
-    .withBuiltins()
-    .withDefaultPrograms()
-    .withSigverify(true)
-    .withBlockhashCheck(false);
-  svm.addProgramFromFile(programId, PROGRAM_SO);
-  const payer = Keypair.generate();
-  svm.airdrop(payer.publicKey, 1_000_000_000_000n);
-  return { svm, payer, programId };
-}
-
-export function airdrop(h: Svm, to: PublicKey, lamports = 100_000_000_000n): void {
-  h.svm.airdrop(to, lamports);
-}
-
-export function nowTs(h: Svm): bigint {
-  return h.svm.getClock().unixTimestamp;
-}
-
-export function setClock(h: Svm, unixTimestamp: bigint): void {
-  const c = h.svm.getClock();
-  const clock = new Clock(
-    c.slot + 1n,
-    c.epochStartTimestamp,
-    c.epoch,
-    c.leaderScheduleEpoch,
-    unixTimestamp,
+export async function createSvm(programId: PublicKey): Promise<Svm> {
+  if (!existsSync(PROGRAM_SO)) {
+    throw new Error(`missing ${PROGRAM_SO}: build with 'cargo build-sbf --arch v0' first`);
+  }
+  const token2022 = join(FIXTURES_DIR, 'spl_token_2022.so');
+  if (!existsSync(token2022)) {
+    throw new Error(`missing ${token2022}: see tests/fixtures/README.md`);
+  }
+  // Bankrun resolves program files from BPF_OUT_DIR and ./tests/fixtures.
+  process.env['BPF_OUT_DIR'] = PROGRAM_DEPLOY_DIR;
+  process.env['SBF_OUT_DIR'] = PROGRAM_DEPLOY_DIR;
+  const ctx = await start(
+    [
+      { name: 'tribe_arena', programId },
+      { name: 'spl_token_2022', programId: TOKEN_2022_PROGRAM_ID },
+    ],
+    [],
   );
-  h.svm.setClock(clock);
-  h.svm.expireBlockhash();
+  const client = ctx.banksClient;
+  return {
+    ctx,
+    client,
+    payer: ctx.payer,
+    programId,
+    svm: {
+      getAccount: (a) => client.getAccount(a),
+      getClock: () => client.getClock(),
+      setAccount: (a, info) => ctx.setAccount(a, info),
+    },
+  };
+}
+
+export async function airdrop(h: Svm, to: PublicKey, lamports = 100_000_000_000n): Promise<void> {
+  const existing = await h.client.getAccount(to);
+  if (existing) {
+    h.ctx.setAccount(to, { ...existing, lamports: existing.lamports + Number(lamports) });
+    return;
+  }
+  h.ctx.setAccount(to, {
+    lamports: Number(lamports),
+    data: new Uint8Array(0),
+    owner: SystemProgram.programId,
+    executable: false,
+  });
+}
+
+export async function nowTs(h: Svm): Promise<bigint> {
+  return (await h.client.getClock()).unixTimestamp;
+}
+
+/** Advance one slot so the next transaction lands in a fresh bank. */
+async function tick(h: Svm): Promise<void> {
+  const slot = await h.client.getSlot();
+  h.ctx.warpToSlot(slot + 1n);
+}
+
+/**
+ * Set the clock. Timestamps must be in the future relative to the genesis
+ * estimate (bankrun re-derives the clock on each warp and keeps the max), so
+ * tests use a far-future epoch and only ever move forward.
+ */
+export async function setClock(h: Svm, unixTimestamp: bigint): Promise<void> {
+  const c = await h.client.getClock();
+  if (unixTimestamp < c.unixTimestamp) {
+    throw new Error(`setClock backwards: ${unixTimestamp} < ${c.unixTimestamp}`);
+  }
+  h.ctx.setClock(
+    new Clock(c.slot, c.epochStartTimestamp, c.epoch, c.leaderScheduleEpoch, unixTimestamp),
+  );
 }
 
 export class TxError extends Error {
   constructor(
-    readonly meta: FailedTransactionMetadata,
+    readonly result: string,
     readonly logs: string[],
   ) {
-    super(`tx failed: ${meta.err().toString()}\n${logs.join('\n')}`);
+    super(`tx failed: ${result}\n${logs.join('\n')}`);
   }
   /** Anchor error name (e.g. `BackingClosed`) if present in logs. */
   get anchorError(): string | undefined {
     for (const l of this.logs) {
       const m = /Error Code: ([A-Za-z0-9]+)\./.exec(l);
       if (m) return m[1];
+      if (l.includes('already in use')) return 'AccountAlreadyInUse';
     }
     return undefined;
   }
 }
 
-export function send(
+export async function send(
   h: Svm,
   ixs: TransactionInstruction[],
   signers: Signer[],
-): TransactionMetadata {
+): Promise<string[]> {
   const tx = new Transaction();
-  tx.recentBlockhash = h.svm.latestBlockhash();
+  const bh = await h.client.getLatestBlockhash();
+  if (!bh) throw new Error('no blockhash');
+  tx.recentBlockhash = bh[0];
   tx.feePayer = signers[0]?.publicKey ?? h.payer.publicKey;
   tx.add(...ixs);
   tx.sign(...signers);
-  const r = h.svm.sendTransaction(tx);
-  if (r instanceof FailedTransactionMetadata) {
-    throw new TxError(r, r.meta().logs());
+  const r = await h.client.tryProcessTransaction(tx);
+  const logs = r.meta?.logMessages ?? [];
+  // Tick after every attempt (failed ones are in the status cache too) so a
+  // byte-identical retry is not rejected as a duplicate.
+  await tick(h);
+  if (r.result !== null) {
+    throw new TxError(r.result, logs);
   }
-  h.svm.expireBlockhash();
-  return r;
+  return logs;
 }
 
 /** Expect a transaction to fail with the given Anchor error name. */
-export function expectError(fn: () => unknown, name: string): TxError {
+export async function expectError(fn: () => unknown, name: string): Promise<TxError> {
   try {
-    fn();
+    await fn();
   } catch (e) {
     if (e instanceof TxError) {
       if (e.anchorError !== name) {
-        throw new Error(
-          `expected ${name}, got ${e.anchorError ?? 'unknown'}\n${e.logs.join('\n')}`,
-        );
+        const got = e.anchorError ?? 'unknown';
+        throw new Error(['expected ' + name + ', got ' + got, ...e.logs].join('\n'));
       }
       return e;
     }
@@ -175,11 +215,11 @@ export interface MintOpts {
 }
 
 /** Create a mint; Token-2022 extensions per opts (xStocks-like when scaledUi/pausable/permanentDelegate set). */
-export function createMint(
+export async function createMint(
   h: Svm,
   authority: Keypair,
   opts: MintOpts = {},
-): { mint: PublicKey; program: PublicKey; decimals: number } {
+): Promise<{ mint: PublicKey; program: PublicKey; decimals: number }> {
   const program = opts.program ?? TOKEN_PROGRAM_ID;
   const decimals = opts.decimals ?? 6;
   const mint = Keypair.generate();
@@ -192,12 +232,13 @@ export function createMint(
     if (opts.transferHook !== undefined) exts.push(ExtensionType.TransferHook);
   }
   const len = program.equals(TOKEN_2022_PROGRAM_ID) ? getMintLen(exts) : MINT_SIZE;
+  const rent = await h.client.getRent();
   const ixs: TransactionInstruction[] = [
     SystemProgram.createAccount({
       fromPubkey: authority.publicKey,
       newAccountPubkey: mint.publicKey,
       space: len,
-      lamports: Number(h.svm.minimumBalanceForRentExemption(BigInt(len))),
+      lamports: Number(rent.minimumBalance(BigInt(len))),
       programId: program,
     }),
   ];
@@ -250,19 +291,19 @@ export function createMint(
   ixs.push(
     createInitializeMint2Instruction(mint.publicKey, decimals, authority.publicKey, null, program),
   );
-  send(h, ixs, [authority, mint]);
+  await send(h, ixs, [authority, mint]);
   return { mint: mint.publicKey, program, decimals };
 }
 
-export function createAta(
+export async function createAta(
   h: Svm,
   payer: Keypair,
   owner: PublicKey,
   mint: PublicKey,
   program: PublicKey,
-): PublicKey {
+): Promise<PublicKey> {
   const addr = getAssociatedTokenAddressSync(mint, owner, true, program);
-  send(
+  await send(
     h,
     [
       createAssociatedTokenAccountIdempotentInstruction(
@@ -278,23 +319,23 @@ export function createAta(
   return addr;
 }
 
-export function mintTo(
+export async function mintTo(
   h: Svm,
   authority: Keypair,
   mint: PublicKey,
   to: PublicKey,
   amount: bigint,
   program: PublicKey,
-): void {
-  send(
+): Promise<void> {
+  await send(
     h,
     [createMintToInstruction(mint, to, authority.publicKey, amount, [], program)],
     [authority],
   );
 }
 
-export function tokenBalance(h: Svm, account: PublicKey): bigint {
-  const info = h.svm.getAccount(account);
+export async function tokenBalance(h: Svm, account: PublicKey): Promise<bigint> {
+  const info = await h.client.getAccount(account);
   if (!info) return 0n;
   const acc = unpackAccount(
     account,
@@ -307,12 +348,11 @@ export function tokenBalance(h: Svm, account: PublicKey): bigint {
 /** Write a receiver-owned PriceUpdateV2 fixture. */
 export function setPriceUpdate(h: Svm, address: PublicKey, fields: PriceUpdateV2Fields): void {
   const data = encodePriceUpdateV2(fields);
-  h.svm.setAccount(address, {
+  h.ctx.setAccount(address, {
     lamports: 10_000_000,
     data,
     owner: PYTH_RECEIVER_PROGRAM_ID,
     executable: false,
-    rentEpoch: 0,
   });
 }
 

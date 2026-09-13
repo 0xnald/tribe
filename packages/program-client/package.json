@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "test:program": "vitest run --config vitest.program.config.ts"
+    "test:program": "vitest run --config vitest.program.config.ts",
+    "fixtures": "bash scripts/fetch-fixtures.sh"
   },
   "dependencies": {
     "@anchor-lang/core": "^1.2.0",
@@ -28,11 +29,9 @@
     "@types/bn.js": "^5.2.0",
     "@types/node": "^22.20.2",
     "eslint": "^9.39.0",
+    "solana-bankrun": "0.4.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.70.0",
     "vitest": "^5.0.0"
-  },
-  "optionalDependencies": {
-    "litesvm": "0.8.0"
   }
 }
