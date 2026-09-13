@@ -4,7 +4,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { Transaction } from '@solana/web3.js';
 import { ArrowLeft, Check, ExternalLink, Loader2, ShieldCheck, TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { WalletControl } from '@/components/layout/WalletControl';
 import { useDemoPositions } from '@/hooks/useDemoPositions';
@@ -181,7 +181,7 @@ function BackFlow({
   const closesIn = arena.backingCloseTs - now;
 
   // ─── confirm
-  const runDemo = useCallback(async () => {
+  const runDemo = async () => {
     setTx({ state: 'preparing' });
     await sleep(500);
     setTx({ state: 'awaiting' });
@@ -205,9 +205,9 @@ function BackFlow({
     setRecord(rec);
     setTx({ state: 'confirmed' });
     setStep('success');
-  }, [arena.id, arena.slug, side, preview, demoPositions]);
+  };
 
-  const runDevnet = useCallback(async () => {
+  const runDevnet = async () => {
     if (!wallet.publicKey || !wallet.signTransaction || !arena.onchain) return;
     try {
       setTx({ state: 'preparing' });
@@ -257,7 +257,7 @@ function BackFlow({
           : friendlyError(msg),
       });
     }
-  }, [wallet, arena.onchain, arena.slug, arena.id, side, preview, connection]);
+  };
 
   const title = step === 'success' ? `You're backing ${s.asset.symbol}` : `Back ${s.asset.symbol}`;
 
