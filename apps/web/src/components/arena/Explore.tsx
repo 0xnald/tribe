@@ -65,13 +65,10 @@ export function Explore({ initial, serverNow }: { initial: ArenaView[]; serverNo
   const [filter, setFilter] = useState<Filter>('live');
   const [narrative, setNarrative] = useState<string | null>(null);
 
-  const featured = useMemo(
-    () =>
-      arenas.find((a) => a.featured && a.status === 'live') ??
-      arenas.find((a) => a.status === 'live') ??
-      arenas[0],
-    [arenas],
-  );
+  const featured = useMemo(() => {
+    const running = (a: ArenaView) => a.status === 'live' || a.status === 'backing_closed';
+    return arenas.find((a) => a.featured && running(a)) ?? arenas.find(running) ?? arenas[0];
+  }, [arenas]);
   const feed = useMemo(() => {
     // the hero already shows the featured Arena; don't repeat it directly underneath
     let list = applyFilter(arenas, filter, now).filter((a) => a.id !== featured?.id);

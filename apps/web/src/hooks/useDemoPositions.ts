@@ -10,13 +10,21 @@ import type { PositionRecord } from '@/lib/positions/model';
  */
 const KEY = 'tribe.demoPositions.v1';
 const listeners = new Set<() => void>();
-let cache: PositionRecord[] | null = null;
+let cache: PositionRecord[] = [];
+let cacheRaw: string | null | undefined; // undefined = never read
 const EMPTY: PositionRecord[] = [];
 
+/** Re-parses only when the stored string changed, so snapshots stay referentially stable. */
 function read(): PositionRecord[] {
-  if (cache) return cache;
+  let raw: string | null = null;
   try {
-    const raw = typeof window !== 'undefined' ? window.localStorage.getItem(KEY) : null;
+    raw = typeof window !== 'undefined' ? window.localStorage.getItem(KEY) : null;
+  } catch {
+    return cache;
+  }
+  if (raw === cacheRaw) return cache;
+  cacheRaw = raw;
+  try {
     cache = raw ? (JSON.parse(raw) as PositionRecord[]) : [];
   } catch {
     cache = [];
@@ -26,8 +34,9 @@ function read(): PositionRecord[] {
 
 function write(next: PositionRecord[]): void {
   cache = next;
+  cacheRaw = JSON.stringify(next);
   try {
-    window.localStorage.setItem(KEY, JSON.stringify(next));
+    window.localStorage.setItem(KEY, cacheRaw);
   } catch {
     /* private mode etc. — keep in memory */
   }
@@ -37,10 +46,7 @@ function write(next: PositionRecord[]): void {
 function subscribe(l: () => void): () => void {
   listeners.add(l);
   const onStorage = (e: StorageEvent) => {
-    if (e.key === KEY) {
-      cache = null;
-      l();
-    }
+    if (e.key === KEY) l();
   };
   window.addEventListener('storage', onStorage);
   return () => {
