@@ -185,11 +185,11 @@ cancel-on-expiry are permissionless; principal only ever moves back to its
 owner. Details: [ARCHITECTURE §8](docs/ARCHITECTURE.md#8-program-design-anchor-12-tribe_arena--implemented-in-phase-2)
 and [SECURITY §4](docs/SECURITY.md#4-program-security-review-phase-2-programstribe_arena).
 
-|            |                                                                                                              |
-| ---------- | ------------------------------------------------------------------------------------------------------------ |
-| Program id | `shzfcWWZtWWTMfRuEvdBAsJZUe3mYork3wug5z5U5w4`                                                                |
-| Cluster    | devnet (see [DEPLOYMENTS](docs/DEPLOYMENTS.md) for the deployment record)                                    |
-| Client     | `packages/program-client` — PDAs, instruction builders, fetchers, `open+back` and swap-then-back composition |
+|            |                                                                                                                                                                                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Program id | `shzfcWWZtWWTMfRuEvdBAsJZUe3mYork3wug5z5U5w4`                                                                                                                                                                                        |
+| Cluster    | devnet — deployed 2026-09-13, tx [`4PGtEY2x…`](https://explorer.solana.com/tx/4PGtEY2xfZJYkfCFfCQLVUca5Ush573mHoYHxoZvJCDeBfAWodseY1rsMWHjnxqssJjsMHcxApURBCuR7SANiuvU?cluster=devnet); record in [DEPLOYMENTS](docs/DEPLOYMENTS.md) |
+| Client     | `packages/program-client` — PDAs, instruction builders, fetchers, `open+back` and swap-then-back composition                                                                                                                         |
 
 Mainnet deployment is deliberately not part of Phase 2.
 

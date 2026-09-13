@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "test:program": "vitest run --config vitest.program.config.ts",
-    "fixtures": "bash scripts/fetch-fixtures.sh"
+    "fixtures": "bash scripts/fetch-fixtures.sh",
+    "smoke:devnet": "DEVNET_SMOKE=1 vitest run --config vitest.program.config.ts tests/devnet-smoke.test.ts"
   },
   "dependencies": {
     "@anchor-lang/core": "^1.2.0",

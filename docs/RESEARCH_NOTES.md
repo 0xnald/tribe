@@ -229,3 +229,9 @@ TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb`, not committed). (2) A
 - **Devnet airdrops** from `api.devnet.solana.com` are rate-limited per IP
   (all sizes refused for hours at a time); fund the deployer from
   `faucet.solana.com` when the CLI faucet refuses.
+- **Devnet deploys of a 640 KB program** need ~600 buffer-write
+  transactions. Through the public RPC (`--use-rpc`) they hit 429s and the
+  CLI aborts with "Max retries exceeded", leaving a funded buffer behind
+  (close it to recover ~3.25 SOL). The TPU path drops a few percent of
+  writes per pass; passing a persistent `--buffer` keypair makes retries
+  resume instead of restart — the deploy completed on the second pass.

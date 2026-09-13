@@ -4,39 +4,53 @@ Mainnet is intentionally **not** deployed during Phase 2. Devnet only.
 
 ## `tribe_arena`
 
-| Field                | Value                                                                                          |
-| -------------------- | ---------------------------------------------------------------------------------------------- |
-| Program id           | `shzfcWWZtWWTMfRuEvdBAsJZUe3mYork3wug5z5U5w4`                                                  |
-| Cluster              | devnet (`https://api.devnet.solana.com`)                                                       |
-| Upgrade authority    | `GrUT28TocKAAo5BDfV9wQejZ1aQsVTNpynYGjLjzwykf` (devnet deployer key)                           |
-| Build                | `cargo build-sbf --arch v0`, Anchor 1.2.0, Agave 4.2.2, commit below                           |
-| Deployment signature | _pending — see status_                                                                         |
-| Explorer             | https://explorer.solana.com/address/shzfcWWZtWWTMfRuEvdBAsJZUe3mYork3wug5z5U5w4?cluster=devnet |
+| Field                | Value                                                                                                                                                                                                                                                           |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cluster              | devnet (`https://api.devnet.solana.com`)                                                                                                                                                                                                                        |
+| Program id           | `shzfcWWZtWWTMfRuEvdBAsJZUe3mYork3wug5z5U5w4`                                                                                                                                                                                                                   |
+| ProgramData          | `G7GHfVvQC4qYf5EqzqwCwChFQMcJ2BVsfdc6tu9rZr5k`                                                                                                                                                                                                                  |
+| Upgrade authority    | `GrUT28TocKAAo5BDfV9wQejZ1aQsVTNpynYGjLjzwykf` (devnet deployer key; also the protocol `authority` in `ProtocolConfig`)                                                                                                                                         |
+| Deployment signature | `4PGtEY2xfZJYkfCFfCQLVUca5Ush573mHoYHxoZvJCDeBfAWodseY1rsMWHjnxqssJjsMHcxApURBCuR7SANiuvU`                                                                                                                                                                      |
+| Deployed             | 2026-09-13 14:11:42 UTC, slot 497751084                                                                                                                                                                                                                         |
+| Build                | commit `2765f48`, `cargo build-sbf --arch v0`, Anchor 1.2.0, Agave 4.2.2; 638 784 bytes; sha256 `bd7da49883a68e363ac7bd7a806852e88288b02fcae214dd7cb6d6da978a3780` (on-chain bytes identical)                                                                   |
+| Explorer             | [program](https://explorer.solana.com/address/shzfcWWZtWWTMfRuEvdBAsJZUe3mYork3wug5z5U5w4?cluster=devnet) · [deploy tx](https://explorer.solana.com/tx/4PGtEY2xfZJYkfCFfCQLVUca5Ush573mHoYHxoZvJCDeBfAWodseY1rsMWHjnxqssJjsMHcxApURBCuR7SANiuvU?cluster=devnet) |
 
-### Status
+### Verification
 
-The build artifact (`target/deploy/tribe_arena.so`, 638 784 bytes, needs
-≈ 4.5 SOL of rent) and the deploy script are ready; the deployment itself is
-blocked on devnet SOL: the CLI faucet (`solana airdrop`, all sizes, several
-RPC providers) refused every request on 2026-09-13 with its per-IP rate
-limit. To complete it:
+- `solana program show` → owner `BPFLoaderUpgradeab1e11111111111111111111111`, executable, data
+  length 638 784, authority as above.
+- `solana program dump` of the on-chain program hashes to the same sha256 as
+  the local `target/deploy/tribe_arena.so` built at commit `2765f48`.
 
-1. Fund the upgrade authority `GrUT28TocKAAo5BDfV9wQejZ1aQsVTNpynYGjLjzwykf`
-   with ≥ 5 devnet SOL (https://faucet.solana.com, or any devnet wallet).
-2. In WSL Ubuntu-24.04: `scripts/deploy-devnet.sh` (uses the program keypair
-   and deployer key from `~/tribe-keys/`, never from the repo).
-3. Record the signature and the `solana program show` output in this file.
+### Post-deploy smoke test (`pnpm --filter @tribe/program-client smoke:devnet`)
 
-Keys: the program keypair and the deployer keypair live outside the
-repository (`~/tribe-keys/`); `.gitignore` also excludes `*keypair*.json`,
-`keys/` and `wallet*.json`.
+Real transactions through `@tribe/program-client` against devnet, all confirmed:
+
+| Step                                                                                                                             | Signature                                                                                  |
+| -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `init_config` (devnet USDC `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`, treasury = authority ATA, upset reserve = config ATA) | `278RS4xbZUE4yjKfRjRH4kpPHvziGbZ9Mc6rDWs53ywKUXu9qcaBX5FDPLfPoy11zRNXvkDXiGTwiZeEmEYyYHX8` |
+| `set_paused(true)` + read-back                                                                                                   | `2m9dYSumi55c3CbpLyUF2QUwsJze2vXHV5xP9n4Hw8h344Nyxax7422gA6TuJVgBrFWhZgTZGzsNdHyE9cvenWjz` |
+| `set_paused(false)` + read-back                                                                                                  | `2ZYEgbK1RA6RUwTJ9g7HVw8MwZZtDbGp6iNq7tcowjdkQaf3NHTT3EUSseRPsLgYNRnfUKjoywJnVpJtA1NA35c9` |
+
+Config PDA: `["config"]` of the program id; fee policy 50 bps 40/40/20,
+limits and default params as in `tests/devnet-smoke.test.ts`.
 
 ### Procedure (repeatable)
 
 ```bash
 scripts/build-program.sh     # fmt, clippy -D warnings, vector parity, SBF v0 build, IDL
-scripts/deploy-devnet.sh     # solana program deploy … --url devnet --upgrade-authority <deployer>
+scripts/deploy-devnet.sh     # resumable: persistent buffer keypair, up to 6 passes, TPU path
 ```
+
+Keys: the program keypair, the deployer keypair and the deploy buffer keypair
+live outside the repository (`~/tribe-keys/`); `.gitignore` also excludes
+`*keypair*.json`, `keys/` and `wallet*.json`.
+
+Lessons from this deployment (also in RESEARCH_NOTES §8): the public devnet
+RPC throttles buffer writes (`--use-rpc` failed twice with "Max retries
+exceeded"); the TPU path loses a few percent of writes per pass, so the script
+now reuses one buffer keypair and retries until the upload is complete.
+Abandoned buffers were closed and their lamports recovered.
 
 Upgrades use the same script (the program is upgradeable during the
 hackathon; moving the authority to a multisig is listed in SECURITY §4 as
