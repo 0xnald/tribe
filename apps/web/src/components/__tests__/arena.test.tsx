@@ -124,7 +124,7 @@ describe('ProvenanceBadge', () => {
     wrap(
       <>
         <ProvenanceBadge provenance="live" />
-        <ProvenanceBadge provenance="devnet" />
+        <ProvenanceBadge provenance="onchain" />
         <ProvenanceBadge provenance="demo" />
       </>,
     );

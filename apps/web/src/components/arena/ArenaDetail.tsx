@@ -48,8 +48,8 @@ export function ArenaDetail({ initial, serverNow }: { initial: ArenaView; server
               <span className="text-xs text-fg-muted">
                 {arena.provenance === 'demo'
                   ? 'Simulated Arena prices · '
-                  : arena.provenance === 'devnet'
-                    ? 'Devnet Pyth feeds · '
+                  : arena.provenance === 'onchain'
+                    ? 'Pyth feeds · '
                     : ''}
                 normalised from {fmtTime(arena.startTs)}
               </span>

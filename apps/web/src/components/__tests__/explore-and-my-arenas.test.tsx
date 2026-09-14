@@ -66,7 +66,7 @@ describe('applyFilter', () => {
     expect(applyFilter(arenas, 'stock-vs-stock', NOW).map((a) => a.slug)).toEqual([
       'nvdax-vs-aaplx',
     ]);
-    expect(applyFilter(arenas, 'devnet', NOW)).toEqual([]);
+    expect(applyFilter(arenas, 'onchain', NOW)).toEqual([]);
   });
 });
 

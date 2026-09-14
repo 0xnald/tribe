@@ -232,8 +232,20 @@ export async function getDevnetArena(
   return { view: await toView(res.value, pk, now), account: res.value, address: pk };
 }
 
+async function protocolAuthority(): Promise<string | null> {
+  const res = await cached('protocol:authority', 5 * 60_000, async () => {
+    const c = await withTimeout(
+      tribe().program.account.protocolConfig.fetchNullable(tribe().config()),
+      5000,
+    );
+    return c ? c.authority.toBase58() : null;
+  });
+  return res?.value ?? null;
+}
+
 async function toView(a: ArenaAccount, address: PublicKey, now: number): Promise<ArenaView> {
   const status = statusOf(a, now);
+  const authority = await protocolAuthority().catch(() => null);
   const startTs = Number(a.startTs);
   const endTs = Number(a.endTs);
   const duration = endTs - startTs;
@@ -297,14 +309,17 @@ async function toView(a: ArenaAccount, address: PublicKey, now: number): Promise
   });
   const diff = Math.round((perfA - perfB) * 100) / 100;
   const leader: SideKey | 'tie' = !started || Math.abs(diff) < 0.005 ? 'tie' : diff > 0 ? 'a' : 'b';
-  const slug = `devnet-${address.toBase58()}`;
+  const slug = `onchain-${address.toBase58()}`;
   const view: ArenaView = {
-    id: `devnet:${address.toBase58()}`,
+    id: `onchain:${address.toBase58()}`,
     slug,
-    provenance: 'devnet',
+    provenance: 'onchain',
     status,
     category: 'crypto-vs-crypto',
-    narrative: 'Devnet protocol',
+    narrative:
+      getNetworkConfig().protocol.cluster === 'mainnet-beta'
+        ? 'Live on mainnet'
+        : 'Devnet protocol',
     featured: false,
     trending: false,
     startTs,
@@ -325,7 +340,9 @@ async function toView(a: ArenaAccount, address: PublicKey, now: number): Promise
     creator: {
       label: a.creator.toBase58().slice(0, 4) + '…' + a.creator.toBase58().slice(-4),
       address: a.creator.toBase58(),
-      firstParty: a.creatorTarget !== 0,
+      // "Tribe" is a trust label: only the protocol authority earns it, never a creator who
+      // merely set the first_party flag (that flag only routes the creator's own fee share).
+      firstParty: authority !== null && a.creator.toBase58() === authority,
     },
     history: [],
     activity: [],

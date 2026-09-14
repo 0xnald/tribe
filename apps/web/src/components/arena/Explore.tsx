@@ -18,7 +18,7 @@ type Filter =
   | 'crypto-vs-stock'
   | 'stock-vs-stock'
   | 'crypto-vs-crypto'
-  | 'devnet';
+  | 'onchain';
 
 const FILTERS: Array<{ id: Filter; label: string }> = [
   { id: 'live', label: 'Live' },
@@ -28,7 +28,7 @@ const FILTERS: Array<{ id: Filter; label: string }> = [
   { id: 'crypto-vs-stock', label: 'Crypto vs Stock' },
   { id: 'stock-vs-stock', label: 'Stock vs Stock' },
   { id: 'crypto-vs-crypto', label: 'Crypto vs Crypto' },
-  { id: 'devnet', label: 'Devnet protocol' },
+  { id: 'onchain', label: 'Live protocol' },
 ];
 
 export function applyFilter(arenas: ArenaView[], f: Filter, now: number): ArenaView[] {
@@ -44,8 +44,8 @@ export function applyFilter(arenas: ArenaView[], f: Filter, now: number): ArenaV
             (a.status === 'live' || a.status === 'backing_closed') && a.endTs - now < 12 * 3600,
         )
         .sort((x, y) => x.endTs - y.endTs);
-    case 'devnet':
-      return arenas.filter((a) => a.provenance === 'devnet');
+    case 'onchain':
+      return arenas.filter((a) => a.provenance === 'onchain');
     default:
       return arenas.filter((a) => a.category === f);
   }
@@ -75,7 +75,7 @@ export function Explore({ initial, serverNow }: { initial: ArenaView[]; serverNo
     if (narrative) list = list.filter((a) => a.narrative === narrative);
     return list;
   }, [arenas, filter, narrative, now, featured]);
-  const hasDevnet = arenas.some((a) => a.provenance === 'devnet');
+  const hasOnchain = arenas.some((a) => a.provenance === 'onchain');
 
   return (
     <main className="container-x flex flex-col gap-10 py-4 md:gap-14 md:py-8">
@@ -118,7 +118,7 @@ export function Explore({ initial, serverNow }: { initial: ArenaView[]; serverNo
             role="tablist"
             aria-label="Arena filters"
           >
-            {FILTERS.filter((f) => f.id !== 'devnet' || hasDevnet).map((f) => (
+            {FILTERS.filter((f) => f.id !== 'onchain' || hasOnchain).map((f) => (
               <button
                 key={f.id}
                 type="button"
@@ -168,7 +168,7 @@ export function Explore({ initial, serverNow }: { initial: ArenaView[]; serverNo
                 key={a.id}
                 arena={a}
                 now={now}
-                variant={i === 0 && a.trending && filter !== 'devnet' ? 'featured' : 'default'}
+                variant={i === 0 && a.trending && filter !== 'onchain' ? 'featured' : 'default'}
               />
             ))}
           </div>

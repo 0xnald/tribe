@@ -10,7 +10,9 @@ import { useLiveArenas } from '@/hooks/useLiveArenas';
 import { useNow } from '@/hooks/useNow';
 import type { ArenaView } from '@/lib/arena/model';
 import { fmtUsd } from '@/lib/format';
+import { getNetworkConfig } from '@/lib/config/network';
 import { positionInsight, type PositionBucket, type PositionRecord } from '@/lib/positions/model';
+import { verifyTribeTransaction } from '@/lib/protocol/verify';
 
 import { ButtonLink } from '../ui/Button';
 import { PositionCard } from './PositionCard';
@@ -93,7 +95,7 @@ export function MyArenas({
           arena: a,
           p: {
             id: `devnet-${r.address}`,
-            provenance: 'devnet',
+            provenance: 'onchain',
             arenaSlug: a.slug,
             arenaId: a.id,
             side: r.side,
@@ -137,7 +139,13 @@ export function MyArenas({
       });
       const j = (await r.json()) as { tx?: string; error?: string };
       if (!r.ok || !j.tx) throw new Error(j.error ?? 'could not build transaction');
-      const signed = await wallet.signTransaction(Transaction.from(Buffer.from(j.tx, 'base64')));
+      const t = Transaction.from(Buffer.from(j.tx, 'base64'));
+      verifyTribeTransaction(t, {
+        programId: getNetworkConfig().protocol.programId,
+        arena: String(body['arena']),
+        owner: wallet.publicKey.toBase58(),
+      });
+      const signed = await wallet.signTransaction(t);
       const sig = await connection.sendRawTransaction(signed.serialize());
       const bh = await connection.getLatestBlockhash();
       const c = await connection.confirmTransaction({ signature: sig, ...bh }, 'confirmed');

@@ -22,8 +22,8 @@ export async function getArena(
   slug: string,
   now = Math.floor(Date.now() / 1000),
 ): Promise<ArenaView | null> {
-  if (slug.startsWith('devnet-')) {
-    const d = await getDevnetArena(slug.slice('devnet-'.length), now).catch(() => null);
+  if (slug.startsWith('onchain-')) {
+    const d = await getDevnetArena(slug.slice('onchain-'.length), now).catch(() => null);
     if (!d) return null;
     const [v] = await decorate([d.view]);
     return v ?? null;

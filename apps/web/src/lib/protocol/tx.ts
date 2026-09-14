@@ -1,7 +1,11 @@
 import 'server-only';
 
 import { TribeClient, readonlyProvider } from '@tribe/program-client';
-import { Connection, PublicKey, Transaction } from '@solana/web3.js';
+import {
+  createAssociatedTokenAccountIdempotentInstruction,
+  getAssociatedTokenAddressSync,
+} from '@solana/spl-token';
+import { Connection, PublicKey, Transaction, type TransactionInstruction } from '@solana/web3.js';
 
 import { getNetworkConfig } from '../config/network';
 
@@ -37,7 +41,24 @@ export async function buildBackTransaction(
   const notional = (units * priceQ8) / 10n ** BigInt(asset.decimals + 2);
   const fee = (notional * BigInt(arena.feePolicy.feeBps)) / 10_000n;
   const ixs = await client.openAndBack(owner, arenaPk, arena, config, idx as 0 | 1, units, fee);
-  const tx = new Transaction().add(...ixs);
+  // The creator's USDC ATA receives the creator fee share; if the creator never made one,
+  // create it (idempotent, payer = backer) so `back` cannot fail on a missing account.
+  const pre: TransactionInstruction[] = [];
+  if (fee > 0n && arena.creatorTarget === 0) {
+    const creatorAta = getAssociatedTokenAddressSync(config.usdcMint, arena.creator, true);
+    const exists = await connection.getAccountInfo(creatorAta);
+    if (!exists) {
+      pre.push(
+        createAssociatedTokenAccountIdempotentInstruction(
+          owner,
+          creatorAta,
+          arena.creator,
+          config.usdcMint,
+        ),
+      );
+    }
+  }
+  const tx = new Transaction().add(...pre, ...ixs);
   tx.feePayer = owner;
   tx.recentBlockhash = (await connection.getLatestBlockhash('confirmed')).blockhash;
   const serialized = tx.serialize({ requireAllSignatures: false, verifySignatures: false });

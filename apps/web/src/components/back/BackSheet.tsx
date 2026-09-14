@@ -13,9 +13,10 @@ import { useTokenBalance } from '@/hooks/useTokenBalance';
 import { isBackable, otherSide, sideOf, type ArenaView, type SideKey } from '@/lib/arena/model';
 import { buildPreview, type BackPreview } from '@/lib/back/preview';
 import { onAsset } from '@/lib/color';
-import { explorerTxUrl } from '@/lib/config/network';
+import { explorerTxUrl, getNetworkConfig } from '@/lib/config/network';
 import { fmtAmount, fmtDuration, fmtMultiplier, fmtPct, fmtPrice, fmtUsd } from '@/lib/format';
 import type { PositionRecord } from '@/lib/positions/model';
+import { verifyTribeTransaction } from '@/lib/protocol/verify';
 
 import { AssetLogo } from '../arena/AssetIdentity';
 import { ProvenanceBadge } from '../arena/ProvenanceBadge';
@@ -93,10 +94,12 @@ function BackFlow({
   const s = sideOf(arena, side);
   const o = sideOf(arena, otherSide(side));
   const isDemo = arena.provenance === 'demo';
-  const isDevnet = arena.provenance === 'devnet';
+  const isOnchain = arena.provenance === 'onchain';
+  // devnet-only helpers (faucet, stand-in copy) are keyed by the protocol cluster, not by provenance
+  const isDevnet = isOnchain && getNetworkConfig().protocol.cluster === 'devnet';
 
   const [step, setStep] = useState<Step>('side');
-  const [method, setMethod] = useState<Method>(isDevnet ? 'holdings' : 'usdc');
+  const [method, setMethod] = useState<Method>(isOnchain ? 'holdings' : 'usdc');
   const [amountStr, setAmountStr] = useState('100');
   const [quoteRes, setQuoteRes] = useState<{ key: string; value: Quote | 'unavailable' } | null>(
     null,
@@ -107,12 +110,12 @@ function BackFlow({
 
   const owner = wallet.publicKey?.toBase58() ?? null;
   const usdcBal = useTokenBalance(
-    isDevnet ? 'protocol' : 'market',
+    isOnchain ? 'protocol' : 'market',
     step !== 'side' && !isDevnet ? USDC_MAINNET : null,
     owner,
   );
   const assetBal = useTokenBalance(
-    isDevnet ? 'protocol' : 'market',
+    isOnchain ? 'protocol' : 'market',
     step !== 'side' ? s.asset.mint : null,
     owner,
     faucetTick,
@@ -121,7 +124,7 @@ function BackFlow({
   const amount = Number(amountStr) || 0;
 
   // indicative mainnet quote for USDC buys (demo Arenas only — the real assets live on mainnet)
-  const wantQuote = method === 'usdc' && !isDevnet && step === 'amount' && amount > 0;
+  const wantQuote = method === 'usdc' && !isOnchain && step === 'amount' && amount > 0;
   const quoteKey = `${s.asset.mint}:${Math.round(amount * 1e6)}`;
   useEffect(() => {
     if (!wantQuote) return;
@@ -224,6 +227,11 @@ function BackFlow({
       const j = (await r.json()) as { tx?: string; error?: string };
       if (!r.ok || !j.tx) throw new Error(j.error ?? 'could not build transaction');
       const t = Transaction.from(Buffer.from(j.tx, 'base64'));
+      verifyTribeTransaction(t, {
+        programId: getNetworkConfig().protocol.programId,
+        arena: arena.onchain.arena,
+        owner: wallet.publicKey.toBase58(),
+      });
       setTx({ state: 'awaiting' });
       const signed = await wallet.signTransaction(t);
       setTx({ state: 'submitted' });
@@ -233,7 +241,7 @@ function BackFlow({
       if (conf.value.err) throw new Error('transaction failed on-chain');
       const rec: PositionRecord = {
         id: `devnet-${sig}`,
-        provenance: 'devnet',
+        provenance: 'onchain',
         arenaSlug: arena.slug,
         arenaId: arena.id,
         side,
@@ -315,6 +323,7 @@ function BackFlow({
           method={method}
           setMethod={setMethod}
           isDevnet={isDevnet}
+          isOnchain={isOnchain}
           symbol={s.asset.symbol}
           usdcBal={usdcBal}
           assetBal={assetBal}
@@ -455,6 +464,7 @@ function MethodStep({
   method,
   setMethod,
   isDevnet,
+  isOnchain,
   symbol,
   usdcBal,
   assetBal,
@@ -466,6 +476,7 @@ function MethodStep({
   method: Method;
   setMethod: (m: Method) => void;
   isDevnet: boolean;
+  isOnchain: boolean;
   symbol: string;
   usdcBal: ReturnType<typeof useTokenBalance>;
   assetBal: ReturnType<typeof useTokenBalance>;
@@ -518,7 +529,12 @@ function MethodStep({
             disabled: true,
             note: 'Mainnet only. Devnet Arenas use devnet test tokens — no Jupiter route.',
           }
-        : { note: 'Route and price from Jupiter (mainnet, indicative).' }),
+        : isOnchain
+          ? {
+              disabled: true,
+              note: 'Two steps on mainnet: buy on Jupiter first, then back your holdings. One-tap swap+back does not fit in a single Solana transaction (FRONTEND §5).',
+            }
+          : { note: 'Route and price from Jupiter (mainnet, indicative).' }),
     },
     {
       id: 'holdings',
@@ -826,7 +842,7 @@ function ConfirmStep({
     return (
       <div className="flex flex-col items-center gap-3 py-2 text-center">
         <p className="text-sm text-fg-muted">
-          Connect a Solana wallet on devnet to sign this transaction.
+          Connect a Solana wallet on {getNetworkConfig().protocol.cluster} to sign this transaction.
         </p>
         <WalletControl />
       </div>

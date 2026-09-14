@@ -148,7 +148,7 @@ describe('BackSheet (devnet Arena)', () => {
     const base = fixture('sol-vs-spyx');
     const devnet: ArenaView = {
       ...base,
-      provenance: 'devnet',
+      provenance: 'onchain',
       onchain: {
         arena: '11111111111111111111111111111111',
         creator: '11111111111111111111111111111111',

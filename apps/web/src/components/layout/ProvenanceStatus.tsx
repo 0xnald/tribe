@@ -14,7 +14,8 @@ export function ProvenanceStatus({ className = '' }: { className?: string }) {
     cfg.market.cluster === 'mainnet-beta'
       ? 'LIVE MARKETS'
       : `${cfg.market.cluster.toUpperCase()} MARKETS`;
-  const proto = `${cfg.protocol.cluster === 'mainnet-beta' ? 'MAINNET' : cfg.protocol.cluster.toUpperCase()} PROTOCOL`;
+  const mainnet = cfg.protocol.cluster === 'mainnet-beta';
+  const proto = mainnet ? 'SOLANA MAINNET' : `${cfg.protocol.cluster.toUpperCase()} PROTOCOL`;
   return (
     <Tooltip
       content={
@@ -24,9 +25,10 @@ export function ProvenanceStatus({ className = '' }: { className?: string }) {
             hours come from Solana {cfg.market.cluster} (Jupiter, xStocks, Pyth).
           </p>
           <p>
-            <strong className="text-devnet-fg">Protocol:</strong> the Tribe Arena program runs on{' '}
-            {cfg.protocol.cluster}. Devnet Arenas use devnet test tokens — never your mainnet
-            assets.
+            <strong className="text-devnet-fg">Protocol:</strong>{' '}
+            {mainnet
+              ? 'the Tribe Arena program runs on Solana mainnet — real assets, real Position Vaults, real transactions.'
+              : `the Tribe Arena program runs on ${cfg.protocol.cluster}. Devnet Arenas use devnet test tokens — never your mainnet assets.`}
           </p>
           <p className="text-fg-muted">Demo Arenas are simulated and marked DEMO.</p>
         </div>

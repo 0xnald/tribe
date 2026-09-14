@@ -5,8 +5,14 @@
  * (fees, multipliers, devnet transactions).
  */
 
-/** Where a piece of data comes from. Every Arena, price and position carries one. */
-export type Provenance = 'live' | 'devnet' | 'demo';
+/**
+ * Where a piece of data comes from. Every Arena, price and position carries one.
+ *  - live    : mainnet market data (prices, logos, liquidity)
+ *  - onchain : real state on the Tribe program, on whichever cluster the
+ *              protocol layer is configured for (devnet today, mainnet at cutover)
+ *  - demo    : fixture, simulated, never a transaction
+ */
+export type Provenance = 'live' | 'onchain' | 'demo';
 
 export type ArenaStatus =
   'scheduled' | 'live' | 'backing_closed' | 'settling' | 'settled' | 'cancelled';
@@ -154,15 +160,18 @@ export function isBackable(a: ArenaView, now: number): boolean {
   return a.status === 'live' && now < a.backingCloseTs;
 }
 
-export const PROVENANCE_LABEL: Record<Provenance, string> = {
-  live: 'LIVE',
-  devnet: 'DEVNET',
-  demo: 'DEMO',
-};
+/** Badge text; the on-chain label names the protocol cluster (MAINNET / DEVNET). */
+export function provenanceLabel(p: Provenance, protocolCluster: string): string {
+  if (p === 'live') return 'LIVE';
+  if (p === 'demo') return 'DEMO';
+  return protocolCluster === 'mainnet-beta' ? 'MAINNET' : protocolCluster.toUpperCase();
+}
 
-export const PROVENANCE_HELP: Record<Provenance, string> = {
-  live: 'Live mainnet market data.',
-  devnet:
-    'Real transaction on the Tribe program on Solana devnet. Devnet test tokens stand in for the mainnet assets.',
-  demo: 'Demo Arena — simulated Arena prices and backing for presentation. No transaction is sent.',
-};
+export function provenanceHelp(p: Provenance, protocolCluster: string): string {
+  if (p === 'live') return 'Live mainnet market data.';
+  if (p === 'demo')
+    return 'Demo Arena — simulated Arena prices and backing for presentation. No transaction is sent.';
+  return protocolCluster === 'mainnet-beta'
+    ? 'Real Arena on the Tribe program on Solana mainnet. Real assets, real Position Vaults, real transactions.'
+    : `Real transaction on the Tribe program on Solana ${protocolCluster}. Devnet test tokens stand in for the mainnet assets.`;
+}
