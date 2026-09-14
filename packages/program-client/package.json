@@ -15,7 +15,9 @@
     "test": "vitest run --passWithNoTests",
     "test:program": "vitest run --config vitest.program.config.ts",
     "fixtures": "bash scripts/fetch-fixtures.sh",
-    "smoke:devnet": "DEVNET_SMOKE=1 vitest run --config vitest.program.config.ts tests/devnet-smoke.test.ts"
+    "smoke:devnet": "DEVNET_SMOKE=1 vitest run --config vitest.program.config.ts tests/devnet-smoke.test.ts",
+    "crank:build": "esbuild bin/crank.ts --bundle --platform=node --target=node22 --outfile=dist/crank.cjs --log-level=warning",
+    "crank": "node dist/crank.cjs"
   },
   "dependencies": {
     "@anchor-lang/core": "^1.2.0",
@@ -29,6 +31,7 @@
     "@eslint/js": "^9.39.0",
     "@types/bn.js": "^5.2.0",
     "@types/node": "^22.20.2",
+    "esbuild": "^0.25.12",
     "eslint": "^9.39.0",
     "solana-bankrun": "0.4.0",
     "typescript": "^5.9.3",
