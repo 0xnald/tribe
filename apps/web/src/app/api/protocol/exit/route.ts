@@ -5,7 +5,7 @@ import { buildExitTransaction } from '@/lib/protocol/tx';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
-  let body: { owner?: string; arena?: string; side?: 'a' | 'b'; units?: number };
+  let body: { owner?: string; arena?: string; side?: 'a' | 'b'; units?: number; unwrap?: boolean };
   try {
     body = (await req.json()) as typeof body;
   } catch {
@@ -15,7 +15,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'owner, arena, side required' }, { status: 400 });
   try {
     return NextResponse.json(
-      await buildExitTransaction(body.owner, body.arena, body.side, body.units),
+      await buildExitTransaction(
+        body.owner,
+        body.arena,
+        body.side,
+        body.units,
+        body.unwrap === true,
+      ),
       { headers: { 'cache-control': 'no-store' } },
     );
   } catch (e) {

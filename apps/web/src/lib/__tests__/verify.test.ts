@@ -65,3 +65,52 @@ describe('verifyTribeTransaction', () => {
     expect(() => verifyTribeTransaction(tx(ata), want)).toThrow(/no Tribe instruction/);
   });
 });
+
+describe('verifyTribeTransaction — native SOL wrap/unwrap', () => {
+  const wsolAta = Keypair.generate().publicKey;
+  const wantWsol = { ...want, wsolAta: wsolAta.toBase58() };
+  const tokenIx = (op: number, keys: PublicKey[]) =>
+    new TransactionInstruction({
+      programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+      keys: keys.map((k) => ({ pubkey: k, isSigner: false, isWritable: true })),
+      data: Buffer.from([op]),
+    });
+
+  it('accepts transfer-to-own-wSOL-ATA + syncNative + the Tribe instruction', () => {
+    const wrap = SystemProgram.transfer({ fromPubkey: owner, toPubkey: wsolAta, lamports: 5 });
+    const sync = tokenIx(17, [wsolAta]);
+    expect(() =>
+      verifyTribeTransaction(tx(wrap, sync, tribeIx([owner, arena])), wantWsol),
+    ).not.toThrow();
+  });
+  it('accepts closeAccount of the wSOL ATA back to the owner (unwrap on exit)', () => {
+    const close = tokenIx(9, [wsolAta, owner, owner]);
+    expect(() =>
+      verifyTribeTransaction(tx(tribeIx([owner, arena]), close), wantWsol),
+    ).not.toThrow();
+  });
+  it('rejects transfers to anything but the wSOL ATA, and closes to another destination', () => {
+    const elsewhere = Keypair.generate().publicKey;
+    const bad = SystemProgram.transfer({ fromPubkey: owner, toPubkey: elsewhere, lamports: 5 });
+    expect(() => verifyTribeTransaction(tx(bad, tribeIx([owner, arena])), wantWsol)).toThrow(
+      /unexpected SOL transfer/,
+    );
+    const closeElsewhere = tokenIx(9, [wsolAta, elsewhere, owner]);
+    expect(() =>
+      verifyTribeTransaction(tx(tribeIx([owner, arena]), closeElsewhere), wantWsol),
+    ).toThrow(/token instruction/);
+    // a plain token transfer is never accepted
+    expect(() =>
+      verifyTribeTransaction(
+        tx(tribeIx([owner, arena]), tokenIx(3, [wsolAta, elsewhere, owner])),
+        wantWsol,
+      ),
+    ).toThrow(/token instruction/);
+  });
+  it('rejects wrap instructions when the side is not native SOL', () => {
+    const wrap = SystemProgram.transfer({ fromPubkey: owner, toPubkey: wsolAta, lamports: 5 });
+    expect(() => verifyTribeTransaction(tx(wrap, tribeIx([owner, arena])), want)).toThrow(
+      /system instruction/,
+    );
+  });
+});

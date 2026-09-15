@@ -169,7 +169,9 @@ describe('BackSheet (devnet Arena)', () => {
     await user.click(within(sheet).getByTestId('back-next'));
     expect(within(sheet).getByRole('radio', { name: /Buy with USDC/ })).toBeDisabled();
     expect(within(sheet).getByText(/Devnet Arenas use devnet test tokens/)).toBeInTheDocument();
-    expect(within(sheet).getByRole('radio', { name: /Use existing holdings/ })).toBeChecked();
+    expect(
+      within(sheet).getByRole('radio', { name: /Use SOL from your wallet|Use existing holdings/ }),
+    ).toBeChecked();
     await user.click(within(sheet).getByTestId('back-next'));
     await user.type(within(sheet).getByTestId('back-amount'), '2');
     await user.click(within(sheet).getByTestId('back-next'));

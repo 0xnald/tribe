@@ -2,10 +2,19 @@ import 'server-only';
 
 import { TribeClient, readonlyProvider } from '@tribe/program-client';
 import {
+  NATIVE_MINT,
   createAssociatedTokenAccountIdempotentInstruction,
+  createCloseAccountInstruction,
+  createSyncNativeInstruction,
   getAssociatedTokenAddressSync,
 } from '@solana/spl-token';
-import { Connection, PublicKey, Transaction, type TransactionInstruction } from '@solana/web3.js';
+import {
+  Connection,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  type TransactionInstruction,
+} from '@solana/web3.js';
 
 import { getNetworkConfig } from '../config/network';
 
@@ -14,13 +23,37 @@ import { getNetworkConfig } from '../config/network';
  * @tribe/program-client; the fee is computed exactly like the program does
  * (notional at the Arena's start price × fee_bps) so the on-chain
  * `fee_paid >= required` check passes with the reference price.
+ *
+ * Native SOL: the program only moves SPL tokens, so a SOL side is backed as
+ * wrapped SOL. The builder creates the owner's wSOL ATA when missing, moves
+ * the missing lamports into it and runs `syncNative` — all in the same
+ * transaction, all visible in the preview (`wrap`). Exit can append a
+ * `closeAccount` so the wSOL comes back as SOL (`unwrap`).
  */
+export interface WrapInfo {
+  /** Lamports moved from the wallet into the wSOL ATA by this transaction. */
+  lamports: string;
+  ata: string;
+}
+
+export interface BackBuild {
+  tx: string;
+  feeUsdc: number;
+  units: string;
+  /** Present when the side asset is native SOL and lamports are wrapped in this transaction. */
+  wrap?: WrapInfo;
+}
+
+function isNative(mint: PublicKey): boolean {
+  return mint.equals(NATIVE_MINT);
+}
+
 export async function buildBackTransaction(
   ownerStr: string,
   arenaStr: string,
   side: 'a' | 'b',
   unitsUi: number,
-): Promise<{ tx: string; feeUsdc: number; units: string }> {
+): Promise<BackBuild> {
   const cfg = getNetworkConfig();
   const connection = new Connection(cfg.protocol.rpcUrl, 'confirmed');
   const client = new TribeClient(
@@ -41,9 +74,41 @@ export async function buildBackTransaction(
   const notional = (units * priceQ10) / 10n ** BigInt(asset.decimals + 4);
   const fee = (notional * BigInt(arena.feePolicy.feeBps)) / 10_000n;
   const ixs = await client.openAndBack(owner, arenaPk, arena, config, idx as 0 | 1, units, fee);
+
+  const pre: TransactionInstruction[] = [];
+  let wrap: WrapInfo | undefined;
+
+  // Native SOL side: wrap exactly the shortfall into the owner's wSOL ATA.
+  if (isNative(asset.mint)) {
+    const ata = getAssociatedTokenAddressSync(NATIVE_MINT, owner, false, asset.tokenProgram);
+    const acct = await connection.getAccountInfo(ata);
+    let held = 0n;
+    if (acct) {
+      const bal = await connection.getTokenAccountBalance(ata).catch(() => null);
+      held = bal ? BigInt(bal.value.amount) : 0n;
+    } else {
+      pre.push(
+        createAssociatedTokenAccountIdempotentInstruction(
+          owner,
+          ata,
+          owner,
+          NATIVE_MINT,
+          asset.tokenProgram,
+        ),
+      );
+    }
+    const shortfall = units > held ? units - held : 0n;
+    if (shortfall > 0n) {
+      pre.push(
+        SystemProgram.transfer({ fromPubkey: owner, toPubkey: ata, lamports: shortfall }),
+        createSyncNativeInstruction(ata, asset.tokenProgram),
+      );
+    }
+    wrap = { lamports: shortfall.toString(), ata: ata.toBase58() };
+  }
+
   // The creator's USDC ATA receives the creator fee share; if the creator never made one,
   // create it (idempotent, payer = backer) so `back` cannot fail on a missing account.
-  const pre: TransactionInstruction[] = [];
   if (fee > 0n && arena.creatorTarget === 0) {
     const creatorAta = getAssociatedTokenAddressSync(config.usdcMint, arena.creator, true);
     const exists = await connection.getAccountInfo(creatorAta);
@@ -62,11 +127,13 @@ export async function buildBackTransaction(
   tx.feePayer = owner;
   tx.recentBlockhash = (await connection.getLatestBlockhash('confirmed')).blockhash;
   const serialized = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
-  return {
+  const out: BackBuild = {
     tx: Buffer.from(serialized).toString('base64'),
     feeUsdc: Number(fee) / 1e6,
     units: units.toString(),
   };
+  if (wrap) out.wrap = wrap;
+  return out;
 }
 
 async function setup(ownerStr: string, arenaStr: string) {
@@ -85,7 +152,7 @@ async function setup(ownerStr: string, arenaStr: string) {
 async function finish(
   connection: Connection,
   owner: PublicKey,
-  ixs: Awaited<ReturnType<TribeClient['exit']>>[],
+  ixs: TransactionInstruction[],
 ): Promise<string> {
   const tx = new Transaction().add(...ixs);
   tx.feePayer = owner;
@@ -95,13 +162,26 @@ async function finish(
   ).toString('base64');
 }
 
-/** `exit` all (or `unitsUi`) units of the owner's position on `side`. */
+export interface ExitBuild {
+  tx: string;
+  units: string;
+  /** True when the exit closes the owner's wSOL account so the asset returns as SOL. */
+  unwrap: boolean;
+}
+
+/**
+ * `exit` all (or `unitsUi`) units of the owner's position on `side`. For a
+ * native-SOL side the destination must be the owner's wSOL ATA (created if
+ * missing); with `unwrap` the ATA is closed afterwards, returning *all* of
+ * its wSOL as SOL — stated explicitly in the UI.
+ */
 export async function buildExitTransaction(
   ownerStr: string,
   arenaStr: string,
   side: 'a' | 'b',
   unitsUi?: number,
-): Promise<{ tx: string }> {
+  unwrap = false,
+): Promise<ExitBuild> {
   const { connection, client, owner, arenaPk, arena } = await setup(ownerStr, arenaStr);
   const idx = side === 'a' ? 0 : 1;
   const asset = arena.assets[idx];
@@ -114,8 +194,24 @@ export async function buildExitTransaction(
     units = BigInt(pos.units.toString());
   }
   if (units <= 0n) throw new Error('nothing to withdraw');
-  const ix = await client.exit(owner, arenaPk, arena, idx as 0 | 1, units);
-  return { tx: await finish(connection, owner, [ix]) };
+  const ixs: TransactionInstruction[] = [];
+  const native = isNative(asset.mint);
+  const ata = getAssociatedTokenAddressSync(asset.mint, owner, false, asset.tokenProgram);
+  if (!(await connection.getAccountInfo(ata))) {
+    ixs.push(
+      createAssociatedTokenAccountIdempotentInstruction(
+        owner,
+        ata,
+        owner,
+        asset.mint,
+        asset.tokenProgram,
+      ),
+    );
+  }
+  ixs.push(await client.exit(owner, arenaPk, arena, idx as 0 | 1, units));
+  const doUnwrap = native && unwrap;
+  if (doUnwrap) ixs.push(createCloseAccountInstruction(ata, owner, owner, [], asset.tokenProgram));
+  return { tx: await finish(connection, owner, ixs), units: units.toString(), unwrap: doUnwrap };
 }
 
 /** `claim` Arena Rewards for a settled Arena. */

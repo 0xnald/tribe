@@ -13,6 +13,9 @@ export interface TokenBalance {
 }
 
 const TOKEN_2022 = new PublicKey('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb');
+export const NATIVE_MINT_STR = 'So11111111111111111111111111111111111111112';
+/** SOL kept back for fees/rent when the native balance counts toward a wSOL position. */
+const SOL_FEE_RESERVE = 0.02;
 const conns = new Map<string, Connection>();
 function connFor(url: string): Connection {
   let c = conns.get(url);
@@ -61,6 +64,11 @@ export function useTokenBalance(
             .catch(() => ({ value: [] })),
         ]);
         let total = 0;
+        if (mint === NATIVE_MINT_STR) {
+          // native SOL is wrapped on demand by the Back transaction
+          const lamports = await c.getBalance(o);
+          total += Math.max(0, lamports / 1e9 - SOL_FEE_RESERVE);
+        }
         for (const acc of [...legacy.value, ...t22.value]) {
           const info = acc.account.data as {
             parsed?: { info?: { tokenAmount?: { uiAmount?: number | null } } };

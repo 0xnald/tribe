@@ -16,7 +16,11 @@ import { onAsset } from '@/lib/color';
 import { explorerTxUrl, getNetworkConfig } from '@/lib/config/network';
 import { fmtAmount, fmtDuration, fmtMultiplier, fmtPct, fmtPrice, fmtUsd } from '@/lib/format';
 import type { PositionRecord } from '@/lib/positions/model';
+import { getPendingBack } from '@/lib/back/pending';
 import { verifyTribeTransaction } from '@/lib/protocol/verify';
+import { NATIVE_MINT_STR } from '@/hooks/useTokenBalance';
+
+import { TwoStepBack } from './TwoStepBack';
 
 import { AssetLogo } from '../arena/AssetIdentity';
 import { ProvenanceBadge } from '../arena/ProvenanceBadge';
@@ -97,9 +101,14 @@ function BackFlow({
   const isOnchain = arena.provenance === 'onchain';
   // devnet-only helpers (faucet, stand-in copy) are keyed by the protocol cluster, not by provenance
   const isDevnet = isOnchain && getNetworkConfig().protocol.cluster === 'devnet';
+  /** Mainnet on-chain Arenas offer the two-step USDC → asset → Back path; devnet has no Jupiter. */
+  const twoStepAvailable = isOnchain && !isDevnet;
+  const isNativeSol = s.asset.mint === NATIVE_MINT_STR;
+  // a buy that confirmed earlier without its Back → resume at the confirm step, no re-buy
+  const [pending] = useState(() => (isOnchain ? getPendingBack(arena.id, side) : null));
 
-  const [step, setStep] = useState<Step>('side');
-  const [method, setMethod] = useState<Method>(isOnchain ? 'holdings' : 'usdc');
+  const [step, setStep] = useState<Step>(pending ? 'confirm' : 'side');
+  const [method, setMethod] = useState<Method>(pending || !isOnchain ? 'usdc' : 'holdings');
   const [amountStr, setAmountStr] = useState('100');
   const [quoteRes, setQuoteRes] = useState<{ key: string; value: Quote | 'unavailable' } | null>(
     null,
@@ -124,7 +133,8 @@ function BackFlow({
   const amount = Number(amountStr) || 0;
 
   // indicative mainnet quote for USDC buys (demo Arenas only — the real assets live on mainnet)
-  const wantQuote = method === 'usdc' && !isOnchain && step === 'amount' && amount > 0;
+  const wantQuote =
+    method === 'usdc' && (!isOnchain || twoStepAvailable) && step === 'amount' && amount > 0;
   const quoteKey = `${s.asset.mint}:${Math.round(amount * 1e6)}`;
   useEffect(() => {
     if (!wantQuote) return;
@@ -224,13 +234,14 @@ function BackFlow({
           units: preview.units,
         }),
       });
-      const j = (await r.json()) as { tx?: string; error?: string };
+      const j = (await r.json()) as { tx?: string; error?: string; wrap?: { ata: string } };
       if (!r.ok || !j.tx) throw new Error(j.error ?? 'could not build transaction');
       const t = Transaction.from(Buffer.from(j.tx, 'base64'));
       verifyTribeTransaction(t, {
         programId: getNetworkConfig().protocol.programId,
         arena: arena.onchain.arena,
         owner: wallet.publicKey.toBase58(),
+        wsolAta: j.wrap?.ata,
       });
       setTx({ state: 'awaiting' });
       const signed = await wallet.signTransaction(t);
@@ -323,7 +334,8 @@ function BackFlow({
           method={method}
           setMethod={setMethod}
           isDevnet={isDevnet}
-          isOnchain={isOnchain}
+          twoStep={twoStepAvailable}
+          isNativeSol={isNativeSol}
           symbol={s.asset.symbol}
           usdcBal={usdcBal}
           assetBal={assetBal}
@@ -356,10 +368,24 @@ function BackFlow({
           preview={preview}
           arena={arena}
           side={side}
+          twoStep={twoStepAvailable && method === 'usdc'}
+          isNativeSol={isNativeSol && method === 'holdings'}
           onNext={() => setStep('confirm')}
         />
       ) : null}
-      {step === 'confirm' ? (
+      {step === 'confirm' && twoStepAvailable && method === 'usdc' ? (
+        <TwoStepBack
+          arena={arena}
+          side={side}
+          preview={preview}
+          pending={pending}
+          onDone={(rec, sig) => {
+            setRecord(rec);
+            setTx({ state: 'confirmed', sig });
+            setStep('success');
+          }}
+        />
+      ) : step === 'confirm' ? (
         <ConfirmStep
           preview={preview}
           isDemo={isDemo}
@@ -464,7 +490,8 @@ function MethodStep({
   method,
   setMethod,
   isDevnet,
-  isOnchain,
+  twoStep,
+  isNativeSol,
   symbol,
   usdcBal,
   assetBal,
@@ -476,7 +503,8 @@ function MethodStep({
   method: Method;
   setMethod: (m: Method) => void;
   isDevnet: boolean;
-  isOnchain: boolean;
+  twoStep: boolean;
+  isNativeSol: boolean;
   symbol: string;
   usdcBal: ReturnType<typeof useTokenBalance>;
   assetBal: ReturnType<typeof useTokenBalance>;
@@ -522,27 +550,32 @@ function MethodStep({
   }> = [
     {
       id: 'usdc',
-      title: 'Buy with USDC',
-      blurb: `Swap USDC → ${symbol} through Jupiter and back it in one transaction.`,
+      title: twoStep ? 'Buy with USDC — two transactions' : 'Buy with USDC',
+      blurb: twoStep
+        ? `1. Buy ${symbol} on Jupiter. 2. Back ${symbol}. Each is signed separately; they are not atomic.`
+        : `Swap USDC → ${symbol} through Jupiter and back it in one transaction.`,
       ...(isDevnet
         ? {
             disabled: true,
             note: 'Mainnet only. Devnet Arenas use devnet test tokens — no Jupiter route.',
           }
-        : isOnchain
+        : twoStep
           ? {
-              disabled: true,
-              note: 'Two steps on mainnet: buy on Jupiter first, then back your holdings. One-tap swap+back does not fit in a single Solana transaction (FRONTEND §5).',
+              note: 'If the second transaction is cancelled, the asset stays in your wallet and you can retry the Back without buying again.',
             }
           : { note: 'Route and price from Jupiter (mainnet, indicative).' }),
     },
     {
       id: 'holdings',
-      title: 'Use existing holdings',
-      blurb: `Move ${symbol} you already own into your Arena Position Vault.`,
+      title: isNativeSol ? 'Use SOL from your wallet' : 'Use existing holdings',
+      blurb: isNativeSol
+        ? 'SOL is wrapped to wSOL (the token form of SOL) inside the same transaction and moved into your Arena Position Vault.'
+        : `Move ${symbol} you already own into your Arena Position Vault.`,
       note: isDevnet
         ? `Devnet ${symbol} test tokens in your wallet.`
-        : `Mainnet ${symbol} in your wallet.`,
+        : isNativeSol
+          ? 'Balance shown = wSOL you hold + SOL minus a 0.02 SOL reserve for fees. Exiting returns wSOL, unwrapped to SOL when you choose so.'
+          : `Mainnet ${symbol} in your wallet.`,
     },
   ];
   return (
@@ -756,25 +789,50 @@ function PreviewStep({
   preview,
   arena,
   side,
+  twoStep,
+  isNativeSol,
   onNext,
 }: {
   preview: BackPreview;
   arena: ArenaView;
   side: SideKey;
+  twoStep: boolean;
+  isNativeSol: boolean;
   onNext: () => void;
 }) {
   const s = sideOf(arena, side);
   const rows: Array<[string, string, string?]> = [
-    [
-      preview.method === 'usdc' ? 'You spend' : 'You commit',
-      preview.method === 'usdc'
-        ? `${fmtUsd(preview.totalUsdc, { cents: true })} USDC`
-        : fmtAmount(preview.units, s.asset.symbol),
-    ],
-    [
-      'You receive / hold',
-      `${fmtAmount(preview.units, s.asset.symbol)} (≈ ${fmtUsd(preview.notionalUsd, { cents: true })})`,
-    ],
+    ...(twoStep
+      ? ([
+          [
+            'Transaction 1',
+            `Buy ≈ ${fmtAmount(preview.units, s.asset.symbol)} with ${fmtUsd(preview.notionalUsd, { cents: true })} USDC on Jupiter (min-out enforced by the route). Lands in your wallet.`,
+          ],
+          [
+            'Transaction 2',
+            `Back exactly what arrived · fee ${fmtUsd(preview.feeUsd, { cents: true })} USDC. Not atomic with transaction 1.`,
+          ],
+        ] as Array<[string, string, string?]>)
+      : ([
+          [
+            preview.method === 'usdc' ? 'You spend' : 'You commit',
+            preview.method === 'usdc'
+              ? `${fmtUsd(preview.totalUsdc, { cents: true })} USDC`
+              : fmtAmount(preview.units, s.asset.symbol),
+          ],
+          [
+            'You receive / hold',
+            `${fmtAmount(preview.units, s.asset.symbol)} (≈ ${fmtUsd(preview.notionalUsd, { cents: true })})`,
+          ],
+        ] as Array<[string, string, string?]>)),
+    ...(isNativeSol
+      ? ([
+          [
+            'SOL → wSOL',
+            `${fmtAmount(preview.units, 'SOL')} is wrapped to wSOL in this transaction (System transfer + syncNative); the vault holds wSOL.`,
+          ],
+        ] as Array<[string, string, string?]>)
+      : []),
     [
       'Tribe fee',
       `${fmtUsd(preview.feeUsd, { cents: true })} · 40% pool / 40% protocol / 20% creator`,

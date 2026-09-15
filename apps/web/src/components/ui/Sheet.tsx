@@ -30,6 +30,12 @@ export function Sheet({
         <Dialog.Content
           className="anim-sheet fixed inset-x-0 bottom-0 z-50 flex max-h-[92dvh] flex-col rounded-t-[24px] border border-line bg-bg-elev shadow-[0_-8px_40px_rgba(0,0,0,0.45)] outline-none md:inset-auto md:top-1/2 md:left-1/2 md:w-[500px] md:max-h-[88dvh] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-[24px]"
           aria-describedby={description ? undefined : ''}
+          // A tooltip opened by keyboard focus inside the sheet is the topmost
+          // dismissable layer and would swallow the first Escape; close the
+          // sheet on any Escape that reaches its content.
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') onOpenChange(false);
+          }}
         >
           <div className="flex items-center justify-between gap-3 px-5 pt-4 pb-2 md:px-6">
             <Dialog.Title className={hideTitle ? 'sr-only' : 'display text-lg font-bold'}>

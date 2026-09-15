@@ -100,6 +100,33 @@ confirm → success. Fees and multipliers use the `@tribe/core` engine
   the wallet signs, the app confirms and links the explorer. A devnet Back
   also needs a little devnet USDC for the 0.50 % fee (Circle's devnet
   faucet) — the sheet says so.
+- Mainnet Arena, "Buy with USDC — two transactions"
+  (`components/back/TwoStepBack.tsx`): never presented as one action.
+  1. **Buy** — `/api/market/swap` builds a Jupiter swap (keyless lite-api
+     `swap/v1/quote` + `swap/v1/swap`, USDC → asset, slippage 50 bps,
+     min-out from the route). The client resolves the transaction's lookup
+     tables, runs `verifyJupiterSwap` (fee payer = wallet, one signer, only
+     Jupiter v6 / token / ATA / system / compute-budget programs), the
+     wallet signs, the app sends on the market RPC and waits for
+     `confirmed`. The received amount is the **token-balance delta**
+     measured after confirmation, never the quote.
+  2. **Back** — `/api/protocol/back` is called with exactly the received
+     units; `verifyTribeTransaction` checks it before the second signature.
+  - A `PendingBack` record (`lib/back/pending.ts`, localStorage
+    `tribe.pendingBack.v1`) is written the moment the buy confirms and
+    cleared only when the Back confirms. If the Back is cancelled or fails,
+    the sheet shows "Back not completed", the asset stays in the wallet and
+    the only button is "2. Back … (sign) — no re-buy". Reopening the sheet
+    for that Arena/side resumes at step 2. A second buy cannot be issued
+    while a record exists. Covered by `components/__tests__/two-step.test.tsx`.
+- Native SOL side (`So111…112`): "Use SOL from your wallet". The balance
+  shown is wSOL held + SOL minus a 0.02 SOL fee reserve. The Back
+  transaction wraps the shortfall itself (create wSOL ATA idempotently,
+  `SystemProgram.transfer`, `syncNative`) before `open_position + back`;
+  the intent check allows only that transfer (owner → owner's wSOL ATA)
+  and that `syncNative`. Exit returns wSOL to the owner's ATA and, with
+  `unwrap: true`, closes it so plain SOL comes back
+  (`closeAccount` wSOL ATA → owner, also whitelisted).
 - The wallet is requested only at the confirm step. Wallet discovery is
   Wallet-Standard (`wallets={[]}`), nothing hard-coded.
 

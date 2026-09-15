@@ -144,3 +144,82 @@ export async function getJupiterQuote(
     source: 'jupiter',
   };
 }
+
+export interface JupiterSwapBuild {
+  /** base64 VersionedTransaction built by Jupiter for `owner`. */
+  swapTransaction: string;
+  lastValidBlockHeight: number;
+  quote: JupiterOrderQuote;
+  prioritizationFeeLamports: number;
+}
+
+interface SwapResponse {
+  swapTransaction?: string;
+  lastValidBlockHeight?: number;
+  prioritizationFeeLamports?: number;
+  simulationError?: { error?: string } | null;
+}
+
+/**
+ * Quote + build a swap transaction for `owner` (keyless lite-api
+ * `swap/v1/quote` + `swap/v1/swap`, or the keyed v2 order flow when
+ * JUPITER_API_KEY is set). Mainnet only. The caller verifies intent before
+ * the wallet signs; the output units are re-read from the chain after
+ * confirmation and never trusted from the quote.
+ */
+export async function buildJupiterSwap(
+  inputMint: string,
+  outputMint: string,
+  amount: bigint,
+  owner: string,
+  slippageBps = 50,
+): Promise<JupiterSwapBuild | null> {
+  const { url, headers } = base();
+  const q = new URLSearchParams({
+    inputMint,
+    outputMint,
+    amount: amount.toString(),
+    slippageBps: String(slippageBps),
+  });
+  const qr = await fetch(`${url}/swap/v1/quote?${q.toString()}`, {
+    headers,
+    signal: AbortSignal.timeout(8000),
+    cache: 'no-store',
+  });
+  if (!qr.ok) return null;
+  const quoteJson = (await qr.json()) as OrderResponse & Record<string, unknown>;
+  if (!quoteJson.outAmount || !quoteJson.inAmount) return null;
+  const sr = await fetch(`${url}/swap/v1/swap`, {
+    method: 'POST',
+    headers: { ...headers, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      quoteResponse: quoteJson,
+      userPublicKey: owner,
+      wrapAndUnwrapSol: true,
+      dynamicComputeUnitLimit: true,
+      prioritizationFeeLamports: 'auto',
+    }),
+    signal: AbortSignal.timeout(10000),
+    cache: 'no-store',
+  });
+  if (!sr.ok) return null;
+  const s = (await sr.json()) as SwapResponse;
+  if (!s.swapTransaction) return null;
+  const labels = (quoteJson.routePlan ?? [])
+    .map((p) => p.swapInfo?.label)
+    .filter((l): l is string => !!l);
+  return {
+    swapTransaction: s.swapTransaction,
+    lastValidBlockHeight: s.lastValidBlockHeight ?? 0,
+    prioritizationFeeLamports: s.prioritizationFeeLamports ?? 0,
+    quote: {
+      inAmount: quoteJson.inAmount,
+      outAmount: quoteJson.outAmount,
+      otherAmountThreshold: quoteJson.otherAmountThreshold ?? quoteJson.outAmount,
+      priceImpactPct: Number(quoteJson.priceImpactPct ?? 0),
+      slippageBps: quoteJson.slippageBps ?? slippageBps,
+      routeLabel: labels.length ? Array.from(new Set(labels)).join(' → ') : 'Jupiter',
+      source: 'jupiter',
+    },
+  };
+}
