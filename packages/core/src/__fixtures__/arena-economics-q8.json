@@ -1,0 +1,2072 @@
+{
+  "note": "Economic outputs of the arena vectors captured at commit e0a1cf7 (Q8 reference prices). Q10 must reproduce these exactly except price fields.",
+  "vectors": [
+    {
+      "name": "happy path BONK wins",
+      "expected": {
+        "status": "Settled",
+        "phaseAtClaim": "SETTLED",
+        "backingCloseTs": "1760081360",
+        "settlement": {
+          "winner": "A",
+          "perfBpsA": "676",
+          "perfBpsB": "217",
+          "poolAtSettlement": "14499996",
+          "wTotal": "50216028469750252756800",
+          "winnerTwabShareBps": "2356",
+          "mSettleQ4": "15288",
+          "upsetBonus": "0",
+          "settledAt": "1760090000"
+        },
+        "cancelReason": null,
+        "rewardVault": "14499996",
+        "protocolFees": "14500004",
+        "creatorFees": "7249996",
+        "sponsorTotal": "0",
+        "rolloverIn": "0",
+        "rolloverOut": "0",
+        "totalClaimed": "0",
+        "sides": {
+          "A": {
+            "units": "62277580071173",
+            "unitSeconds": "4740213523131597600",
+            "rewardUnitSeconds": "3971530249110280800",
+            "effUnits": "818149466192149898",
+            "effUnitSeconds": "50216028469750252756800",
+            "participants": "3"
+          },
+          "B": {
+            "units": "1368925393",
+            "unitSeconds": "118275153955200",
+            "rewardUnitSeconds": "118275153955200",
+            "effUnits": "13689253930000",
+            "effUnitSeconds": "1182751539552000000",
+            "participants": "1"
+          }
+        },
+        "positions": {
+          "A:alice": {
+            "units": "17793594306050",
+            "unitSeconds": "768683274021360000",
+            "effUnits": "177935943060500000",
+            "effUnitSeconds": "7686832740213600000000",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "4999999",
+            "rewardWeight": "15373665480427200000000",
+            "payout": "4439181"
+          },
+          "B:carol": {
+            "units": "1368925393",
+            "unitSeconds": "0",
+            "effUnits": "13689253930000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "24999999",
+            "rewardWeight": null,
+            "payout": null
+          },
+          "A:bob": {
+            "units": "35587188612099",
+            "unitSeconds": "0",
+            "effUnits": "508398576512446314",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "4999999",
+            "rewardWeight": "32944227758006521147200",
+            "payout": "9512723"
+          },
+          "A:dave": {
+            "units": "8896797153024",
+            "unitSeconds": "0",
+            "effUnits": "131814946619203584",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "1249999",
+            "rewardWeight": "1898135231316531609600",
+            "payout": "548091"
+          }
+        },
+        "trace": [
+          {
+            "index": 0,
+            "type": "snapshotStart",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaStarted",
+                "startPrices": {
+                  "A": {
+                    "priceQ8": "281",
+                    "oraclePriceQ8": "281",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  },
+                  "B": {
+                    "priceQ8": "36525000000",
+                    "oraclePriceQ8": "36525000000",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 1,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "alice",
+                "side": "A",
+                "units": "35587188612099",
+                "feePaid": "4999999",
+                "feeRequired": "4999999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "999999999",
+                "toPool": "1999999",
+                "toProtocol": "2000001",
+                "toCreator": "999999"
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "carol",
+                "side": "B",
+                "units": "1368925393",
+                "feePaid": "24999999",
+                "feeRequired": "24999999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "4999999997",
+                "toPool": "9999999",
+                "toProtocol": "10000001",
+                "toCreator": "4999999"
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "bob",
+                "side": "A",
+                "units": "35587188612099",
+                "feePaid": "4999999",
+                "feeRequired": "4999999",
+                "multiplierQ4": "14286",
+                "notionalUsdc": "999999999",
+                "toPool": "1999999",
+                "toProtocol": "2000001",
+                "toCreator": "999999"
+              }
+            ]
+          },
+          {
+            "index": 4,
+            "type": "exit",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Exited",
+                "owner": "alice",
+                "side": "A",
+                "units": "17793594306049",
+                "forfeitedWeight": "7686832740213168000000"
+              }
+            ]
+          },
+          {
+            "index": 5,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "dave",
+                "side": "A",
+                "units": "8896797153024",
+                "feePaid": "1249999",
+                "feeRequired": "1249999",
+                "multiplierQ4": "14816",
+                "notionalUsdc": "249999999",
+                "toPool": "499999",
+                "toProtocol": "500001",
+                "toCreator": "249999"
+              }
+            ]
+          },
+          {
+            "index": 6,
+            "type": "settle",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaSettled",
+                "winner": "A",
+                "perfBpsA": "676",
+                "perfBpsB": "217",
+                "poolAtSettlement": "14499996",
+                "upsetBonus": "0"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "tie with sponsor refund and sweep",
+      "expected": {
+        "status": "Settled",
+        "phaseAtClaim": "SETTLED",
+        "backingCloseTs": "1760081360",
+        "settlement": {
+          "winner": "TIE",
+          "perfBpsA": "0",
+          "perfBpsB": "0",
+          "poolAtSettlement": "25003999998",
+          "wTotal": "0",
+          "winnerTwabShareBps": "5000",
+          "mSettleQ4": "10000",
+          "upsetBonus": "0",
+          "settledAt": "1760090000"
+        },
+        "cancelReason": null,
+        "rewardVault": "0",
+        "protocolFees": "4000002",
+        "creatorFees": "1999998",
+        "sponsorTotal": "0",
+        "rolloverIn": "0",
+        "rolloverOut": "3999998",
+        "totalClaimed": "0",
+        "sides": {
+          "A": {
+            "units": "35587188612099",
+            "unitSeconds": "3074661921708129402",
+            "rewardUnitSeconds": "3074661921708129402",
+            "effUnits": "355871886120990000",
+            "effUnitSeconds": "30746619217081294020000",
+            "participants": "1"
+          },
+          "B": {
+            "units": "273785078",
+            "unitSeconds": "23654483169044",
+            "rewardUnitSeconds": "23654483169044",
+            "effUnits": "2737850780000",
+            "effUnitSeconds": "236544831690440000",
+            "participants": "1"
+          }
+        },
+        "positions": {
+          "A:alice": {
+            "units": "35587188612099",
+            "unitSeconds": "0",
+            "effUnits": "355871886120990000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "4999999",
+            "rewardWeight": null,
+            "payout": null
+          },
+          "B:bob": {
+            "units": "273785078",
+            "unitSeconds": "0",
+            "effUnits": "2737850780000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "4999999",
+            "rewardWeight": null,
+            "payout": null
+          }
+        },
+        "trace": [
+          {
+            "index": 0,
+            "type": "snapshotStart",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaStarted",
+                "startPrices": {
+                  "A": {
+                    "priceQ8": "281",
+                    "oraclePriceQ8": "281",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  },
+                  "B": {
+                    "priceQ8": "36525000000",
+                    "oraclePriceQ8": "36525000000",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 1,
+            "type": "fundPool",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "PoolFunded",
+                "sponsor": "sponsor",
+                "amount": "25000000000"
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "alice",
+                "side": "A",
+                "units": "35587188612099",
+                "feePaid": "4999999",
+                "feeRequired": "4999999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "999999999",
+                "toPool": "1999999",
+                "toProtocol": "2000001",
+                "toCreator": "999999"
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "bob",
+                "side": "B",
+                "units": "273785078",
+                "feePaid": "4999999",
+                "feeRequired": "4999999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "999999997",
+                "toPool": "1999999",
+                "toProtocol": "2000001",
+                "toCreator": "999999"
+              }
+            ]
+          },
+          {
+            "index": 4,
+            "type": "settle",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaSettled",
+                "winner": "TIE",
+                "perfBpsA": "0",
+                "perfBpsB": "0",
+                "poolAtSettlement": "25003999998",
+                "upsetBonus": "0"
+              }
+            ]
+          },
+          {
+            "index": 5,
+            "type": "sweepUnclaimed",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "UnclaimedSwept",
+                "amount": "3999998"
+              }
+            ]
+          },
+          {
+            "index": 6,
+            "type": "refundSponsor",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "SponsorRefunded",
+                "sponsor": "sponsor",
+                "amount": "25000000000"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "guards: rejected events leave state unchanged",
+      "expected": {
+        "status": "Settled",
+        "phaseAtClaim": "SETTLED",
+        "backingCloseTs": "1760081360",
+        "settlement": {
+          "winner": "A",
+          "perfBpsA": "676",
+          "perfBpsB": "0",
+          "poolAtSettlement": "399998",
+          "wTotal": "3074697508895963910000",
+          "winnerTwabShareBps": "5000",
+          "mSettleQ4": "10000",
+          "upsetBonus": "0",
+          "settledAt": "1760090000"
+        },
+        "cancelReason": null,
+        "rewardVault": "0",
+        "protocolFees": "400002",
+        "creatorFees": "199998",
+        "sponsorTotal": "0",
+        "rolloverIn": "0",
+        "rolloverOut": "0",
+        "totalClaimed": "399998",
+        "sides": {
+          "A": {
+            "units": "3558718861209",
+            "unitSeconds": "307469750889596391",
+            "rewardUnitSeconds": "307469750889596391",
+            "effUnits": "35587188612090000",
+            "effUnitSeconds": "3074697508895963910000",
+            "participants": "1"
+          },
+          "B": {
+            "units": "27378507",
+            "unitSeconds": "2365448247786",
+            "rewardUnitSeconds": "2365448247786",
+            "effUnits": "273785070000",
+            "effUnitSeconds": "23654482477860000",
+            "participants": "1"
+          }
+        },
+        "positions": {
+          "A:x": {
+            "units": "3558718861209",
+            "unitSeconds": "307469750889596391",
+            "effUnits": "35587188612090000",
+            "effUnitSeconds": "3074697508895963910000",
+            "claimed": true,
+            "forfeited": false,
+            "feePaid": "499999",
+            "rewardWeight": "3074697508895963910000",
+            "payout": "AlreadyClaimed"
+          },
+          "B:y": {
+            "units": "27378507",
+            "unitSeconds": "0",
+            "effUnits": "273785070000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "499999",
+            "rewardWeight": null,
+            "payout": null
+          }
+        },
+        "trace": [
+          {
+            "index": 0,
+            "type": "snapshotStart",
+            "ok": false,
+            "error": "TooEarly"
+          },
+          {
+            "index": 1,
+            "type": "back",
+            "ok": false,
+            "error": "InvalidStatus"
+          },
+          {
+            "index": 2,
+            "type": "snapshotStart",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaStarted",
+                "startPrices": {
+                  "A": {
+                    "priceQ8": "281",
+                    "oraclePriceQ8": "281",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  },
+                  "B": {
+                    "priceQ8": "36525000000",
+                    "oraclePriceQ8": "36525000000",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "type": "back",
+            "ok": false,
+            "error": "FeeTooLow"
+          },
+          {
+            "index": 4,
+            "type": "back",
+            "ok": false,
+            "error": "BelowMinimumBacking"
+          },
+          {
+            "index": 5,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "x",
+                "side": "A",
+                "units": "3558718861209",
+                "feePaid": "499999",
+                "feeRequired": "499999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "99999999",
+                "toPool": "199999",
+                "toProtocol": "200001",
+                "toCreator": "99999"
+              }
+            ]
+          },
+          {
+            "index": 6,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "y",
+                "side": "B",
+                "units": "27378507",
+                "feePaid": "499999",
+                "feeRequired": "499999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "99999996",
+                "toPool": "199999",
+                "toProtocol": "200001",
+                "toCreator": "99999"
+              }
+            ]
+          },
+          {
+            "index": 7,
+            "type": "back",
+            "ok": false,
+            "error": "BackingClosed"
+          },
+          {
+            "index": 8,
+            "type": "settle",
+            "ok": false,
+            "error": "TooEarly"
+          },
+          {
+            "index": 9,
+            "type": "settle",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaSettled",
+                "winner": "A",
+                "perfBpsA": "676",
+                "perfBpsB": "0",
+                "poolAtSettlement": "399998",
+                "upsetBonus": "0"
+              }
+            ]
+          },
+          {
+            "index": 10,
+            "type": "settle",
+            "ok": false,
+            "error": "AlreadySettled"
+          },
+          {
+            "index": 11,
+            "type": "claim",
+            "ok": false,
+            "error": "NotWinningSide"
+          },
+          {
+            "index": 12,
+            "type": "claim",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "RewardClaimed",
+                "owner": "x",
+                "side": "A",
+                "amount": "399998"
+              }
+            ]
+          },
+          {
+            "index": 13,
+            "type": "claim",
+            "ok": false,
+            "error": "AlreadyClaimed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "cancel expired after settlement window",
+      "expected": {
+        "status": "Cancelled",
+        "phaseAtClaim": "CANCELLED",
+        "backingCloseTs": "1760081360",
+        "settlement": null,
+        "cancelReason": "expired",
+        "rewardVault": "999999",
+        "protocolFees": "1000001",
+        "creatorFees": "499999",
+        "sponsorTotal": "0",
+        "rolloverIn": "0",
+        "rolloverOut": "0",
+        "totalClaimed": "0",
+        "sides": {
+          "A": {
+            "units": "0",
+            "unitSeconds": "1537330960854021502",
+            "rewardUnitSeconds": "1537330960854021502",
+            "effUnits": "177935943060490000",
+            "effUnitSeconds": "15373309608540215020000",
+            "participants": "1"
+          },
+          "B": {
+            "units": "0",
+            "unitSeconds": "0",
+            "rewardUnitSeconds": "0",
+            "effUnits": "0",
+            "effUnitSeconds": "0",
+            "participants": "0"
+          }
+        },
+        "positions": {
+          "A:alice": {
+            "units": "0",
+            "unitSeconds": "0",
+            "effUnits": "177935943060490000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "2499999",
+            "rewardWeight": null,
+            "payout": null
+          }
+        },
+        "trace": [
+          {
+            "index": 0,
+            "type": "snapshotStart",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaStarted",
+                "startPrices": {
+                  "A": {
+                    "priceQ8": "281",
+                    "oraclePriceQ8": "281",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  },
+                  "B": {
+                    "priceQ8": "36525000000",
+                    "oraclePriceQ8": "36525000000",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 1,
+            "type": "fundPool",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "PoolFunded",
+                "sponsor": "sponsor",
+                "amount": "1000000000"
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "alice",
+                "side": "A",
+                "units": "17793594306049",
+                "feePaid": "2499999",
+                "feeRequired": "2499999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "499999999",
+                "toPool": "999999",
+                "toProtocol": "1000001",
+                "toCreator": "499999"
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "type": "cancelExpired",
+            "ok": false,
+            "error": "NotExpired"
+          },
+          {
+            "index": 4,
+            "type": "cancelExpired",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaCancelled",
+                "reason": "expired",
+                "expired": true
+              }
+            ]
+          },
+          {
+            "index": 5,
+            "type": "exit",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Exited",
+                "owner": "alice",
+                "side": "A",
+                "units": "17793594306049",
+                "forfeitedWeight": "0"
+              }
+            ]
+          },
+          {
+            "index": 6,
+            "type": "refundSponsor",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "SponsorRefunded",
+                "sponsor": "sponsor",
+                "amount": "1000000000"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "authority cancel and extension flow",
+      "expected": {
+        "status": "Cancelled",
+        "phaseAtClaim": "CANCELLED",
+        "backingCloseTs": "1760081360",
+        "settlement": null,
+        "cancelReason": "oracle outage",
+        "rewardVault": "999999",
+        "protocolFees": "1000001",
+        "creatorFees": "499999",
+        "sponsorTotal": "0",
+        "rolloverIn": "0",
+        "rolloverOut": "0",
+        "totalClaimed": "0",
+        "sides": {
+          "A": {
+            "units": "17793594306049",
+            "unitSeconds": "1537366548042633600",
+            "rewardUnitSeconds": "1537366548042633600",
+            "effUnits": "177935943060490000",
+            "effUnitSeconds": "15373665480426336000000",
+            "participants": "1"
+          },
+          "B": {
+            "units": "0",
+            "unitSeconds": "0",
+            "rewardUnitSeconds": "0",
+            "effUnits": "0",
+            "effUnitSeconds": "0",
+            "participants": "0"
+          }
+        },
+        "positions": {
+          "A:alice": {
+            "units": "17793594306049",
+            "unitSeconds": "0",
+            "effUnits": "177935943060490000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "2499999",
+            "rewardWeight": null,
+            "payout": null
+          }
+        },
+        "trace": [
+          {
+            "index": 0,
+            "type": "snapshotStart",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaStarted",
+                "startPrices": {
+                  "A": {
+                    "priceQ8": "281",
+                    "oraclePriceQ8": "281",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  },
+                  "B": {
+                    "priceQ8": "36525000000",
+                    "oraclePriceQ8": "36525000000",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 1,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "alice",
+                "side": "A",
+                "units": "17793594306049",
+                "feePaid": "2499999",
+                "feeRequired": "2499999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "499999999",
+                "toPool": "999999",
+                "toProtocol": "1000001",
+                "toCreator": "499999"
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "type": "extendSettlement",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "SettlementExtended",
+                "secs": "86400",
+                "reason": "holiday"
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "type": "extendSettlement",
+            "ok": false,
+            "error": "AlreadyExtended"
+          },
+          {
+            "index": 4,
+            "type": "cancel",
+            "ok": false,
+            "error": "Unauthorized"
+          },
+          {
+            "index": 5,
+            "type": "cancel",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaCancelled",
+                "reason": "oracle outage",
+                "expired": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "S12 attack: opponent inflation clamped at settlement",
+      "expected": {
+        "status": "Settled",
+        "phaseAtClaim": "SETTLED",
+        "backingCloseTs": "1762336400",
+        "settlement": {
+          "winner": "B",
+          "perfBpsA": "0",
+          "perfBpsB": "273",
+          "poolAtSettlement": "259999996",
+          "wTotal": "115909650918432000000",
+          "winnerTwabShareBps": "5505",
+          "mSettleQ4": "10000",
+          "upsetBonus": "0",
+          "settledAt": "1762595600"
+        },
+        "cancelReason": null,
+        "rewardVault": "259999996",
+        "protocolFees": "260000004",
+        "creatorFees": "129999996",
+        "sponsorTotal": "0",
+        "rolloverIn": "0",
+        "rolloverOut": "0",
+        "totalClaimed": "0",
+        "sides": {
+          "A": {
+            "units": "355871886120996",
+            "unitSeconds": "1229896797153023731564",
+            "rewardUnitSeconds": "922419928825621632000",
+            "effUnits": "3558718861209960000",
+            "effUnitSeconds": "9224199288256216320000000",
+            "participants": "2"
+          },
+          "B": {
+            "units": "5475701574",
+            "unitSeconds": "11590965091843200",
+            "rewardUnitSeconds": "11590965091843200",
+            "effUnits": "63315537300162",
+            "effUnitSeconds": "129959319911593939200",
+            "participants": "2"
+          }
+        },
+        "positions": {
+          "A:honestA": {
+            "units": "355871886120996",
+            "unitSeconds": "0",
+            "effUnits": "3558718861209960000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "49999999",
+            "rewardWeight": null,
+            "payout": null
+          },
+          "B:honestB": {
+            "units": "2737850787",
+            "unitSeconds": "0",
+            "effUnits": "27378507870000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "49999999",
+            "rewardWeight": "70965092399040000000",
+            "payout": "159183671"
+          },
+          "A:attacker": {
+            "units": "0",
+            "unitSeconds": "0",
+            "effUnits": "0",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": true,
+            "feePaid": "499999999",
+            "rewardWeight": null,
+            "payout": null
+          },
+          "B:attacker": {
+            "units": "2737850787",
+            "unitSeconds": "0",
+            "effUnits": "35937029430162",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "49999999",
+            "rewardWeight": "44944558519392000000",
+            "payout": "100816324"
+          }
+        },
+        "trace": [
+          {
+            "index": 0,
+            "type": "snapshotStart",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaStarted",
+                "startPrices": {
+                  "A": {
+                    "priceQ8": "281",
+                    "oraclePriceQ8": "281",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  },
+                  "B": {
+                    "priceQ8": "36525000000",
+                    "oraclePriceQ8": "36525000000",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 1,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "honestA",
+                "side": "A",
+                "units": "355871886120996",
+                "feePaid": "49999999",
+                "feeRequired": "49999999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "9999999999",
+                "toPool": "19999999",
+                "toProtocol": "20000001",
+                "toCreator": "9999999"
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "honestB",
+                "side": "B",
+                "units": "2737850787",
+                "feePaid": "49999999",
+                "feeRequired": "49999999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "9999999999",
+                "toPool": "19999999",
+                "toProtocol": "20000001",
+                "toCreator": "9999999"
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "attacker",
+                "side": "A",
+                "units": "3558718861209964",
+                "feePaid": "499999999",
+                "feeRequired": "499999999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "99999999999",
+                "toPool": "199999999",
+                "toProtocol": "200000001",
+                "toCreator": "99999999"
+              }
+            ]
+          },
+          {
+            "index": 4,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "attacker",
+                "side": "B",
+                "units": "2737850787",
+                "feePaid": "49999999",
+                "feeRequired": "49999999",
+                "multiplierQ4": "13126",
+                "notionalUsdc": "9999999999",
+                "toPool": "19999999",
+                "toProtocol": "20000001",
+                "toCreator": "9999999"
+              }
+            ]
+          },
+          {
+            "index": 5,
+            "type": "exit",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Exited",
+                "owner": "attacker",
+                "side": "A",
+                "units": "3558718861209964",
+                "forfeitedWeight": "3074768683274020995640000"
+              }
+            ]
+          },
+          {
+            "index": 6,
+            "type": "settle",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaSettled",
+                "winner": "B",
+                "perfBpsA": "0",
+                "perfBpsB": "273",
+                "poolAtSettlement": "259999996",
+                "upsetBonus": "0"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "honest underdog wins with upset bonus",
+      "expected": {
+        "status": "Settled",
+        "phaseAtClaim": "SETTLED",
+        "backingCloseTs": "1760081360",
+        "settlement": {
+          "winner": "B",
+          "perfBpsA": "0",
+          "perfBpsB": "273",
+          "poolAtSettlement": "324399995",
+          "wTotal": "5835927917582892864",
+          "winnerTwabShareBps": "1890",
+          "mSettleQ4": "16220",
+          "upsetBonus": "124399998",
+          "settledAt": "1760093600"
+        },
+        "cancelReason": null,
+        "rewardVault": "324399995",
+        "protocolFees": "200000003",
+        "creatorFees": "99999997",
+        "sponsorTotal": "0",
+        "rolloverIn": "0",
+        "rolloverOut": "0",
+        "totalClaimed": "0",
+        "sides": {
+          "A": {
+            "units": "2846975088967971",
+            "unitSeconds": "245978647686832694400",
+            "rewardUnitSeconds": "245978647686832694400",
+            "effUnits": "28469750889679710000",
+            "effUnitSeconds": "2459786476868326944000000",
+            "participants": "1"
+          },
+          "B": {
+            "units": "5475701574",
+            "unitSeconds": "441166324414032",
+            "rewardUnitSeconds": "441166324414032",
+            "effUnits": "73316906225073",
+            "effUnitSeconds": "5835927917582892864",
+            "participants": "2"
+          }
+        },
+        "positions": {
+          "A:crowd": {
+            "units": "2846975088967971",
+            "unitSeconds": "0",
+            "effUnits": "28469750889679710000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "399999999",
+            "rewardWeight": null,
+            "payout": null
+          },
+          "B:early": {
+            "units": "2737850787",
+            "unitSeconds": "0",
+            "effUnits": "29505817931499",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "49999999",
+            "rewardWeight": "2523809642588698464",
+            "payout": "140290258"
+          },
+          "B:late": {
+            "units": "2737850787",
+            "unitSeconds": "0",
+            "effUnits": "43811088293574",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "49999999",
+            "rewardWeight": "3312118274994194400",
+            "payout": "184109736"
+          }
+        },
+        "trace": [
+          {
+            "index": 0,
+            "type": "snapshotStart",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaStarted",
+                "startPrices": {
+                  "A": {
+                    "priceQ8": "281",
+                    "oraclePriceQ8": "281",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  },
+                  "B": {
+                    "priceQ8": "36525000000",
+                    "oraclePriceQ8": "36525000000",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 1,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "crowd",
+                "side": "A",
+                "units": "2846975088967971",
+                "feePaid": "399999999",
+                "feeRequired": "399999999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "79999999999",
+                "toPool": "159999999",
+                "toProtocol": "160000001",
+                "toCreator": "79999999"
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "early",
+                "side": "B",
+                "units": "2737850787",
+                "feePaid": "49999999",
+                "feeRequired": "49999999",
+                "multiplierQ4": "10777",
+                "notionalUsdc": "9999999999",
+                "toPool": "19999999",
+                "toProtocol": "20000001",
+                "toCreator": "9999999"
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "late",
+                "side": "B",
+                "units": "2737850787",
+                "feePaid": "49999999",
+                "feeRequired": "49999999",
+                "multiplierQ4": "16002",
+                "notionalUsdc": "9999999999",
+                "toPool": "19999999",
+                "toProtocol": "20000001",
+                "toCreator": "9999999"
+              }
+            ]
+          },
+          {
+            "index": 4,
+            "type": "settle",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaSettled",
+                "winner": "B",
+                "perfBpsA": "0",
+                "perfBpsB": "273",
+                "poolAtSettlement": "324399995",
+                "upsetBonus": "124399998"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "favourite wins: every tranche clamped to 1.0×",
+      "expected": {
+        "status": "Settled",
+        "phaseAtClaim": "SETTLED",
+        "backingCloseTs": "1760081360",
+        "settlement": {
+          "winner": "A",
+          "perfBpsA": "676",
+          "perfBpsB": "0",
+          "poolAtSettlement": "209999997",
+          "wTotal": "2575088967971529648000000",
+          "winnerTwabShareBps": "8271",
+          "mSettleQ4": "10000",
+          "upsetBonus": "0",
+          "settledAt": "1760090000"
+        },
+        "cancelReason": null,
+        "rewardVault": "209999997",
+        "protocolFees": "210000003",
+        "creatorFees": "104999997",
+        "sponsorTotal": "0",
+        "rolloverIn": "0",
+        "rolloverOut": "0",
+        "totalClaimed": "0",
+        "sides": {
+          "A": {
+            "units": "3024911032028469",
+            "unitSeconds": "257508896797152964800",
+            "rewardUnitSeconds": "257508896797152964800",
+            "effUnits": "30249110320284690000",
+            "effUnitSeconds": "2575088967971529648000000",
+            "participants": "2"
+          },
+          "B": {
+            "units": "5475701574",
+            "unitSeconds": "413963038994400",
+            "rewardUnitSeconds": "413963038994400",
+            "effUnits": "87622176587148",
+            "effUnitSeconds": "6624236549988388800",
+            "participants": "1"
+          }
+        },
+        "positions": {
+          "A:crowd": {
+            "units": "2846975088967971",
+            "unitSeconds": "0",
+            "effUnits": "28469750889679710000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "399999999",
+            "rewardWeight": "2459786476868326944000000",
+            "payout": "200597012"
+          },
+          "B:dog": {
+            "units": "5475701574",
+            "unitSeconds": "0",
+            "effUnits": "87622176587148",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "99999999",
+            "rewardWeight": null,
+            "payout": null
+          },
+          "A:joiner": {
+            "units": "177935943060498",
+            "unitSeconds": "0",
+            "effUnits": "1779359430604980000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "24999999",
+            "rewardWeight": "115302491103202704000000",
+            "payout": "9402984"
+          }
+        },
+        "trace": [
+          {
+            "index": 0,
+            "type": "snapshotStart",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaStarted",
+                "startPrices": {
+                  "A": {
+                    "priceQ8": "281",
+                    "oraclePriceQ8": "281",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  },
+                  "B": {
+                    "priceQ8": "36525000000",
+                    "oraclePriceQ8": "36525000000",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 1,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "crowd",
+                "side": "A",
+                "units": "2846975088967971",
+                "feePaid": "399999999",
+                "feeRequired": "399999999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "79999999999",
+                "toPool": "159999999",
+                "toProtocol": "160000001",
+                "toCreator": "79999999"
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "dog",
+                "side": "B",
+                "units": "5475701574",
+                "feePaid": "99999999",
+                "feeRequired": "99999999",
+                "multiplierQ4": "16002",
+                "notionalUsdc": "19999999999",
+                "toPool": "39999999",
+                "toProtocol": "40000001",
+                "toCreator": "19999999"
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "joiner",
+                "side": "A",
+                "units": "177935943060498",
+                "feePaid": "24999999",
+                "feeRequired": "24999999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "4999999999",
+                "toPool": "9999999",
+                "toProtocol": "10000001",
+                "toCreator": "4999999"
+              }
+            ]
+          },
+          {
+            "index": 4,
+            "type": "settle",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaSettled",
+                "winner": "A",
+                "perfBpsA": "676",
+                "perfBpsB": "0",
+                "poolAtSettlement": "209999997",
+                "upsetBonus": "0"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "short arena with min-hold floor",
+      "expected": {
+        "status": "Settled",
+        "phaseAtClaim": "SETTLED",
+        "backingCloseTs": "1760006300",
+        "settlement": {
+          "winner": "B",
+          "perfBpsA": "0",
+          "perfBpsB": "273",
+          "poolAtSettlement": "19999998",
+          "wTotal": "19221190950123900",
+          "winnerTwabShareBps": "1578",
+          "mSettleQ4": "16844",
+          "upsetBonus": "0",
+          "settledAt": "1760007200"
+        },
+        "cancelReason": null,
+        "rewardVault": "19999998",
+        "protocolFees": "20000002",
+        "creatorFees": "9999998",
+        "sponsorTotal": "0",
+        "rolloverIn": "0",
+        "rolloverOut": "0",
+        "totalClaimed": "0",
+        "sides": {
+          "A": {
+            "units": "284697508896797",
+            "unitSeconds": "1024911032028469200",
+            "rewardUnitSeconds": "1024911032028469200",
+            "effUnits": "2846975088967970000",
+            "effUnitSeconds": "10249110320284692000000",
+            "participants": "1"
+          },
+          "B": {
+            "units": "547570157",
+            "unitSeconds": "1478439423900",
+            "rewardUnitSeconds": "1478439423900",
+            "effUnits": "7118959611157",
+            "effUnitSeconds": "19221190950123900",
+            "participants": "1"
+          }
+        },
+        "positions": {
+          "A:a": {
+            "units": "284697508896797",
+            "unitSeconds": "0",
+            "effUnits": "2846975088967970000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "39999999",
+            "rewardWeight": null,
+            "payout": null
+          },
+          "B:b": {
+            "units": "547570157",
+            "unitSeconds": "0",
+            "effUnits": "7118959611157",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "9999999",
+            "rewardWeight": "19221190950123900",
+            "payout": "19999998"
+          }
+        },
+        "trace": [
+          {
+            "index": 0,
+            "type": "snapshotStart",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaStarted",
+                "startPrices": {
+                  "A": {
+                    "priceQ8": "281",
+                    "oraclePriceQ8": "281",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  },
+                  "B": {
+                    "priceQ8": "36525000000",
+                    "oraclePriceQ8": "36525000000",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 1,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "a",
+                "side": "A",
+                "units": "284697508896797",
+                "feePaid": "39999999",
+                "feeRequired": "39999999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "7999999999",
+                "toPool": "15999999",
+                "toProtocol": "16000001",
+                "toCreator": "7999999"
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "b",
+                "side": "B",
+                "units": "547570157",
+                "feePaid": "9999999",
+                "feeRequired": "9999999",
+                "multiplierQ4": "13001",
+                "notionalUsdc": "1999999998",
+                "toPool": "3999999",
+                "toProtocol": "4000001",
+                "toCreator": "1999999"
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "type": "back",
+            "ok": false,
+            "error": "BackingClosed"
+          },
+          {
+            "index": 4,
+            "type": "settle",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaSettled",
+                "winner": "B",
+                "perfBpsA": "0",
+                "perfBpsB": "273",
+                "poolAtSettlement": "19999998",
+                "upsetBonus": "0"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "proportional distribution with rollover in and a dominant whale",
+      "expected": {
+        "status": "Settled",
+        "phaseAtClaim": "SETTLED",
+        "backingCloseTs": "1760081360",
+        "settlement": {
+          "winner": "A",
+          "perfBpsA": "676",
+          "perfBpsB": "0",
+          "poolAtSettlement": "1201999995",
+          "wTotal": "3074733096085408032000000",
+          "winnerTwabShareBps": "9900",
+          "mSettleQ4": "10000",
+          "upsetBonus": "0",
+          "settledAt": "1760090000"
+        },
+        "cancelReason": null,
+        "rewardVault": "1201999995",
+        "protocolFees": "202000005",
+        "creatorFees": "100999995",
+        "sponsorTotal": "0",
+        "rolloverIn": "1000000000",
+        "rolloverOut": "0",
+        "totalClaimed": "0",
+        "sides": {
+          "A": {
+            "units": "3558718861209963",
+            "unitSeconds": "307473309608540803200",
+            "rewardUnitSeconds": "307473309608540803200",
+            "effUnits": "35587188612099630000",
+            "effUnitSeconds": "3074733096085408032000000",
+            "participants": "4"
+          },
+          "B": {
+            "units": "273785078",
+            "unitSeconds": "23655030739200",
+            "rewardUnitSeconds": "23655030739200",
+            "effUnits": "2737850780000",
+            "effUnitSeconds": "236550307392000000",
+            "participants": "1"
+          }
+        },
+        "positions": {
+          "A:whale": {
+            "units": "2491103202846975",
+            "unitSeconds": "0",
+            "effUnits": "24911032028469750000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "349999999",
+            "rewardWeight": "2152313167259786400000000",
+            "payout": "841399996"
+          },
+          "A:x": {
+            "units": "355871886120996",
+            "unitSeconds": "0",
+            "effUnits": "3558718861209960000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "49999999",
+            "rewardWeight": "307473309608540544000000",
+            "payout": "120199999"
+          },
+          "A:y": {
+            "units": "355871886120996",
+            "unitSeconds": "0",
+            "effUnits": "3558718861209960000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "49999999",
+            "rewardWeight": "307473309608540544000000",
+            "payout": "120199999"
+          },
+          "A:z": {
+            "units": "355871886120996",
+            "unitSeconds": "0",
+            "effUnits": "3558718861209960000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "49999999",
+            "rewardWeight": "307473309608540544000000",
+            "payout": "120199999"
+          },
+          "B:b": {
+            "units": "273785078",
+            "unitSeconds": "0",
+            "effUnits": "2737850780000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "4999999",
+            "rewardWeight": null,
+            "payout": null
+          }
+        },
+        "trace": [
+          {
+            "index": 0,
+            "type": "snapshotStart",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaStarted",
+                "startPrices": {
+                  "A": {
+                    "priceQ8": "281",
+                    "oraclePriceQ8": "281",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  },
+                  "B": {
+                    "priceQ8": "36525000000",
+                    "oraclePriceQ8": "36525000000",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 1,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "whale",
+                "side": "A",
+                "units": "2491103202846975",
+                "feePaid": "349999999",
+                "feeRequired": "349999999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "69999999999",
+                "toPool": "139999999",
+                "toProtocol": "140000001",
+                "toCreator": "69999999"
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "x",
+                "side": "A",
+                "units": "355871886120996",
+                "feePaid": "49999999",
+                "feeRequired": "49999999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "9999999999",
+                "toPool": "19999999",
+                "toProtocol": "20000001",
+                "toCreator": "9999999"
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "y",
+                "side": "A",
+                "units": "355871886120996",
+                "feePaid": "49999999",
+                "feeRequired": "49999999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "9999999999",
+                "toPool": "19999999",
+                "toProtocol": "20000001",
+                "toCreator": "9999999"
+              }
+            ]
+          },
+          {
+            "index": 4,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "z",
+                "side": "A",
+                "units": "355871886120996",
+                "feePaid": "49999999",
+                "feeRequired": "49999999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "9999999999",
+                "toPool": "19999999",
+                "toProtocol": "20000001",
+                "toCreator": "9999999"
+              }
+            ]
+          },
+          {
+            "index": 5,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "b",
+                "side": "B",
+                "units": "273785078",
+                "feePaid": "4999999",
+                "feeRequired": "4999999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "999999997",
+                "toPool": "1999999",
+                "toProtocol": "2000001",
+                "toCreator": "999999"
+              }
+            ]
+          },
+          {
+            "index": 6,
+            "type": "settle",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaSettled",
+                "winner": "A",
+                "perfBpsA": "676",
+                "perfBpsB": "0",
+                "poolAtSettlement": "1201999995",
+                "upsetBonus": "0"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "scaled multiplier split mid-arena",
+      "expected": {
+        "status": "Settled",
+        "phaseAtClaim": "SETTLED",
+        "backingCloseTs": "1760081360",
+        "settlement": {
+          "winner": "B",
+          "perfBpsA": "-107",
+          "perfBpsB": "0",
+          "poolAtSettlement": "399998",
+          "wTotal": "23655030048000000",
+          "winnerTwabShareBps": "4999",
+          "mSettleQ4": "10002",
+          "upsetBonus": "0",
+          "settledAt": "1760090000"
+        },
+        "cancelReason": null,
+        "rewardVault": "399998",
+        "protocolFees": "400002",
+        "creatorFees": "199998",
+        "sponsorTotal": "0",
+        "rolloverIn": "0",
+        "rolloverOut": "0",
+        "totalClaimed": "0",
+        "sides": {
+          "A": {
+            "units": "3558718861209",
+            "unitSeconds": "307473309608457600",
+            "rewardUnitSeconds": "307473309608457600",
+            "effUnits": "35587188612090000",
+            "effUnitSeconds": "3074733096084576000000",
+            "participants": "1"
+          },
+          "B": {
+            "units": "27378507",
+            "unitSeconds": "2365503004800",
+            "rewardUnitSeconds": "2365503004800",
+            "effUnits": "273785070000",
+            "effUnitSeconds": "23655030048000000",
+            "participants": "1"
+          }
+        },
+        "positions": {
+          "A:a": {
+            "units": "3558718861209",
+            "unitSeconds": "0",
+            "effUnits": "35587188612090000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "499999",
+            "rewardWeight": null,
+            "payout": null
+          },
+          "B:b": {
+            "units": "27378507",
+            "unitSeconds": "0",
+            "effUnits": "273785070000",
+            "effUnitSeconds": "0",
+            "claimed": false,
+            "forfeited": false,
+            "feePaid": "499999",
+            "rewardWeight": "23655030048000000",
+            "payout": "399998"
+          }
+        },
+        "trace": [
+          {
+            "index": 0,
+            "type": "snapshotStart",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaStarted",
+                "startPrices": {
+                  "A": {
+                    "priceQ8": "281",
+                    "oraclePriceQ8": "281",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  },
+                  "B": {
+                    "priceQ8": "36525000000",
+                    "oraclePriceQ8": "36525000000",
+                    "publishTime": "1760003600",
+                    "mode": "Exact",
+                    "multQ6": "1000000"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 1,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "a",
+                "side": "A",
+                "units": "3558718861209",
+                "feePaid": "499999",
+                "feeRequired": "499999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "99999999",
+                "toPool": "199999",
+                "toProtocol": "200001",
+                "toCreator": "99999"
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "type": "back",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "Backed",
+                "owner": "b",
+                "side": "B",
+                "units": "27378507",
+                "feePaid": "499999",
+                "feeRequired": "499999",
+                "multiplierQ4": "10000",
+                "notionalUsdc": "99999996",
+                "toPool": "199999",
+                "toProtocol": "200001",
+                "toCreator": "99999"
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "type": "settle",
+            "ok": true,
+            "effects": [
+              {
+                "kind": "ArenaSettled",
+                "winner": "B",
+                "perfBpsA": "-107",
+                "perfBpsB": "0",
+                "poolAtSettlement": "399998",
+                "upsetBonus": "0"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

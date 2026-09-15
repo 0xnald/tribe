@@ -124,8 +124,8 @@ function valuations(s: ArenaState): Record<SideId, SideValuation> {
   const b = s.startPrices.B;
   if (!a || !b) fail(ErrorCode.InvalidStatus, 'start prices not snapshotted');
   return {
-    A: { priceQ8: a.priceQ8, decimals: s.config.assets.A.decimals },
-    B: { priceQ8: b.priceQ8, decimals: s.config.assets.B.decimals },
+    A: { priceQ10: a.priceQ10, decimals: s.config.assets.A.decimals },
+    B: { priceQ10: b.priceQ10, decimals: s.config.assets.B.decimals },
   };
 }
 
@@ -271,7 +271,7 @@ function back(s0: ArenaState, e: Extract<ArenaEvent, { type: 'back' }>): ApplyRe
   if (e.feePaid < 0n) fail(ErrorCode.InvalidParams, 'negative fee');
   const vals = valuations(s0);
   const asset = s0.config.assets[e.side];
-  const notional = notionalUsdc(e.units, vals[e.side].priceQ8, asset.decimals);
+  const notional = notionalUsdc(e.units, vals[e.side].priceQ10, asset.decimals);
   if (notional < s0.config.params.minBackingUsdc) {
     fail(ErrorCode.BelowMinimumBacking, `${notional} < ${s0.config.params.minBackingUsdc}`);
   }

@@ -25,16 +25,16 @@ pub fn min_hold_secs(params: &ArenaParams, duration: i64) -> i64 {
 
 pub fn valuations(arena: &Arena) -> Result<[Valuation; 2]> {
     require!(
-        arena.start_prices[0].price_q8 > 0 && arena.start_prices[1].price_q8 > 0,
+        arena.start_prices[0].price_q10 > 0 && arena.start_prices[1].price_q10 > 0,
         TribeError::InvalidStatus
     );
     Ok([
         Valuation {
-            price_q8: arena.start_prices[0].price_q8,
+            price_q10: arena.start_prices[0].price_q10,
             decimals: arena.assets[0].decimals,
         },
         Valuation {
-            price_q8: arena.start_prices[1].price_q8,
+            price_q10: arena.start_prices[1].price_q10,
             decimals: arena.assets[1].decimals,
         },
     ])
@@ -180,7 +180,7 @@ pub fn back(
     require!(now < arena.backing_close_ts, TribeError::BackingClosed);
     require!(units > 0, TribeError::ZeroAmount);
     let vals = valuations(arena)?;
-    let notional = notional_usdc(units, vals[side].price_q8, arena.assets[side].decimals)?;
+    let notional = notional_usdc(units, vals[side].price_q10, arena.assets[side].decimals)?;
     require!(
         notional >= arena.params.min_backing_usdc,
         TribeError::BelowMinimumBacking
@@ -297,11 +297,11 @@ pub fn settle(
         arena.end_ts,
         arena.allow_closed_settlement,
     )?;
-    let sa = arena.start_prices[0].price_q8;
-    let sb = arena.start_prices[1].price_q8;
-    let w = decide_winner(sa, ea.price_q8, sb, eb.price_q8, arena.params.tie_bps)?;
-    let perf_a = perf_bps(sa, ea.price_q8)?;
-    let perf_b = perf_bps(sb, eb.price_q8)?;
+    let sa = arena.start_prices[0].price_q10;
+    let sb = arena.start_prices[1].price_q10;
+    let w = decide_winner(sa, ea.price_q10, sb, eb.price_q10, arena.params.tie_bps)?;
+    let perf_a = perf_bps(sa, ea.price_q10)?;
+    let perf_b = perf_bps(sb, eb.price_q10)?;
 
     // Final accrual is clamped at end_ts regardless of how late the crank is.
     accrue_arena(arena, now)?;

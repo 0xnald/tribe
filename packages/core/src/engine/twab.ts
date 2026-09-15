@@ -6,18 +6,18 @@ import type { SideId, SideState } from './types';
  *
  * All values on a side are normalised with that side's Arena start price, so
  * USD figures are comparable across sides. The USD scale here is
- * "USD × 1e8 / 1" (units × Q8 price / 10^decimals) — any common scale works
+ * "USD × 1e10" (units × Q10 price / 10^decimals) — any common scale works
  * because only ratios are taken.
  */
 
 export interface SideValuation {
-  /** Arena start reference price, Q8. */
-  priceQ8: bigint;
+  /** Arena start reference price, Q10. */
+  priceQ10: bigint;
   decimals: number;
 }
 
 export function usdOf(units: bigint, v: SideValuation): bigint {
-  return assertU128((units * v.priceQ8) / pow10(v.decimals), 'usd');
+  return assertU128((units * v.priceQ10) / pow10(v.decimals), 'usd');
 }
 
 /** Instantaneous USD backing of a side. */

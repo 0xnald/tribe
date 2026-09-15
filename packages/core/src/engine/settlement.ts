@@ -10,8 +10,8 @@ import type { ArenaAssetSpec, SideId, SidePriceSnapshot, Winner } from './types'
  */
 
 export interface SettlementPrices {
-  A: { startQ8: bigint; endQ8: bigint };
-  B: { startQ8: bigint; endQ8: bigint };
+  A: { startQ10: bigint; endQ10: bigint };
+  B: { startQ10: bigint; endQ10: bigint };
 }
 
 export interface SettlementResult {
@@ -21,11 +21,11 @@ export interface SettlementResult {
 }
 
 export function settleFromPrices(p: SettlementPrices, tieBps: bigint): SettlementResult {
-  const winner = decideWinner(p.A.startQ8, p.A.endQ8, p.B.startQ8, p.B.endQ8, tieBps);
+  const winner = decideWinner(p.A.startQ10, p.A.endQ10, p.B.startQ10, p.B.endQ10, tieBps);
   return {
     winner,
-    perfBpsA: perfBps(p.A.startQ8, p.A.endQ8),
-    perfBpsB: perfBps(p.B.startQ8, p.B.endQ8),
+    perfBpsA: perfBps(p.A.startQ10, p.A.endQ10),
+    perfBpsB: perfBps(p.B.startQ10, p.B.endQ10),
   };
 }
 
@@ -63,8 +63,8 @@ export function resolveSettlement(inp: ResolveInputs): SettlementOutcome {
   if (!a || !b) throw new Error('unreachable: missing snapshot');
   const r = settleFromPrices(
     {
-      A: { startQ8: inp.startSnapshots.A.priceQ8, endQ8: a.priceQ8 },
-      B: { startQ8: inp.startSnapshots.B.priceQ8, endQ8: b.priceQ8 },
+      A: { startQ10: inp.startSnapshots.A.priceQ10, endQ10: a.priceQ10 },
+      B: { startQ10: inp.startSnapshots.B.priceQ10, endQ10: b.priceQ10 },
     },
     inp.tieBps,
   );

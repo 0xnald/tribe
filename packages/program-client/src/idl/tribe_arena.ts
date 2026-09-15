@@ -1745,11 +1745,11 @@ export type TribeArena = {
             type: 'pubkey';
           },
           {
-            name: 'priceAQ8';
+            name: 'priceAQ10';
             type: 'u64';
           },
           {
-            name: 'priceBQ8';
+            name: 'priceBQ10';
             type: 'u64';
           },
         ];
@@ -2140,12 +2140,13 @@ export type TribeArena = {
         kind: 'struct';
         fields: [
           {
-            name: 'priceQ8';
-            docs: ['Reference price of one raw unit (Q8), multiplier applied.'];
+            name: 'priceQ10';
+            docs: ['Reference price of one raw unit (Q10 = USD × 1e10), multiplier applied.'];
             type: 'u64';
           },
           {
-            name: 'oraclePriceQ8';
+            name: 'oraclePriceQ10';
+            docs: ['Raw oracle price before the multiplier (Q10).'];
             type: 'u64';
           },
           {

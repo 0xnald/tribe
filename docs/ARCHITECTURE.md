@@ -132,7 +132,7 @@ For each side at snapshot/settle:
    `target_ts − max_closed_staleness ≤ publish_time ≤ target_ts` (LastKnown
    mode, equities only).
 4. `conf × 10_000 / price ≤ max_conf_bps`.
-5. `price > 0`; exponent normalised to Q8 with overflow checks.
+5. `price > 0`; exponent normalised to Q10 (USD × 10¹⁰) with overflow checks.
 6. For `ScaledUi` assets, `mult_q6` is read from the mint's
    `ScaledUiAmountConfig` (respecting `new_multiplier_effective_timestamp`).
 

@@ -175,7 +175,7 @@ pnpm --filter @tribe/program-client test:program  # program integration tests (b
 ```
 
 The economics have shared test vectors used by both TypeScript and Rust
-(`packages/core/test-vectors/*.json`, 112 vectors), so the two
+(`packages/core/test-vectors/*.json`, 114 vectors), so the two
 implementations are checked for bit-for-bit agreement: the TS engine
 generates them, the Rust engine inside the program replays them.
 
@@ -209,7 +209,7 @@ Mainnet deployment is deliberately not part of Phase 2.
 ## Status
 
 Phase 0 (architecture and product lock), Phase 1 (core economic engine:
-`packages/core`, 274 tests, 112 shared test vectors), Phase 2 (Anchor
+`packages/core`, 308 tests, 114 shared test vectors), Phase 2 (Anchor
 program with Rust engine parity, 24 integration tests, typed client, devnet
 deployment) and Phase 3 (consumer app: Explore, Arena, Back flow, My
 Arenas; live mainnet market data; a live devnet Arena) complete. See

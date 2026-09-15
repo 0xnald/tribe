@@ -358,7 +358,7 @@ export function setPriceUpdate(h: Svm, address: PublicKey, fields: PriceUpdateV2
 
 export function priceUpdateFixture(
   feedIdHex: string,
-  priceQ8: bigint,
+  priceQ10: bigint,
   publishTime: bigint,
   extra: Partial<PriceUpdateV2Fields> = {},
 ): PriceUpdateV2Fields {
@@ -367,12 +367,12 @@ export function priceUpdateFixture(
     writeAuthority: PublicKey.default,
     verificationLevel: 'Full',
     feedId,
-    price: priceQ8,
+    price: priceQ10,
     conf: 0n,
-    exponent: -8,
+    exponent: -10,
     publishTime,
     prevPublishTime: publishTime - 1n,
-    emaPrice: priceQ8,
+    emaPrice: priceQ10,
     emaConf: 0n,
     postedSlot: 1n,
     ...extra,

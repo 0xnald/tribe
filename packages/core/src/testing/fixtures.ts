@@ -51,9 +51,9 @@ export const T0 = 1_760_000_000n; // arbitrary epoch base
 export const HOUR = 3600n;
 export const DAY = 24n * HOUR;
 
-/** $0.00000281 and $365.25 in Q8. */
-export const BONK_PRICE_Q8 = 281n;
-export const TSLA_PRICE_Q8 = 36_525_000_000n;
+/** $0.00000281 and $365.25 in Q10 (USD × 1e10). */
+export const BONK_PRICE_Q10 = 28_100n;
+export const TSLA_PRICE_Q10 = 3_652_500_000_000n;
 
 export const AUTHORITY = 'AuthKey11111111111111111111111111111111111';
 export const CREATOR = 'CreatorKey1111111111111111111111111111111';
@@ -86,14 +86,14 @@ export function arenaConfig(o: ArenaFixtureOptions = {}): ArenaConfig {
 
 export function priceInput(
   asset: ArenaAssetSpec,
-  priceQ8: bigint,
+  priceQ10: bigint,
   publishTime: bigint,
   extra: Partial<PriceInput> = {},
 ): PriceInput {
   return {
     feedId: asset.feedId,
-    price: priceQ8,
-    expo: -8,
+    price: priceQ10,
+    expo: -10,
     conf: 0n,
     publishTime,
     verificationLevel: 'Full',
@@ -127,8 +127,8 @@ export function harness(cfg: ArenaConfig = arenaConfig(), createdAt = T0): Harne
         type: 'snapshotStart',
         now: c.startTs,
         prices: {
-          A: priceInput(c.assets.A, prices.A ?? BONK_PRICE_Q8, c.startTs),
-          B: priceInput(c.assets.B, prices.B ?? TSLA_PRICE_Q8, c.startTs),
+          A: priceInput(c.assets.A, prices.A ?? BONK_PRICE_Q10, c.startTs),
+          B: priceInput(c.assets.B, prices.B ?? TSLA_PRICE_Q10, c.startTs),
         },
       });
     },
@@ -164,7 +164,7 @@ export function requiredFeeFor(state: ArenaState, side: SideId, units: bigint): 
   const p = state.startPrices[side];
   if (!p) throw new Error('arena not started');
   const d = state.config.assets[side].decimals;
-  const notional = (units * p.priceQ8) / 10n ** BigInt(d + 2);
+  const notional = (units * p.priceQ10) / 10n ** BigInt(d + 4);
   return (notional * BigInt(state.config.feePolicy.feeBps)) / 10_000n;
 }
 
@@ -173,6 +173,6 @@ export function unitsForUsd(state: ArenaState, side: SideId, usd: bigint): bigin
   const p = state.startPrices[side];
   if (!p) throw new Error('arena not started');
   const d = state.config.assets[side].decimals;
-  // units = usd × 1e8 × 10^d / priceQ8
-  return (usd * 100_000_000n * 10n ** BigInt(d)) / p.priceQ8;
+  // units = usd × 1e10 × 10^d / priceQ10
+  return (usd * 10_000_000_000n * 10n ** BigInt(d)) / p.priceQ10;
 }

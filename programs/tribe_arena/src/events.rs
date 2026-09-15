@@ -21,8 +21,8 @@ pub struct PoolFunded {
 #[event]
 pub struct ArenaStarted {
     pub arena: Pubkey,
-    pub price_a_q8: u64,
-    pub price_b_q8: u64,
+    pub price_a_q10: u64,
+    pub price_b_q10: u64,
 }
 
 #[event]

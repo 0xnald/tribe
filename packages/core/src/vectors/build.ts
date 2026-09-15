@@ -34,8 +34,8 @@ import {
 } from '../engine/types';
 import { underdogMultiplier } from '../engine/underdog';
 import { computeUpsetBonus } from '../engine/upset';
-import { decideWinner, notionalUsdc, perfBps, refPriceQ8, toQ8 } from '../math/fixed';
-import { BONK, DAY, HOUR, T0, TSLA_PRICE_Q8, TSLAX } from '../testing/fixtures';
+import { decideWinner, notionalUsdc, perfBps, refPriceQ10, toQ10 } from '../math/fixed';
+import { BONK, BONK_PRICE_Q10, DAY, HOUR, T0, TSLA_PRICE_Q10, TSLAX } from '../testing/fixtures';
 import { arr, big, bool, num, obj, optBig, str, type Json } from './codec';
 
 /**
@@ -121,14 +121,14 @@ function decodeFeePolicy(j: Json | undefined): FeePolicy {
 
 function price(
   asset: ArenaAssetSpec,
-  priceQ8: bigint,
+  priceQ10: bigint,
   publishTime: bigint,
   extra: Partial<PriceInput> = {},
 ): PriceInput {
   return {
     feedId: asset.feedId,
-    price: priceQ8,
-    expo: -8,
+    price: priceQ10,
+    expo: -10,
     conf: 0n,
     publishTime,
     verificationLevel: 'Full',
@@ -139,7 +139,7 @@ function price(
 // ─────────────────────────────────────────────────────────────── math
 
 interface MathCase {
-  op: 'toQ8' | 'refPriceQ8' | 'notionalUsdc' | 'perfBps' | 'decideWinner';
+  op: 'toQ10' | 'refPriceQ10' | 'notionalUsdc' | 'perfBps' | 'decideWinner';
   args: bigint[];
   numArgs?: number[];
 }
@@ -148,39 +148,49 @@ export const mathCategory: Category<MathCase> = {
   category: 'math',
   cases: [
     {
-      name: 'toQ8 expo -8 identity',
-      description: '$365.25 at expo -8',
-      inputs: { op: 'toQ8', args: [36_525_000_000n], numArgs: [-8] },
+      name: 'toQ10 expo -10 identity',
+      description: '$365.25 at expo -10',
+      inputs: { op: 'toQ10', args: [3_652_500_000_000n], numArgs: [-10] },
     },
     {
-      name: 'toQ8 expo -2',
+      name: 'toQ10 expo -8 scales up',
+      description: '$365.25 at expo -8 (Pyth crypto/equity feeds) -> Q10',
+      inputs: { op: 'toQ10', args: [36_525_000_000n], numArgs: [-8] },
+    },
+    {
+      name: 'toQ10 expo -2',
       description: '$365.25 at expo -2',
-      inputs: { op: 'toQ8', args: [36_525n], numArgs: [-2] },
+      inputs: { op: 'toQ10', args: [36_525n], numArgs: [-2] },
     },
     {
-      name: 'toQ8 expo -15 floors',
-      description: 'BONK 2816164455e-15',
-      inputs: { op: 'toQ8', args: [2_816_164_455n], numArgs: [-15] },
+      name: 'toQ10 expo -15 floors',
+      description: 'BONK 2816164455e-15 -> 28161 (floors the last five digits)',
+      inputs: { op: 'toQ10', args: [2_816_164_455n], numArgs: [-15] },
     },
     {
-      name: 'refPriceQ8 dividend 1.008',
+      name: 'toQ10 BONK expo -10 keeps sub-cent resolution',
+      description: '$0.0000027100 -> 27 100 (Q8 would have been 271)',
+      inputs: { op: 'toQ10', args: [27_100n], numArgs: [-10] },
+    },
+    {
+      name: 'refPriceQ10 dividend 1.008',
       description: '',
-      inputs: { op: 'refPriceQ8', args: [10_000_000_000n, 1_008_000n] },
+      inputs: { op: 'refPriceQ10', args: [1_000_000_000_000n, 1_008_000n] },
     },
     {
-      name: 'refPriceQ8 split 4x',
+      name: 'refPriceQ10 split 4x',
       description: '$91.3125 × 4.0 = $365.25',
-      inputs: { op: 'refPriceQ8', args: [9_131_250_000n, 4_000_000n] },
+      inputs: { op: 'refPriceQ10', args: [913_125_000_000n, 4_000_000n] },
     },
     {
       name: 'notional TSLAx',
       description: '0.27337718 TSLAx at $365.25',
-      inputs: { op: 'notionalUsdc', args: [27_337_718n, 36_525_000_000n], numArgs: [8] },
+      inputs: { op: 'notionalUsdc', args: [27_337_718n, 3_652_500_000_000n], numArgs: [8] },
     },
     {
       name: 'notional BONK',
       description: '35M BONK at $0.00000281',
-      inputs: { op: 'notionalUsdc', args: [3_500_000_000_000n, 281n], numArgs: [5] },
+      inputs: { op: 'notionalUsdc', args: [3_500_000_000_000n, 28_100n], numArgs: [5] },
     },
     {
       name: 'notional dust floors to zero',
@@ -190,24 +200,24 @@ export const mathCategory: Category<MathCase> = {
     {
       name: 'perfBps +8.42%',
       description: '',
-      inputs: { op: 'perfBps', args: [10_000_000_000n, 10_842_000_000n] },
+      inputs: { op: 'perfBps', args: [1_000_000_000_000n, 1_084_200_000_000n] },
     },
     {
       name: 'perfBps -2.17%',
       description: '',
-      inputs: { op: 'perfBps', args: [10_000_000_000n, 9_783_000_000n] },
+      inputs: { op: 'perfBps', args: [1_000_000_000_000n, 978_300_000_000n] },
     },
     {
       name: 'perfBps floor negative',
       description: '-0.1 bps floors to -1',
-      inputs: { op: 'perfBps', args: [10_000_000_000n, 9_999_900_000n] },
+      inputs: { op: 'perfBps', args: [1_000_000_000_000n, 999_990_000_000n] },
     },
     {
       name: 'winner A',
       description: '+8.42% vs +2.17%',
       inputs: {
         op: 'decideWinner',
-        args: [10_000_000_000n, 10_842_000_000n, 10_000_000_000n, 10_217_000_000n, 1n],
+        args: [1_000_000_000_000n, 1_084_200_000_000n, 1_000_000_000_000n, 1_021_700_000_000n, 1n],
       },
     },
     {
@@ -215,7 +225,7 @@ export const mathCategory: Category<MathCase> = {
       description: '+1 bps vs flat, band 1 bps',
       inputs: {
         op: 'decideWinner',
-        args: [10_000_000_000n, 10_001_000_000n, 10_000_000_000n, 10_000_000_000n, 1n],
+        args: [1_000_000_000_000n, 1_000_100_000_000n, 1_000_000_000_000n, 1_000_000_000_000n, 1n],
       },
     },
     {
@@ -223,20 +233,23 @@ export const mathCategory: Category<MathCase> = {
       description: '+1 bps + 1 unit',
       inputs: {
         op: 'decideWinner',
-        args: [10_000_000_000n, 10_001_000_001n, 10_000_000_000n, 10_000_000_000n, 1n],
+        args: [1_000_000_000_000n, 1_000_100_000_001n, 1_000_000_000_000n, 1_000_000_000_000n, 1n],
       },
     },
     {
       name: 'winner across scales',
       description: 'BONK 281→281 vs TSLA +2 bps',
-      inputs: { op: 'decideWinner', args: [281n, 281n, 10_000_000_000n, 10_002_000_000n, 1n] },
+      inputs: {
+        op: 'decideWinner',
+        args: [28_100n, 28_100n, 1_000_000_000_000n, 1_000_200_000_000n, 1n],
+      },
     },
     {
       name: 'winner both down',
       description: 'A -5% vs B -9% → A',
       inputs: {
         op: 'decideWinner',
-        args: [10_000_000_000n, 9_500_000_000n, 10_000_000_000n, 9_100_000_000n, 1n],
+        args: [1_000_000_000_000n, 950_000_000_000n, 1_000_000_000_000n, 910_000_000_000n, 1n],
       },
     },
     {
@@ -252,10 +265,10 @@ export const mathCategory: Category<MathCase> = {
     const a = i.args;
     const n = i.numArgs ?? [];
     switch (i.op) {
-      case 'toQ8':
-        return { result: toQ8(a[0] ?? 0n, n[0] ?? 0) };
-      case 'refPriceQ8':
-        return { result: refPriceQ8(a[0] ?? 0n, a[1] ?? 0n) };
+      case 'toQ10':
+        return { result: toQ10(a[0] ?? 0n, n[0] ?? 0) };
+      case 'refPriceQ10':
+        return { result: refPriceQ10(a[0] ?? 0n, a[1] ?? 0n) };
       case 'notionalUsdc':
         return { result: notionalUsdc(a[0] ?? 0n, a[1] ?? 0n, n[0] ?? 0) };
       case 'perfBps':
@@ -481,11 +494,11 @@ interface UnderdogCase {
 }
 
 const UD = DEFAULT_ARENA_PARAMS.underdog;
-const bonk = (usd: bigint) => (usd * 100_000_000n * 100_000n) / 281n;
-const tsla = (usd: bigint) => (usd * 100_000_000n * 100_000_000n) / TSLA_PRICE_Q8;
+const bonk = (usd: bigint) => (usd * 10_000_000_000n * 100_000n) / BONK_PRICE_Q10;
+const tsla = (usd: bigint) => (usd * 10_000_000_000n * 100_000_000n) / TSLA_PRICE_Q10;
 const ud = (o: Partial<UnderdogCase>): UnderdogCase => ({
   sides: { A: { units: 0n, unitSeconds: 0n }, B: { units: 0n, unitSeconds: 0n } },
-  prices: { A: 281n, B: TSLA_PRICE_Q8 },
+  prices: { A: BONK_PRICE_Q10, B: TSLA_PRICE_Q10 },
   decimals: { A: 5, B: 8 },
   side: 'B',
   depositUnits: tsla(1000n),
@@ -600,8 +613,8 @@ export const underdogCategory: Category<UnderdogCase> = {
       B: { ...ZERO_SIDE, units: i.sides.B.units, unitSeconds: i.sides.B.unitSeconds },
     };
     const valuations = {
-      A: { priceQ8: i.prices.A, decimals: i.decimals.A },
-      B: { priceQ8: i.prices.B, decimals: i.decimals.B },
+      A: { priceQ10: i.prices.A, decimals: i.decimals.A },
+      B: { priceQ10: i.prices.B, decimals: i.decimals.B },
     };
     const r = underdogMultiplier({
       sides,
@@ -746,7 +759,12 @@ export const oracleCategory: Category<OracleCase> = {
     {
       name: 'exact window ok',
       description: '',
-      inputs: { input: price(BONK, 281n, T + 59n), asset: BONK, targetTs: T, allowClosed: false },
+      inputs: {
+        input: price(BONK, BONK_PRICE_Q10, T + 59n),
+        asset: BONK,
+        targetTs: T,
+        allowClosed: false,
+      },
     },
     {
       name: 'expo normalisation',
@@ -762,7 +780,7 @@ export const oracleCategory: Category<OracleCase> = {
       name: 'feed mismatch',
       description: '',
       inputs: {
-        input: price(BONK, 281n, T, { feedId: TSLAX.feedId }),
+        input: price(BONK, BONK_PRICE_Q10, T, { feedId: TSLAX.feedId }),
         asset: BONK,
         targetTs: T,
         allowClosed: false,
@@ -772,7 +790,7 @@ export const oracleCategory: Category<OracleCase> = {
       name: 'partial verification',
       description: '',
       inputs: {
-        input: price(BONK, 281n, T, { verificationLevel: 'Partial' }),
+        input: price(BONK, BONK_PRICE_Q10, T, { verificationLevel: 'Partial' }),
         asset: BONK,
         targetTs: T,
         allowClosed: false,
@@ -811,18 +829,28 @@ export const oracleCategory: Category<OracleCase> = {
     {
       name: 'future print rejected',
       description: '+61 s',
-      inputs: { input: price(BONK, 281n, T + 61n), asset: BONK, targetTs: T, allowClosed: false },
+      inputs: {
+        input: price(BONK, BONK_PRICE_Q10, T + 61n),
+        asset: BONK,
+        targetTs: T,
+        allowClosed: false,
+      },
     },
     {
       name: 'stale crypto rejected',
       description: '-61 s',
-      inputs: { input: price(BONK, 281n, T - 61n), asset: BONK, targetTs: T, allowClosed: false },
+      inputs: {
+        input: price(BONK, BONK_PRICE_Q10, T - 61n),
+        asset: BONK,
+        targetTs: T,
+        allowClosed: false,
+      },
     },
     {
       name: 'equity last-known not allowed',
       description: '',
       inputs: {
-        input: price(TSLAX, TSLA_PRICE_Q8, T - 50n * HOUR),
+        input: price(TSLAX, TSLA_PRICE_Q10, T - 50n * HOUR),
         asset: TSLAX,
         targetTs: T,
         allowClosed: false,
@@ -832,7 +860,7 @@ export const oracleCategory: Category<OracleCase> = {
       name: 'equity last-known allowed',
       description: '',
       inputs: {
-        input: price(TSLAX, TSLA_PRICE_Q8, T - 50n * HOUR),
+        input: price(TSLAX, TSLA_PRICE_Q10, T - 50n * HOUR),
         asset: TSLAX,
         targetTs: T,
         allowClosed: true,
@@ -842,7 +870,7 @@ export const oracleCategory: Category<OracleCase> = {
       name: 'equity beyond 72h',
       description: '',
       inputs: {
-        input: price(TSLAX, TSLA_PRICE_Q8, T - 73n * HOUR),
+        input: price(TSLAX, TSLA_PRICE_Q10, T - 73n * HOUR),
         asset: TSLAX,
         targetTs: T,
         allowClosed: true,
@@ -852,7 +880,7 @@ export const oracleCategory: Category<OracleCase> = {
       name: 'scaled multiplier applied',
       description: '4.032×',
       inputs: {
-        input: price(TSLAX, TSLA_PRICE_Q8, T, { multQ6: 4_032_000n }),
+        input: price(TSLAX, TSLA_PRICE_Q10, T, { multQ6: 4_032_000n }),
         asset: TSLAX,
         targetTs: T,
         allowClosed: false,
@@ -862,7 +890,7 @@ export const oracleCategory: Category<OracleCase> = {
       name: 'multiplier ignored for non-scaled',
       description: '',
       inputs: {
-        input: price(BONK, 281n, T, { multQ6: 4_000_000n }),
+        input: price(BONK, BONK_PRICE_Q10, T, { multQ6: 4_000_000n }),
         asset: BONK,
         targetTs: T,
         allowClosed: false,
@@ -872,7 +900,7 @@ export const oracleCategory: Category<OracleCase> = {
       name: 'zero multiplier rejected',
       description: '',
       inputs: {
-        input: price(TSLAX, TSLA_PRICE_Q8, T, { multQ6: 0n }),
+        input: price(TSLAX, TSLA_PRICE_Q10, T, { multQ6: 0n }),
         asset: TSLAX,
         targetTs: T,
         allowClosed: false,
@@ -882,7 +910,7 @@ export const oracleCategory: Category<OracleCase> = {
       name: 'unsupported exponent',
       description: 'expo -20',
       inputs: {
-        input: price(BONK, 281n, T, { expo: -20 }),
+        input: price(BONK, BONK_PRICE_Q10, T, { expo: -20 }),
         asset: BONK,
         targetTs: T,
         allowClosed: false,
@@ -890,7 +918,7 @@ export const oracleCategory: Category<OracleCase> = {
     },
     {
       name: 'overflow boundary',
-      description: '2^62 at expo +8 (i64-representable on-chain; Q8 result exceeds u64)',
+      description: '2^62 at expo +8 (i64-representable on-chain; Q10 result exceeds u64)',
       inputs: {
         input: price(BONK, 1n << 62n, T, { expo: 8 }),
         asset: BONK,
@@ -915,25 +943,25 @@ export const oracleCategory: Category<OracleCase> = {
 };
 
 interface SettleCase {
-  A: { startQ8: bigint; endQ8: bigint };
-  B: { startQ8: bigint; endQ8: bigint };
+  A: { startQ10: bigint; endQ10: bigint };
+  B: { startQ10: bigint; endQ10: bigint };
   tieBps: bigint;
 }
-const S = 10_000_000_000n;
+const S = 1_000_000_000_000n; // $100 in Q10
 export const settlementCategory: Category<SettleCase> = {
   category: 'settlement',
   cases: [
     {
       name: 'equal returns tie',
       description: '',
-      inputs: { A: { startQ8: S, endQ8: S }, B: { startQ8: S, endQ8: S }, tieBps: 1n },
+      inputs: { A: { startQ10: S, endQ10: S }, B: { startQ10: S, endQ10: S }, tieBps: 1n },
     },
     {
       name: '+1 bps exactly is tie',
       description: '',
       inputs: {
-        A: { startQ8: S, endQ8: 10_001_000_000n },
-        B: { startQ8: S, endQ8: S },
+        A: { startQ10: S, endQ10: 1_000_100_000_000n },
+        B: { startQ10: S, endQ10: S },
         tieBps: 1n,
       },
     },
@@ -941,27 +969,31 @@ export const settlementCategory: Category<SettleCase> = {
       name: '+1 bps + 1 unit A wins',
       description: '',
       inputs: {
-        A: { startQ8: S, endQ8: 10_001_000_001n },
-        B: { startQ8: S, endQ8: S },
+        A: { startQ10: S, endQ10: 1_000_100_000_001n },
+        B: { startQ10: S, endQ10: S },
         tieBps: 1n,
       },
     },
     {
       name: '-1 bps - 1 unit B wins',
       description: '',
-      inputs: { A: { startQ8: S, endQ8: 9_998_999_999n }, B: { startQ8: S, endQ8: S }, tieBps: 1n },
+      inputs: {
+        A: { startQ10: S, endQ10: 999_899_999_999n },
+        B: { startQ10: S, endQ10: S },
+        tieBps: 1n,
+      },
     },
     {
       name: 'zero band',
       description: '',
-      inputs: { A: { startQ8: S, endQ8: S + 1n }, B: { startQ8: S, endQ8: S }, tieBps: 0n },
+      inputs: { A: { startQ10: S, endQ10: S + 1n }, B: { startQ10: S, endQ10: S }, tieBps: 0n },
     },
     {
       name: 'wide band 100 bps',
       description: '+0.5% vs flat is a tie',
       inputs: {
-        A: { startQ8: S, endQ8: 10_050_000_000n },
-        B: { startQ8: S, endQ8: S },
+        A: { startQ10: S, endQ10: 1_005_000_000_000n },
+        B: { startQ10: S, endQ10: S },
         tieBps: 100n,
       },
     },
@@ -969,8 +1001,8 @@ export const settlementCategory: Category<SettleCase> = {
       name: 'BONK vs TSLAx demo',
       description: 'BONK 281→300 (+6.76%), TSLAx +2.17%',
       inputs: {
-        A: { startQ8: 281n, endQ8: 300n },
-        B: { startQ8: TSLA_PRICE_Q8, endQ8: 37_317_592_500n },
+        A: { startQ10: BONK_PRICE_Q10, endQ10: 30_000n },
+        B: { startQ10: TSLA_PRICE_Q10, endQ10: 3_731_759_250_000n },
         tieBps: 1n,
       },
     },
@@ -978,8 +1010,8 @@ export const settlementCategory: Category<SettleCase> = {
       name: 'split continuity',
       description: 'TSLAx 4:1 split via multiplier is flat',
       inputs: {
-        A: { startQ8: 281n, endQ8: 281n },
-        B: { startQ8: TSLA_PRICE_Q8, endQ8: (9_131_250_000n * 4_000_000n) / 1_000_000n },
+        A: { startQ10: BONK_PRICE_Q10, endQ10: BONK_PRICE_Q10 },
+        B: { startQ10: TSLA_PRICE_Q10, endQ10: (913_125_000_000n * 4_000_000n) / 1_000_000n },
         tieBps: 1n,
       },
     },
@@ -987,8 +1019,8 @@ export const settlementCategory: Category<SettleCase> = {
       name: 'extreme ratio',
       description: '',
       inputs: {
-        A: { startQ8: 1n, endQ8: 2n },
-        B: { startQ8: 10_000_000_000_000_000n, endQ8: 19_000_000_000_000_000n },
+        A: { startQ10: 1n, endQ10: 2n },
+        B: { startQ10: 10_000_000_000_000_000n, endQ10: 19_000_000_000_000_000n },
         tieBps: 1n,
       },
     },
@@ -996,8 +1028,8 @@ export const settlementCategory: Category<SettleCase> = {
       name: 'both crash A less',
       description: '',
       inputs: {
-        A: { startQ8: S, endQ8: 5_000_000_000n },
-        B: { startQ8: S, endQ8: 4_000_000_000n },
+        A: { startQ10: S, endQ10: 500_000_000_000n },
+        B: { startQ10: S, endQ10: 400_000_000_000n },
         tieBps: 1n,
       },
     },
@@ -1009,7 +1041,7 @@ export const settlementCategory: Category<SettleCase> = {
     const o = obj(j);
     const sd = (k: SideId) => {
       const s = obj(o[k]);
-      return { startQ8: big(s.startQ8), endQ8: big(s.endQ8) };
+      return { startQ10: big(s.startQ10), endQ10: big(s.endQ10) };
     };
     return { A: sd('A'), B: sd('B'), tieBps: big(o.tieBps) };
   },
@@ -1244,7 +1276,7 @@ function cfg(o: Partial<ArenaConfig> & { durationSecs?: bigint } = {}): ArenaCon
 }
 
 function feeAtStart(units: bigint, side: SideId): bigint {
-  const p = side === 'A' ? 281n : TSLA_PRICE_Q8;
+  const p = side === 'A' ? BONK_PRICE_Q10 : TSLA_PRICE_Q10;
   const d = side === 'A' ? 5 : 8;
   return feeRequired(notionalUsdc(units, p, d), DEFAULT_FEE_POLICY.feeBps);
 }
@@ -1263,7 +1295,7 @@ function backEv(
 const C0 = cfg();
 const START = C0.startTs;
 const END = C0.endTs;
-const startEv = (c: ArenaConfig = C0, a = 281n, b = TSLA_PRICE_Q8): ArenaEvent => ({
+const startEv = (c: ArenaConfig = C0, a = BONK_PRICE_Q10, b = TSLA_PRICE_Q10): ArenaEvent => ({
   type: 'snapshotStart',
   now: c.startTs,
   prices: { A: price(c.assets.A, a, c.startTs), B: price(c.assets.B, b, c.startTs) },
@@ -1301,7 +1333,7 @@ export const arenaCategory: Category<ArenaCase> = {
           backEv(START + 6n * HOUR, 'bob', 'A', 1000n),
           { type: 'exit', now: START + 12n * HOUR, owner: 'alice', side: 'A', units: bonk(500n) },
           backEv(START + 20n * HOUR, 'dave', 'A', 250n),
-          settleEv(C0, 300n, 37_317_592_500n),
+          settleEv(C0, 30_000n, 3_731_759_250_000n),
         ],
         claimAt: END + HOUR,
       },
@@ -1318,7 +1350,7 @@ export const arenaCategory: Category<ArenaCase> = {
           { type: 'fundPool', now: START + 1n, sponsor: 'sponsor', amount: 25_000_000_000n },
           backEv(START + 2n, 'alice', 'A', 1000n),
           backEv(START + 2n, 'bob', 'B', 1000n),
-          settleEv(C0, 281n, TSLA_PRICE_Q8),
+          settleEv(C0, BONK_PRICE_Q10, TSLA_PRICE_Q10),
           {
             type: 'sweepUnclaimed',
             now: END + BigInt(DEFAULT_PROTOCOL_LIMITS.claimWindowSecs) + 1n,
@@ -1344,7 +1376,10 @@ export const arenaCategory: Category<ArenaCase> = {
           {
             type: 'snapshotStart',
             now: START - 1n,
-            prices: { A: price(BONK, 281n, START), B: price(TSLAX, TSLA_PRICE_Q8, START) },
+            prices: {
+              A: price(BONK, BONK_PRICE_Q10, START),
+              B: price(TSLAX, TSLA_PRICE_Q10, START),
+            },
           },
           backEv(START, 'x', 'A', 100n),
           startEv(),
@@ -1353,9 +1388,9 @@ export const arenaCategory: Category<ArenaCase> = {
           backEv(START + 1n, 'x', 'A', 100n),
           backEv(START + 2n, 'y', 'B', 100n),
           backEv(END - 8640n, 'late', 'A', 100n),
-          settleEv(C0, 300n, TSLA_PRICE_Q8, END - 1n),
-          settleEv(C0, 300n, TSLA_PRICE_Q8),
-          settleEv(C0, 300n, TSLA_PRICE_Q8),
+          settleEv(C0, 30_000n, TSLA_PRICE_Q10, END - 1n),
+          settleEv(C0, 30_000n, TSLA_PRICE_Q10),
+          settleEv(C0, 30_000n, TSLA_PRICE_Q10),
           { type: 'claim', now: END + 1n, owner: 'y', side: 'B' },
           { type: 'claim', now: END + 1n, owner: 'x', side: 'A' },
           { type: 'claim', now: END + 2n, owner: 'x', side: 'A' },
@@ -1423,7 +1458,13 @@ export const arenaCategory: Category<ArenaCase> = {
             side: 'A',
             units: bonk(100_000n),
           },
-          settleEv(LONG, 281n, TSLA_PRICE_Q8 + 1_000_000_000n, LONG.endTs, 100_000_000_000n),
+          settleEv(
+            LONG,
+            BONK_PRICE_Q10,
+            TSLA_PRICE_Q10 + 100_000_000_000n,
+            LONG.endTs,
+            100_000_000_000n,
+          ),
         ],
         claimAt: LONG.endTs + HOUR,
       },
@@ -1442,7 +1483,13 @@ export const arenaCategory: Category<ArenaCase> = {
           backEv(START, 'crowd', 'A', 80_000n),
           backEv(START + 864n, 'early', 'B', 10_000n),
           backEv(START + 3n * HOUR, 'late', 'B', 10_000n),
-          settleEv(C0, 281n, TSLA_PRICE_Q8 + 1_000_000_000n, END + HOUR, 1_000_000_000_000n),
+          settleEv(
+            C0,
+            BONK_PRICE_Q10,
+            TSLA_PRICE_Q10 + 100_000_000_000n,
+            END + HOUR,
+            1_000_000_000_000n,
+          ),
         ],
         claimAt: END + 2n * HOUR,
       },
@@ -1461,7 +1508,7 @@ export const arenaCategory: Category<ArenaCase> = {
           backEv(START, 'crowd', 'A', 80_000n),
           backEv(START + 3n * HOUR, 'dog', 'B', 20_000n),
           backEv(START + 6n * HOUR, 'joiner', 'A', 5_000n),
-          settleEv(C0, 300n, TSLA_PRICE_Q8, END, 1_000_000_000_000n),
+          settleEv(C0, 30_000n, TSLA_PRICE_Q10, END, 1_000_000_000_000n),
         ],
         claimAt: END + HOUR,
       },
@@ -1478,7 +1525,7 @@ export const arenaCategory: Category<ArenaCase> = {
           backEv(SHORT.startTs, 'a', 'A', 8000n),
           backEv(SHORT.startTs + 15n * 60n, 'b', 'B', 2000n),
           backEv(SHORT.startTs + 45n * 60n, 'late', 'B', 2000n),
-          settleEv(SHORT, 281n, TSLA_PRICE_Q8 + 10n ** 9n),
+          settleEv(SHORT, BONK_PRICE_Q10, TSLA_PRICE_Q10 + 10n ** 11n),
         ],
         claimAt: SHORT.endTs + HOUR,
       },
@@ -1498,7 +1545,7 @@ export const arenaCategory: Category<ArenaCase> = {
           backEv(START, 'y', 'A', 10_000n),
           backEv(START, 'z', 'A', 10_000n),
           backEv(START, 'b', 'B', 1000n),
-          settleEv(C0, 300n, TSLA_PRICE_Q8),
+          settleEv(C0, 30_000n, TSLA_PRICE_Q10),
         ],
         claimAt: END + HOUR,
       },
@@ -1519,8 +1566,8 @@ export const arenaCategory: Category<ArenaCase> = {
             now: END,
             reserveBalance: 0n,
             prices: {
-              A: price(BONK, 278n, END),
-              B: price(TSLAX, 9_131_250_000n, END, { multQ6: 4_000_000n }),
+              A: price(BONK, 27_800n, END),
+              B: price(TSLAX, 913_125_000_000n, END, { multQ6: 4_000_000n }),
             },
           },
         ],

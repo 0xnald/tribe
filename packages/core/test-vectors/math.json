@@ -6,10 +6,26 @@
   "notes": "All integers are decimal strings (bigint). Rust: parse with u128/i128::from_str. Error outcomes are ErrorCode identifiers (see src/engine/errors.ts).",
   "vectors": [
     {
-      "name": "toQ8 expo -8 identity",
-      "description": "$365.25 at expo -8",
+      "name": "toQ10 expo -10 identity",
+      "description": "$365.25 at expo -10",
       "inputs": {
-        "op": "toQ8",
+        "op": "toQ10",
+        "args": [
+          "3652500000000"
+        ],
+        "numArgs": [
+          -10
+        ]
+      },
+      "expected": {
+        "result": "3652500000000"
+      }
+    },
+    {
+      "name": "toQ10 expo -8 scales up",
+      "description": "$365.25 at expo -8 (Pyth crypto/equity feeds) -> Q10",
+      "inputs": {
+        "op": "toQ10",
         "args": [
           "36525000000"
         ],
@@ -18,14 +34,14 @@
         ]
       },
       "expected": {
-        "result": "36525000000"
+        "result": "3652500000000"
       }
     },
     {
-      "name": "toQ8 expo -2",
+      "name": "toQ10 expo -2",
       "description": "$365.25 at expo -2",
       "inputs": {
-        "op": "toQ8",
+        "op": "toQ10",
         "args": [
           "36525"
         ],
@@ -34,14 +50,14 @@
         ]
       },
       "expected": {
-        "result": "36525000000"
+        "result": "3652500000000"
       }
     },
     {
-      "name": "toQ8 expo -15 floors",
-      "description": "BONK 2816164455e-15",
+      "name": "toQ10 expo -15 floors",
+      "description": "BONK 2816164455e-15 -> 28161 (floors the last five digits)",
       "inputs": {
-        "op": "toQ8",
+        "op": "toQ10",
         "args": [
           "2816164455"
         ],
@@ -50,35 +66,51 @@
         ]
       },
       "expected": {
-        "result": "281"
+        "result": "28161"
       }
     },
     {
-      "name": "refPriceQ8 dividend 1.008",
+      "name": "toQ10 BONK expo -10 keeps sub-cent resolution",
+      "description": "$0.0000027100 -> 27 100 (Q8 would have been 271)",
+      "inputs": {
+        "op": "toQ10",
+        "args": [
+          "27100"
+        ],
+        "numArgs": [
+          -10
+        ]
+      },
+      "expected": {
+        "result": "27100"
+      }
+    },
+    {
+      "name": "refPriceQ10 dividend 1.008",
       "description": "",
       "inputs": {
-        "op": "refPriceQ8",
+        "op": "refPriceQ10",
         "args": [
-          "10000000000",
+          "1000000000000",
           "1008000"
         ]
       },
       "expected": {
-        "result": "10080000000"
+        "result": "1008000000000"
       }
     },
     {
-      "name": "refPriceQ8 split 4x",
+      "name": "refPriceQ10 split 4x",
       "description": "$91.3125 × 4.0 = $365.25",
       "inputs": {
-        "op": "refPriceQ8",
+        "op": "refPriceQ10",
         "args": [
-          "9131250000",
+          "913125000000",
           "4000000"
         ]
       },
       "expected": {
-        "result": "36525000000"
+        "result": "3652500000000"
       }
     },
     {
@@ -88,7 +120,7 @@
         "op": "notionalUsdc",
         "args": [
           "27337718",
-          "36525000000"
+          "3652500000000"
         ],
         "numArgs": [
           8
@@ -105,7 +137,7 @@
         "op": "notionalUsdc",
         "args": [
           "3500000000000",
-          "281"
+          "28100"
         ],
         "numArgs": [
           5
@@ -138,8 +170,8 @@
       "inputs": {
         "op": "perfBps",
         "args": [
-          "10000000000",
-          "10842000000"
+          "1000000000000",
+          "1084200000000"
         ]
       },
       "expected": {
@@ -152,8 +184,8 @@
       "inputs": {
         "op": "perfBps",
         "args": [
-          "10000000000",
-          "9783000000"
+          "1000000000000",
+          "978300000000"
         ]
       },
       "expected": {
@@ -166,8 +198,8 @@
       "inputs": {
         "op": "perfBps",
         "args": [
-          "10000000000",
-          "9999900000"
+          "1000000000000",
+          "999990000000"
         ]
       },
       "expected": {
@@ -180,10 +212,10 @@
       "inputs": {
         "op": "decideWinner",
         "args": [
-          "10000000000",
-          "10842000000",
-          "10000000000",
-          "10217000000",
+          "1000000000000",
+          "1084200000000",
+          "1000000000000",
+          "1021700000000",
           "1"
         ]
       },
@@ -197,10 +229,10 @@
       "inputs": {
         "op": "decideWinner",
         "args": [
-          "10000000000",
-          "10001000000",
-          "10000000000",
-          "10000000000",
+          "1000000000000",
+          "1000100000000",
+          "1000000000000",
+          "1000000000000",
           "1"
         ]
       },
@@ -214,10 +246,10 @@
       "inputs": {
         "op": "decideWinner",
         "args": [
-          "10000000000",
-          "10001000001",
-          "10000000000",
-          "10000000000",
+          "1000000000000",
+          "1000100000001",
+          "1000000000000",
+          "1000000000000",
           "1"
         ]
       },
@@ -231,10 +263,10 @@
       "inputs": {
         "op": "decideWinner",
         "args": [
-          "281",
-          "281",
-          "10000000000",
-          "10002000000",
+          "28100",
+          "28100",
+          "1000000000000",
+          "1000200000000",
           "1"
         ]
       },
@@ -248,10 +280,10 @@
       "inputs": {
         "op": "decideWinner",
         "args": [
-          "10000000000",
-          "9500000000",
-          "10000000000",
-          "9100000000",
+          "1000000000000",
+          "950000000000",
+          "1000000000000",
+          "910000000000",
           "1"
         ]
       },

@@ -6,11 +6,12 @@ import {
   DAY,
   HOUR,
   SOL,
-  TSLA_PRICE_Q8,
+  TSLA_PRICE_Q10,
   arenaConfig,
   harness,
   unitsForUsd,
   type Harness,
+  BONK_PRICE_Q10,
 } from '../testing/fixtures';
 import { finalWinningWeights } from './arena';
 import { ErrorCode, TribeError } from './errors';
@@ -101,7 +102,7 @@ describe('adversarial underdog simulations', () => {
     expect(m).toBeGreaterThan(14_000n);
     expect(m).toBeLessThanOrEqual(14_300n);
     // weight of the manipulated tranche vs honestB (same capital, held 24 h)
-    h.settle({ A: 281n, B: TSLA_PRICE_Q8 + 1_000_000_000n });
+    h.settle({ A: BONK_PRICE_Q10, B: TSLA_PRICE_Q10 + 100_000_000_000n });
     const atk = h.state.positions['B:attacker'];
     const hon = h.state.positions['B:honestB'];
     if (!atk || !hon) throw new Error('missing');
@@ -236,7 +237,7 @@ describe('adversarial underdog simulations', () => {
     h.back('attacker', 'A', unitsForUsd(h.state, 'A', 100_000n), t0 + 10n * DAY);
     h.back('attacker', 'B', unitsForUsd(h.state, 'B', 10_000n), t0 + 11n * DAY);
     h.exit('attacker', 'A', h.state.positions['A:attacker']?.units ?? 0n, t0 + 11n * DAY + 1n);
-    h.settle({ A: 281n, B: TSLA_PRICE_Q8 + 1_000_000_000n }); // B wins
+    h.settle({ A: BONK_PRICE_Q10, B: TSLA_PRICE_Q10 + 100_000_000_000n }); // B wins
     const st = h.state.settlement;
     if (!st) throw new Error('not settled');
     // whole-Arena TWAB: A = 10k×30d + 100k×1d = 400k·d, B = 10k×30d + 10k×19d = 490k·d → B is the
@@ -279,16 +280,16 @@ describe('adversarial underdog simulations', () => {
       prices: {
         A: {
           feedId: BONK.feedId,
-          price: 281n,
-          expo: -8,
+          price: BONK_PRICE_Q10,
+          expo: -10,
           conf: 0n,
           publishTime: h.state.config.startTs,
           verificationLevel: 'Full',
         },
         B: {
           feedId: SOL.feedId,
-          price: 10_200_000_000n,
-          expo: -8,
+          price: 1_020_000_000_000n,
+          expo: -10,
           conf: 0n,
           publishTime: h.state.config.startTs,
           verificationLevel: 'Full',

@@ -6,14 +6,14 @@ use anchor_lang::prelude::*;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Valuation {
-    /// Arena start reference price, Q8.
-    pub price_q8: u64,
+    /// Arena start reference price, Q10.
+    pub price_q10: u64,
     pub decimals: u8,
 }
 
-/// USD × 1e8 scale value of `units` (only ratios are ever taken).
+/// USD × 1e10 scale value of `units` (only ratios are ever taken).
 pub fn usd_of(units: u128, v: &Valuation) -> Result<u128> {
-    mul_div(units, v.price_q8 as u128, pow10(v.decimals as u32)?)
+    mul_div(units, v.price_q10 as u128, pow10(v.decimals as u32)?)
 }
 
 pub fn side_usd(side: &SideState, v: &Valuation) -> Result<u128> {

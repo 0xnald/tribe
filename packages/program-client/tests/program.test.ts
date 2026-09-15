@@ -36,8 +36,8 @@ const DAY = 24n * HOUR;
 const T0 = 1_800_000_000n;
 const BONK_FEED = '72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419';
 const TSLA_FEED = '16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1';
-const BONK_PRICE = 281n; // Q8
-const TSLA_PRICE = 36_525_000_000n;
+const BONK_PRICE = 28_100n; // Q10 ($0.00000281)
+const TSLA_PRICE = 3_652_500_000_000n; // Q10 ($365.25)
 
 const feePolicy = {
   feeBps: 50,
@@ -65,11 +65,11 @@ const params = {
 };
 
 /** Units of a side worth `usd` at its start price. */
-function unitsFor(usd: bigint, priceQ8: bigint, decimals: number): bigint {
-  return (usd * 100_000_000n * 10n ** BigInt(decimals)) / priceQ8;
+function unitsFor(usd: bigint, priceQ10: bigint, decimals: number): bigint {
+  return (usd * 10_000_000_000n * 10n ** BigInt(decimals)) / priceQ10;
 }
-function feeFor(units: bigint, priceQ8: bigint, decimals: number): bigint {
-  const notional = (units * priceQ8) / 10n ** BigInt(decimals + 2);
+function feeFor(units: bigint, priceQ10: bigint, decimals: number): bigint {
+  const notional = (units * priceQ10) / 10n ** BigInt(decimals + 4);
   return (notional * 50n) / 10_000n;
 }
 
@@ -653,8 +653,8 @@ describe('happy path: BONK vs TSLAx, BONK wins', () => {
     await startArena(arena, startTs);
     const live = await fetchArena(arena);
     expect(live.status).toBe(1);
-    expect(BigInt(live.startPrices[0]!.priceQ8.toString())).toBe(BONK_PRICE);
-    expect(BigInt(live.startPrices[1]!.priceQ8.toString())).toBe(TSLA_PRICE);
+    expect(BigInt(live.startPrices[0]!.priceQ10.toString())).toBe(BONK_PRICE);
+    expect(BigInt(live.startPrices[1]!.priceQ10.toString())).toBe(TSLA_PRICE);
     expect(BigInt(live.startPrices[1]!.multQ6.toString())).toBe(1_000_000n);
     // duplicate start
     await expectError(
@@ -878,7 +878,7 @@ describe('happy path: BONK vs TSLAx, BONK wins', () => {
               arena,
               a,
               W.cfg,
-              pythAccount(BONK_FEED, 300n, endTs),
+              pythAccount(BONK_FEED, 30_000n, endTs),
               pythAccount(TSLA_FEED, TSLA_PRICE, endTs),
             ),
           ],
@@ -887,7 +887,7 @@ describe('happy path: BONK vs TSLAx, BONK wins', () => {
       'TooEarly',
     );
     const reserveBefore = await tokenBalance(W.h, W.cfg.upsetReserve);
-    await settle(arena, endTs, { a: 300n, b: TSLA_PRICE }, endTs + 2n * HOUR); // late crank, exact-window price
+    await settle(arena, endTs, { a: 30_000n, b: TSLA_PRICE }, endTs + 2n * HOUR); // late crank, exact-window price
     const s = await fetchArena(arena);
     expect(s.status).toBe(2);
     expect(s.settlement.winner).toBe(0);
@@ -913,7 +913,7 @@ describe('happy path: BONK vs TSLAx, BONK wins', () => {
               arena,
               s,
               W.cfg,
-              pythAccount(BONK_FEED, 300n, endTs),
+              pythAccount(BONK_FEED, 30_000n, endTs),
               pythAccount(TSLA_FEED, TSLA_PRICE, endTs),
             ),
           ],
@@ -1050,7 +1050,7 @@ describe('failure recovery: cancel_expired, sponsor refund, tie, sweep', () => {
               arena,
               c,
               W.cfg,
-              pythAccount(BONK_FEED, 300n, endTs),
+              pythAccount(BONK_FEED, 30_000n, endTs),
               pythAccount(TSLA_FEED, TSLA_PRICE, endTs),
             ),
           ],
@@ -1193,7 +1193,7 @@ describe('scaled-ui multiplier and pause', () => {
     await startArena(arena, startTs);
     const a = await fetchArena(arena);
     expect(BigInt(a.startPrices[1]!.multQ6.toString())).toBe(2_000_000n);
-    expect(BigInt(a.startPrices[1]!.priceQ8.toString())).toBe(TSLA_PRICE * 2n);
+    expect(BigInt(a.startPrices[1]!.priceQ10.toString())).toBe(TSLA_PRICE * 2n);
   });
 
   it('pause blocks create_arena and back', async () => {

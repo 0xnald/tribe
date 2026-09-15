@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
 import { DEFAULT_ARENA_PARAMS, DEFAULT_PROTOCOL_LIMITS } from '../config/policy';
-import { DAY, HOUR, TSLA_PRICE_Q8, arenaConfig, harness, unitsForUsd } from '../testing/fixtures';
+import {
+  DAY,
+  HOUR,
+  TSLA_PRICE_Q10,
+  arenaConfig,
+  harness,
+  unitsForUsd,
+  BONK_PRICE_Q10,
+} from '../testing/fixtures';
 import { computeUpsetBonus, type UpsetPolicy } from './upset';
 
 const POLICY: UpsetPolicy = {
@@ -102,7 +110,7 @@ describe('upset bonus through settlement (manipulation)', () => {
     h.back('b', 'B', unitsForUsd(h.state, 'B', 10_000n), t0);
     // just before cutoff, a whale makes A look like the 90 % favourite
     h.back('whale', 'A', unitsForUsd(h.state, 'A', 80_000n), h.state.backingCloseTs - 1n);
-    h.settle({ A: 281n, B: TSLA_PRICE_Q8 + 10n ** 9n }, undefined, 10n ** 12n); // B wins
+    h.settle({ A: BONK_PRICE_Q10, B: TSLA_PRICE_Q10 + 10n ** 11n }, undefined, 10n ** 12n); // B wins
     const st = h.state.settlement;
     if (!st) throw new Error('no settlement');
     // TWAB share of B ≈ 10k×24h / (10k×24h + 10k×24h + 80k×2.4h) ≈ 35 % → m ≈ 1.29×, not 1.8×
@@ -120,7 +128,7 @@ describe('upset bonus through settlement (manipulation)', () => {
     h.back('crowd', 'A', unitsForUsd(h.state, 'A', 90_000n), t0);
     h.back('lonely', 'B', unitsForUsd(h.state, 'B', 10_000n), t0 + HOUR);
     const unitsBefore = h.state.positions['B:lonely']?.units;
-    h.settle({ A: 281n, B: TSLA_PRICE_Q8 + 10n ** 9n }, undefined, 100_000_000n); // reserve 100 USDC
+    h.settle({ A: BONK_PRICE_Q10, B: TSLA_PRICE_Q10 + 10n ** 11n }, undefined, 100_000_000n); // reserve 100 USDC
     const st = h.state.settlement;
     if (!st) throw new Error('no settlement');
     expect(st.upsetBonus).toBeLessThanOrEqual(10_000_000n); // ≤ 10 % draw of 100 USDC

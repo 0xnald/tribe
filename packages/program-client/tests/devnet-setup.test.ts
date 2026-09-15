@@ -180,7 +180,7 @@ async function main(): Promise<void> {
     'status',
     live.status,
     'startPrices',
-    live.startPrices.map((p) => p.priceQ8.toString()),
+    live.startPrices.map((p) => p.priceQ10.toString()),
   );
   log(
     'NEXT_PUBLIC_DEVNET_ASSETS=' +

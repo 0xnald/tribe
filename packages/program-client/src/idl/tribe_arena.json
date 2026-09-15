@@ -1589,11 +1589,11 @@
             "type": "pubkey"
           },
           {
-            "name": "price_a_q8",
+            "name": "price_a_q10",
             "type": "u64"
           },
           {
-            "name": "price_b_q8",
+            "name": "price_b_q10",
             "type": "u64"
           }
         ]
@@ -1984,12 +1984,13 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "price_q8",
-            "docs": ["Reference price of one raw unit (Q8), multiplier applied."],
+            "name": "price_q10",
+            "docs": ["Reference price of one raw unit (Q10 = USD × 1e10), multiplier applied."],
             "type": "u64"
           },
           {
-            "name": "oracle_price_q8",
+            "name": "oracle_price_q10",
+            "docs": ["Raw oracle price before the multiplier (Q10)."],
             "type": "u64"
           },
           {

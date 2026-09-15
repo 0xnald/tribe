@@ -149,9 +149,10 @@ pub struct ArenaAsset {
     AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, Default, PartialEq, Eq, InitSpace,
 )]
 pub struct PriceSnapshot {
-    /// Reference price of one raw unit (Q8), multiplier applied.
-    pub price_q8: u64,
-    pub oracle_price_q8: u64,
+    /// Reference price of one raw unit (Q10 = USD × 1e10), multiplier applied.
+    pub price_q10: u64,
+    /// Raw oracle price before the multiplier (Q10).
+    pub oracle_price_q10: u64,
     pub publish_time: i64,
     pub mode: u8,
     pub mult_q6: u64,

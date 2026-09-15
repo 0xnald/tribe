@@ -7,10 +7,11 @@ import {
   DAY,
   HOUR,
   T0,
-  TSLA_PRICE_Q8,
+  TSLA_PRICE_Q10,
   TSLAX,
   arenaConfig,
   priceInput,
+  BONK_PRICE_Q10,
 } from '../testing/fixtures';
 import { accruePosition } from './accrual';
 import {
@@ -41,8 +42,8 @@ const OWNERS = ['w1', 'w2', 'w3', 'w4', 'w5'] as const;
 /** Units of a side worth `usd` at the fixed start prices (BONK 281e-8, TSLAx 365.25). */
 function unitsOf(side: SideId, usd: bigint): bigint {
   return side === 'A'
-    ? (usd * 100_000_000n * 100_000n) / 281n
-    : (usd * 100_000_000n * 100_000_000n) / TSLA_PRICE_Q8;
+    ? (usd * 10_000_000_000n * 100_000n) / BONK_PRICE_Q10
+    : (usd * 10_000_000_000n * 100_000_000n) / TSLA_PRICE_Q10;
 }
 
 interface Step {
@@ -69,7 +70,7 @@ function feeFor(state: ArenaState, side: SideId, units: bigint): bigint {
   const p = state.startPrices[side];
   if (!p) throw new Error('not started');
   const d = state.config.assets[side].decimals;
-  const notional = (units * p.priceQ8) / 10n ** BigInt(d + 2);
+  const notional = (units * p.priceQ10) / 10n ** BigInt(d + 4);
   return (notional * BigInt(state.config.feePolicy.feeBps)) / 10_000n;
 }
 
@@ -99,7 +100,10 @@ function runSteps(
   push({
     type: 'snapshotStart',
     now: START,
-    prices: { A: priceInput(BONK, 281n, START), B: priceInput(TSLAX, TSLA_PRICE_Q8, START) },
+    prices: {
+      A: priceInput(BONK, BONK_PRICE_Q10, START),
+      B: priceInput(TSLAX, TSLA_PRICE_Q10, START),
+    },
   });
   let now = START;
   for (const s of steps) {
@@ -128,8 +132,8 @@ function runSteps(
     now: END + 2n * HOUR,
     reserveBalance: 10_000_000_000n,
     prices: {
-      A: priceInput(BONK, opts.endPriceA ?? 300n, END),
-      B: priceInput(TSLAX, TSLA_PRICE_Q8, END),
+      A: priceInput(BONK, opts.endPriceA ?? 30_000n, END),
+      B: priceInput(TSLAX, TSLA_PRICE_Q10, END),
     },
   });
   expect(state.status).toBe('Settled');

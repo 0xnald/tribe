@@ -10,16 +10,16 @@
 
 ## 0. Notation and number formats
 
-| Symbol        | Meaning                                        | Representation           |
-| ------------- | ---------------------------------------------- | ------------------------ |
-| `units`       | Raw token amount of an asset (smallest unit)   | `u64`                    |
-| `d`           | Token decimals                                 | `u8`                     |
-| `P`           | Reference price in **Q8 USD** (USD × 10⁸)      | `u64` (fits: $10¹⁰ max)  |
-| `mult`        | xStocks scaled-UI multiplier in **Q6** (× 10⁶) | `u64`, `1_000_000` = 1.0 |
-| `usdc`        | USDC amount in micro-USDC (10⁻⁶)               | `u64`                    |
-| `bps`         | Basis points, 10 000 = 100%                    | `u16`/`u32`              |
-| `t`           | Unix timestamp, seconds                        | `i64`                    |
-| `unitSeconds` | ∫ units dt                                     | `u128`                   |
+| Symbol        | Meaning                                        | Representation                  |
+| ------------- | ---------------------------------------------- | ------------------------------- |
+| `units`       | Raw token amount of an asset (smallest unit)   | `u64`                           |
+| `d`           | Token decimals                                 | `u8`                            |
+| `P`           | Reference price in **Q10 USD** (USD × 10¹⁰)    | `u64` (fits: ≈ $1.84 × 10⁹ max) |
+| `mult`        | xStocks scaled-UI multiplier in **Q6** (× 10⁶) | `u64`, `1_000_000` = 1.0        |
+| `usdc`        | USDC amount in micro-USDC (10⁻⁶)               | `u64`                           |
+| `bps`         | Basis points, 10 000 = 100%                    | `u16`/`u32`                     |
+| `t`           | Unix timestamp, seconds                        | `i64`                           |
+| `unitSeconds` | ∫ units dt                                     | `u128`                          |
 
 Rules:
 
@@ -33,14 +33,19 @@ Rules:
 
 ### 0.1 Reference price of one raw unit
 
-For crypto assets, `P_ref = P_pyth` normalised to Q8.
+For crypto assets, `P_ref = P_pyth` normalised to Q10 (USD × 10¹⁰). Q10 was
+chosen over Q8 in Phase 4 so sub-cent assets keep basis-point resolution:
+BONK at $0.00000271 is `27 100` (one tick = 0.37 bps) instead of `271`
+(one tick = 37 bps, which made the 1 bps tie band meaningless). The
+migration changed only price precision; every Arena economic output is
+unchanged (`packages/core/src/vectors/q10-equivalence.test.ts`).
 
 For xStocks (Token-2022 with the `ScaledUiAmount` extension) the raw on-chain
 balance is constant and corporate actions are expressed through the mint's
 multiplier. One raw unit is worth `multiplier` underlying shares, so:
 
 ```
-P_ref = P_underlying_q8 * mult_q6 / 1_000_000
+P_ref = P_underlying_q10 * mult_q6 / 1_000_000
 ```
 
 where `P_underlying` is the Pyth `Equity.US.<TICKER>/USD` feed and `mult_q6`
@@ -51,10 +56,14 @@ purposes without any special casing.
 ### 0.2 Notional value
 
 ```
-notional_usdc(units, P_ref, d) = units * P_ref / 10^(d + 2)
+notional_usdc(units, P_ref, d) = units * P_ref / 10^(d + 4)
 ```
 
-(Q8 price × units / 10^d gives USD × 10⁸; dividing by 10² yields micro-USDC.)
+(Q10 price × units / 10^d gives USD × 10¹⁰; dividing by 10⁴ yields micro-USDC.)
+
+The winner rule (§2) is scale-free; its cross products and tie band use
+256-bit intermediates in both engines, so any `u64` price is safe. Headroom
+is tested executably (`fixed.test.ts` "Q10 headroom", `math.rs` tests).
 
 ---
 

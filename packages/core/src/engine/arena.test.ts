@@ -4,12 +4,12 @@ import { DEFAULT_PROTOCOL_LIMITS } from '../config/policy';
 import {
   AUTHORITY,
   BONK,
-  BONK_PRICE_Q8,
+  BONK_PRICE_Q10,
   CREATOR,
   DAY,
   HOUR,
   T0,
-  TSLA_PRICE_Q8,
+  TSLA_PRICE_Q10,
   TSLAX,
   arenaConfig,
   harness,
@@ -75,8 +75,8 @@ describe('snapshotStart', () => {
     const h = harness();
     const c = h.state.config;
     const good = {
-      A: priceInput(BONK, BONK_PRICE_Q8, c.startTs),
-      B: priceInput(TSLAX, TSLA_PRICE_Q8, c.startTs),
+      A: priceInput(BONK, BONK_PRICE_Q10, c.startTs),
+      B: priceInput(TSLAX, TSLA_PRICE_Q10, c.startTs),
     };
     expectCode(
       () => h.apply({ type: 'snapshotStart', now: c.startTs - 1n, prices: good }),
@@ -91,7 +91,7 @@ describe('snapshotStart', () => {
         h.apply({
           type: 'snapshotStart',
           now: c.startTs,
-          prices: { ...good, B: priceInput(TSLAX, TSLA_PRICE_Q8, c.startTs - 3n * HOUR) },
+          prices: { ...good, B: priceInput(TSLAX, TSLA_PRICE_Q10, c.startTs - 3n * HOUR) },
         }),
       ErrorCode.OracleStale,
     );
@@ -118,11 +118,11 @@ describe('snapshotStart', () => {
       type: 'snapshotStart',
       now: c.startTs,
       prices: {
-        A: priceInput(BONK, BONK_PRICE_Q8, c.startTs),
-        B: priceInput(TSLAX, TSLA_PRICE_Q8, c.startTs, { multQ6: 1_008_000n }),
+        A: priceInput(BONK, BONK_PRICE_Q10, c.startTs),
+        B: priceInput(TSLAX, TSLA_PRICE_Q10, c.startTs, { multQ6: 1_008_000n }),
       },
     });
-    expect(h.state.startPrices.B?.priceQ8).toBe((TSLA_PRICE_Q8 * 1_008_000n) / 1_000_000n);
+    expect(h.state.startPrices.B?.priceQ10).toBe((TSLA_PRICE_Q10 * 1_008_000n) / 1_000_000n);
     expect(h.state.startPrices.A?.multQ6).toBe(1_000_000n);
   });
   it('permissionless cancel_expired after the start grace', () => {
@@ -251,7 +251,7 @@ describe('settle', () => {
     const h = liveArena();
     const c = h.state.config;
     expectCode(
-      () => h.settle({ A: BONK_PRICE_Q8, B: TSLA_PRICE_Q8 }, c.endTs - 1n),
+      () => h.settle({ A: BONK_PRICE_Q10, B: TSLA_PRICE_Q10 }, c.endTs - 1n),
       ErrorCode.TooEarly,
     );
     expectCode(
@@ -261,25 +261,25 @@ describe('settle', () => {
           now: c.endTs,
           reserveBalance: 0n,
           prices: {
-            A: priceInput(BONK, BONK_PRICE_Q8, c.endTs - 61n),
-            B: priceInput(TSLAX, TSLA_PRICE_Q8, c.endTs),
+            A: priceInput(BONK, BONK_PRICE_Q10, c.endTs - 61n),
+            B: priceInput(TSLAX, TSLA_PRICE_Q10, c.endTs),
           },
         }),
       ErrorCode.OracleStale,
     );
     expectCode(
-      () => h.settle({ A: BONK_PRICE_Q8, B: TSLA_PRICE_Q8 }, c.endTs + 6n * HOUR + 1n),
+      () => h.settle({ A: BONK_PRICE_Q10, B: TSLA_PRICE_Q10 }, c.endTs + 6n * HOUR + 1n),
       ErrorCode.TooLate,
     );
-    h.settle({ A: 300n, B: TSLA_PRICE_Q8 }); // BONK +6.76 %
+    h.settle({ A: 30_000n, B: TSLA_PRICE_Q10 }); // BONK +6.76 %
     expect(h.state.settlement?.winner).toBe('A');
-    expectCode(() => h.settle({ A: 300n, B: TSLA_PRICE_Q8 }), ErrorCode.AlreadySettled);
+    expectCode(() => h.settle({ A: 30_000n, B: TSLA_PRICE_Q10 }), ErrorCode.AlreadySettled);
   });
   it('a late crank settles with the same price and the same frozen weights', () => {
     const h1 = liveArena();
     const h2 = liveArena();
-    h1.settle({ A: 300n, B: TSLA_PRICE_Q8 }, h1.state.config.endTs);
-    h2.settle({ A: 300n, B: TSLA_PRICE_Q8 }, h2.state.config.endTs + 5n * HOUR);
+    h1.settle({ A: 30_000n, B: TSLA_PRICE_Q10 }, h1.state.config.endTs);
+    h2.settle({ A: 30_000n, B: TSLA_PRICE_Q10 }, h2.state.config.endTs + 5n * HOUR);
     expect(h2.state.settlement?.wTotal).toBe(h1.state.settlement?.wTotal);
     expect(h2.state.settlement?.poolAtSettlement).toBe(h1.state.settlement?.poolAtSettlement);
     expect(h2.state.sides.A.effUnitSeconds).toBe(h1.state.sides.A.effUnitSeconds);
@@ -292,7 +292,7 @@ describe('settle', () => {
       () => h.apply({ type: 'refundSponsor', now: c.startTs + 2n, sponsor: 'sponsor' }),
       ErrorCode.RefundNotAvailable,
     );
-    h.settle({ A: BONK_PRICE_Q8, B: TSLA_PRICE_Q8 });
+    h.settle({ A: BONK_PRICE_Q10, B: TSLA_PRICE_Q10 });
     expect(h.state.settlement?.winner).toBe('TIE');
     expectCode(() => h.claim('alice', 'A'), ErrorCode.NoWinner);
     const vaultBefore = h.state.rewardVault;
@@ -387,7 +387,7 @@ describe('claim', () => {
     h.back('dave', 'A', unitsForUsd(h.state, 'A', 1000n), c.startTs);
     h.back('bob', 'A', unitsForUsd(h.state, 'A', 1000n), c.startTs + 12n * HOUR);
     h.exit('dave', 'A', h.state.positions['A:dave']?.units ?? 0n, c.startTs + 20n * HOUR);
-    h.settle({ A: 300n, B: TSLA_PRICE_Q8 });
+    h.settle({ A: 30_000n, B: TSLA_PRICE_Q10 });
     return h;
   }
   it('pays proportionally by time-weighted weight; guards losers, duplicates, forfeits', () => {
@@ -421,7 +421,7 @@ describe('claim', () => {
     h.back('alice', 'A', unitsForUsd(h.state, 'A', 100n), c.startTs);
     h.back('bob', 'B', unitsForUsd(h.state, 'B', 100n), c.startTs);
     h.exit('alice', 'A', h.state.positions['A:alice']?.units ?? 0n, c.endTs + 3n * HOUR); // before settle
-    h.settle({ A: 300n, B: TSLA_PRICE_Q8 }, c.endTs + 4n * HOUR);
+    h.settle({ A: 30_000n, B: TSLA_PRICE_Q10 }, c.endTs + 4n * HOUR);
     const r = h.claim('alice', 'A', c.endTs + 5n * HOUR).effects[0];
     if (r?.kind !== 'RewardClaimed') throw new Error('expected claim');
     expect(r.amount).toBe(h.state.settlement?.poolAtSettlement ?? 0n); // lone winner takes the whole pool
@@ -445,8 +445,8 @@ describe('claim', () => {
       type: 'snapshotStart',
       now: c.startTs,
       prices: {
-        A: priceInput(BONK, BONK_PRICE_Q8, c.startTs),
-        B: priceInput(TSLAX, TSLA_PRICE_Q8, c.startTs),
+        A: priceInput(BONK, BONK_PRICE_Q10, c.startTs),
+        B: priceInput(TSLAX, TSLA_PRICE_Q10, c.startTs),
       },
     });
     record({
@@ -470,7 +470,7 @@ describe('claim', () => {
       type: 'settle',
       now: c.endTs + 7n,
       reserveBalance: 10_000_000n,
-      prices: { A: priceInput(BONK, 250n, c.endTs), B: priceInput(TSLAX, TSLA_PRICE_Q8, c.endTs) },
+      prices: { A: priceInput(BONK, 250n, c.endTs), B: priceInput(TSLAX, TSLA_PRICE_Q10, c.endTs) },
     });
     let s2 = createArena(arenaConfig(), T0).state;
     for (const e of events) s2 = applyEvent(s2, e).state;

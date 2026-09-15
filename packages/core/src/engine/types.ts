@@ -64,10 +64,10 @@ export interface PositionState {
 export type PriceMode = 'Exact' | 'LastKnown';
 
 export interface SidePriceSnapshot {
-  /** Reference price of one raw unit, Q8, multiplier already applied. */
-  priceQ8: bigint;
-  /** Raw oracle price (before multiplier), Q8. */
-  oraclePriceQ8: bigint;
+  /** Reference price of one raw unit, Q10 (USD × 1e10), multiplier already applied. */
+  priceQ10: bigint;
+  /** Raw oracle price (before multiplier), Q10. */
+  oraclePriceQ10: bigint;
   publishTime: bigint;
   mode: PriceMode;
   /** Scaled-UI multiplier used (Q6); 1_000_000 for non-scaled assets. */

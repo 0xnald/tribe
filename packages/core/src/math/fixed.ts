@@ -1,4 +1,4 @@
-import { MULT_Q6 } from '../constants';
+import { MULT_Q6, PRICE_DECIMALS } from '../constants';
 
 /**
  * Fixed-point primitives from docs/ECONOMICS.md §0 and §2.
@@ -28,47 +28,60 @@ export function pow10(n: number): bigint {
 }
 
 /**
- * Normalise a Pyth-style (price, expo) pair to Q8 (USD × 1e8).
- * Rejects non-positive prices and exponents outside a sane range.
+ * Normalise a Pyth-style (price, expo) pair to Q10 (USD × 1e10).
+ * Rejects non-positive prices and exponents outside a sane range. The
+ * result must fit u64, which bounds the reference price at
+ * ≈ $1 844 674 407 per unit.
  */
-export function toQ8(price: bigint, expo: number): bigint {
+export function toQ10(price: bigint, expo: number): bigint {
   if (price <= 0n) throw new MathError('price must be > 0');
   if (!Number.isInteger(expo) || expo < -18 || expo > 8) {
     throw new MathError(`unsupported expo ${expo}`);
   }
-  const shift = 8 + expo; // expo −8 → no shift
-  const q8 = shift >= 0 ? price * pow10(shift) : price / pow10(-shift);
-  if (q8 <= 0n) throw new MathError('price underflows Q8');
-  return assertU64(q8, 'price_q8');
+  const shift = PRICE_DECIMALS + expo; // expo −10 → no shift
+  const q10 = shift >= 0 ? price * pow10(shift) : price / pow10(-shift);
+  if (q10 <= 0n) throw new MathError('price underflows Q10');
+  return assertU64(q10, 'price_q10');
 }
 
 /** Reference price of one raw unit: xStocks multiply the underlying price by the scaled-UI multiplier. */
-export function refPriceQ8(underlyingQ8: bigint, multQ6: bigint = MULT_Q6): bigint {
+export function refPriceQ10(underlyingQ10: bigint, multQ6: bigint = MULT_Q6): bigint {
   if (multQ6 <= 0n) throw new MathError('multiplier must be > 0');
-  return assertU64((underlyingQ8 * multQ6) / MULT_Q6, 'ref_price_q8');
+  return assertU64((underlyingQ10 * multQ6) / MULT_Q6, 'ref_price_q10');
 }
 
-/** notional_usdc(units, P_ref, d) = units × P_ref / 10^(d + 2)  → micro-USDC. */
-export function notionalUsdc(units: bigint, priceQ8: bigint, decimals: number): bigint {
+/** notional_usdc(units, P_ref, d) = units × P_ref / 10^(d + 4)  → micro-USDC (Q10 → 1e6 USDC). */
+export function notionalUsdc(units: bigint, priceQ10: bigint, decimals: number): bigint {
   assertU64(units, 'units');
-  assertU64(priceQ8, 'price_q8');
+  assertU64(priceQ10, 'price_q10');
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 18) {
     throw new MathError(`bad decimals ${decimals}`);
   }
-  return (units * priceQ8) / pow10(decimals + 2);
+  return (units * priceQ10) / pow10(decimals + PRICE_DECIMALS - 6);
 }
 
-/** perf_bps = (P_end − P_start) × 10_000 / P_start, floored toward −∞ (Rust i128 div_euclid). */
-export function perfBps(startQ8: bigint, endQ8: bigint): bigint {
-  if (startQ8 <= 0n) throw new MathError('start price must be > 0');
-  const num = (endQ8 - startQ8) * 10_000n;
-  const q = num / startQ8; // bigint division truncates toward zero
-  return num < 0n && q * startQ8 !== num ? q - 1n : q;
+/** perf_bps = (P_end − P_start) × 10_000 / P_start, floored toward −∞ (Rust i128 div_euclid). Scale-free. */
+export function perfBps(startQ10: bigint, endQ10: bigint): bigint {
+  if (startQ10 <= 0n) throw new MathError('start price must be > 0');
+  const num = (endQ10 - startQ10) * 10_000n;
+  const q = num / startQ10; // bigint division truncates toward zero
+  return num < 0n && q * startQ10 !== num ? q - 1n : q;
 }
 
 export type WinnerSide = 'A' | 'B' | 'TIE';
 
-/** Division-free winner rule with a tie band — docs/ECONOMICS.md §2. */
+const U256_MAX = (1n << 256n) - 1n;
+
+export function assertU256(x: bigint, label = 'value'): bigint {
+  if (x < 0n || x > U256_MAX) throw new MathError(`${label} out of u256 range: ${x}`);
+  return x;
+}
+
+/**
+ * Division-free winner rule with a tie band — docs/ECONOMICS.md §2.
+ * Scale-free; the cross products use 256-bit intermediates (the Rust
+ * engine uses U256 too), so any u64 prices are safe.
+ */
 export function decideWinner(
   startA: bigint,
   endA: bigint,
@@ -86,9 +99,9 @@ export function decideWinner(
     if (p <= 0n) throw new MathError(`${label} must be > 0`);
     assertU64(p, label);
   }
-  const lhs = assertU128(endA * startB, 'lhs');
-  const rhs = assertU128(endB * startA, 'rhs');
-  const band = assertU128((tieBps * startA * startB) / 10_000n, 'tie_band');
+  const lhs = assertU256(endA * startB, 'lhs');
+  const rhs = assertU256(endB * startA, 'rhs');
+  const band = assertU256((tieBps * startA * startB) / 10_000n, 'tie_band');
   const diff = lhs > rhs ? lhs - rhs : rhs - lhs;
   if (diff <= band) return 'TIE';
   return lhs > rhs ? 'A' : 'B';

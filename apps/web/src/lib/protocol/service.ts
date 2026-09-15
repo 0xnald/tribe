@@ -259,14 +259,14 @@ async function toView(a: ArenaAccount, address: PublicKey, now: number): Promise
   const idB = identityFor(ab.mint.toBase58(), ab.decimals);
   const feedA = Buffer.from(aa.feedId).toString('hex');
   const feedB = Buffer.from(ab.feedId).toString('hex');
-  const startA = Number(sp0.priceQ8) / 1e8;
-  const startB = Number(sp1.priceQ8) / 1e8;
+  const startA = Number(sp0.priceQ10) / 1e10;
+  const startB = Number(sp1.priceQ10) / 1e10;
   const started = a.status >= 1 && startA > 0 && startB > 0;
   const ended = a.status === 2;
   const [liveA, liveB] =
     started && !ended ? await Promise.all([readFeed(feedA), readFeed(feedB)]) : [null, null];
-  const curA = ended ? Number(ep0.priceQ8) / 1e8 : (liveA?.price ?? startA);
-  const curB = ended ? Number(ep1.priceQ8) / 1e8 : (liveB?.price ?? startB);
+  const curA = ended ? Number(ep0.priceQ10) / 1e10 : (liveA?.price ?? startA);
+  const curB = ended ? Number(ep1.priceQ10) / 1e10 : (liveB?.price ?? startB);
   const perf = (s: number, c: number): number =>
     s > 0 ? Math.round(((c - s) / s) * 10_000) / 100 : 0;
   const perfA = started ? perf(startA, curA) : 0;

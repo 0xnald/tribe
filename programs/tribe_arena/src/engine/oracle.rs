@@ -2,7 +2,7 @@
 //! Works on already-parsed fields so it is testable without a live Pyth
 //! account; the instruction layer extracts them from `PriceUpdateV2`.
 
-use crate::engine::math::{ref_price_q8, to_q8, MULT_Q6};
+use crate::engine::math::{ref_price_q10, to_q10, MULT_Q6};
 use crate::errors::TribeError;
 use crate::state::{asset_class, price_mode, ArenaAsset, PriceSnapshot};
 use anchor_lang::prelude::*;
@@ -57,17 +57,17 @@ pub fn validate_price_update(
         price_mode::LAST_KNOWN
     };
 
-    let oracle_price_q8 = to_q8(input.price, input.expo)?;
+    let oracle_price_q10 = to_q10(input.price, input.expo)?;
     let mult_q6 = if asset.scaled_ui {
         input.mult_q6.unwrap_or(MULT_Q6 as u64)
     } else {
         MULT_Q6 as u64
     };
     require!(mult_q6 > 0, TribeError::InvalidParams);
-    let price_q8 = ref_price_q8(oracle_price_q8, mult_q6)?;
+    let price_q10 = ref_price_q10(oracle_price_q10, mult_q6)?;
     Ok(PriceSnapshot {
-        price_q8,
-        oracle_price_q8,
+        price_q10,
+        oracle_price_q10,
         publish_time: input.publish_time,
         mode,
         mult_q6,

@@ -13,7 +13,7 @@ use tribe_arena::engine::accrual::{
 use tribe_arena::engine::arena as eng;
 use tribe_arena::engine::fees::{fee_required, split_fee};
 use tribe_arena::engine::math::{
-    decide_winner, notional_usdc, perf_bps, ref_price_q8, to_q8, WinnerSide,
+    decide_winner, notional_usdc, perf_bps, ref_price_q10, to_q10, WinnerSide,
 };
 use tribe_arena::engine::oracle::{validate_price_update, PriceInput};
 use tribe_arena::engine::shares::{instant_share_after_deposit_bps, twab_share_bps, Valuation};
@@ -152,8 +152,8 @@ fn side_state(v: &Value) -> SideState {
 
 fn snapshot(v: &Value) -> PriceSnapshot {
     PriceSnapshot {
-        price_q8: u64_(&v["priceQ8"]),
-        oracle_price_q8: u64_(&v["oraclePriceQ8"]),
+        price_q10: u64_(&v["priceQ10"]),
+        oracle_price_q10: u64_(&v["oraclePriceQ10"]),
         publish_time: i64_(&v["publishTime"]),
         mode: if s(&v["mode"]) == "Exact" {
             price_mode::EXACT
@@ -199,14 +199,14 @@ fn math_vectors() {
             .unwrap_or_default();
         let exp = &v["expected"]["result"];
         match s(&i["op"]) {
-            "toQ8" => assert_eq!(
-                to_q8(args[0] as i64, nums[0] as i32).unwrap() as u128,
+            "toQ10" => assert_eq!(
+                to_q10(args[0] as i64, nums[0] as i32).unwrap() as u128,
                 u128_(exp),
                 "{}",
                 v["name"]
             ),
-            "refPriceQ8" => assert_eq!(
-                ref_price_q8(args[0] as u64, args[1] as u64).unwrap() as u128,
+            "refPriceQ10" => assert_eq!(
+                ref_price_q10(args[0] as u64, args[1] as u64).unwrap() as u128,
                 u128_(exp)
             ),
             "notionalUsdc" => assert_eq!(
@@ -237,7 +237,7 @@ fn math_vectors() {
         }
         n += 1;
     }
-    assert_eq!(n, 17);
+    assert_eq!(n, 19);
 }
 
 // ───────────────────────────────────────── accrual
@@ -345,11 +345,11 @@ fn underdog_vectors() {
         ];
         let vals = [
             Valuation {
-                price_q8: u64_(&i["prices"]["A"]),
+                price_q10: u64_(&i["prices"]["A"]),
                 decimals: num(&i["decimals"]["A"]) as u8,
             },
             Valuation {
-                price_q8: u64_(&i["prices"]["B"]),
+                price_q10: u64_(&i["prices"]["B"]),
                 decimals: num(&i["decimals"]["B"]) as u8,
             },
         ];
@@ -445,10 +445,10 @@ fn settlement_vectors() {
     let mut n = 0;
     for v in load("settlement") {
         let i = &v["inputs"];
-        let sa = u64_(&i["A"]["startQ8"]);
-        let ea = u64_(&i["A"]["endQ8"]);
-        let sb = u64_(&i["B"]["startQ8"]);
-        let eb = u64_(&i["B"]["endQ8"]);
+        let sa = u64_(&i["A"]["startQ10"]);
+        let ea = u64_(&i["A"]["endQ10"]);
+        let sb = u64_(&i["B"]["startQ10"]);
+        let eb = u64_(&i["B"]["endQ10"]);
         let w = decide_winner(sa, ea, sb, eb, u64_(&i["tieBps"]) as u16).unwrap();
         let e = &v["expected"];
         let want = match s(&e["winner"]) {

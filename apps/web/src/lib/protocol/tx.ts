@@ -36,9 +36,9 @@ export async function buildBackTransaction(
   if (!asset || !startPrice) throw new Error('arena has no such side');
   const units = BigInt(Math.floor(unitsUi * 10 ** asset.decimals));
   if (units <= 0n) throw new Error('units too small');
-  // notional (micro-USDC) = units × price_q8 / 10^(decimals + 2), then fee = notional × bps / 10_000
-  const priceQ8 = BigInt(startPrice.priceQ8.toString());
-  const notional = (units * priceQ8) / 10n ** BigInt(asset.decimals + 2);
+  // notional (micro-USDC) = units × price_q10 / 10^(decimals + 4), then fee = notional × bps / 10_000
+  const priceQ10 = BigInt(startPrice.priceQ10.toString());
+  const notional = (units * priceQ10) / 10n ** BigInt(asset.decimals + 4);
   const fee = (notional * BigInt(arena.feePolicy.feeBps)) / 10_000n;
   const ixs = await client.openAndBack(owner, arenaPk, arena, config, idx as 0 | 1, units, fee);
   // The creator's USDC ATA receives the creator fee share; if the creator never made one,

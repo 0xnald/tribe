@@ -1,5 +1,5 @@
 import { MULT_Q6 } from '../constants';
-import { refPriceQ8, toQ8 } from '../math/fixed';
+import { refPriceQ10, toQ10 } from '../math/fixed';
 import { ErrorCode, type ErrorCode as ErrorCodeT } from './errors';
 import type { ArenaAssetSpec, PriceMode, SidePriceSnapshot } from './types';
 
@@ -84,13 +84,13 @@ export function validatePriceUpdate(
   }
 
   // Exponent range is a policy check (OracleUnsupportedExponent); a price that
-  // does not fit Q8/u64 after normalisation is an arithmetic bound (MathOverflow).
+  // does not fit Q10/u64 after normalisation is an arithmetic bound (MathOverflow).
   if (!Number.isInteger(input.expo) || input.expo < -18 || input.expo > 8) {
     return { ok: false, code: ErrorCode.OracleUnsupportedExponent, detail: `expo ${input.expo}` };
   }
-  let oraclePriceQ8: bigint;
+  let oraclePriceQ10: bigint;
   try {
-    oraclePriceQ8 = toQ8(input.price, input.expo);
+    oraclePriceQ10 = toQ10(input.price, input.expo);
   } catch (e) {
     return {
       ok: false,
@@ -103,9 +103,9 @@ export function validatePriceUpdate(
   if (multQ6 <= 0n) {
     return { ok: false, code: ErrorCode.InvalidParams, detail: 'multiplier must be > 0' };
   }
-  let priceQ8: bigint;
+  let priceQ10: bigint;
   try {
-    priceQ8 = refPriceQ8(oraclePriceQ8, multQ6);
+    priceQ10 = refPriceQ10(oraclePriceQ10, multQ6);
   } catch (e) {
     return {
       ok: false,
@@ -116,6 +116,6 @@ export function validatePriceUpdate(
 
   return {
     ok: true,
-    snapshot: { priceQ8, oraclePriceQ8, publishTime: input.publishTime, mode, multQ6 },
+    snapshot: { priceQ10, oraclePriceQ10, publishTime: input.publishTime, mode, multQ6 },
   };
 }

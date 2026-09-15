@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { HOUR, TSLA_PRICE_Q8, arenaConfig, harness, unitsForUsd } from '../testing/fixtures';
+import {
+  HOUR,
+  TSLA_PRICE_Q10,
+  arenaConfig,
+  harness,
+  unitsForUsd,
+  BONK_PRICE_Q10,
+} from '../testing/fixtures';
 import { accrueSide } from './accrual';
 import {
   instantShareAfterDepositBps,
@@ -12,8 +19,8 @@ import {
 import { ZERO_SIDE } from './types';
 
 const V = {
-  A: { priceQ8: 281n, decimals: 5 }, // BONK
-  B: { priceQ8: TSLA_PRICE_Q8, decimals: 8 }, // TSLAx
+  A: { priceQ10: 28_100n, decimals: 5 }, // BONK
+  B: { priceQ10: TSLA_PRICE_Q10, decimals: 8 }, // TSLAx
 };
 
 describe('side valuation', () => {
@@ -21,11 +28,11 @@ describe('side valuation', () => {
     // $100 of each: 35,587,188.61 BONK (3_558_718_861 units) vs 0.27378508 TSLAx
     const a = sideUsd({ ...ZERO_SIDE, units: 3_558_718_861_209n }, V.A);
     const b = sideUsd({ ...ZERO_SIDE, units: 27_378_508n }, V.B);
-    // both ≈ 100 × 1e8 (USD × 1e8 scale)
-    expect(a / 1_000_000n).toBeGreaterThanOrEqual(9999n);
-    expect(a / 1_000_000n).toBeLessThanOrEqual(10_000n);
-    expect(b / 1_000_000n).toBeGreaterThanOrEqual(9999n);
-    expect(b / 1_000_000n).toBeLessThanOrEqual(10_000n);
+    // both ≈ 100 × 1e10 (USD × 1e10 scale)
+    expect(a / 100_000_000n).toBeGreaterThanOrEqual(9999n);
+    expect(a / 100_000_000n).toBeLessThanOrEqual(10_000n);
+    expect(b / 100_000_000n).toBeGreaterThanOrEqual(9999n);
+    expect(b / 100_000_000n).toBeLessThanOrEqual(10_000n);
   });
 });
 
@@ -54,7 +61,7 @@ describe('shares', () => {
   });
   it('sideUsdSeconds is exactly units × Δt × price / 10^d', () => {
     const A = accrueSide({ ...ZERO_SIDE, units: 1_000_000n }, 10n);
-    expect(sideUsdSeconds(A, V.A)).toBe((10_000_000n * 281n) / 100_000n);
+    expect(sideUsdSeconds(A, V.A)).toBe((10_000_000n * 28_100n) / 100_000n);
   });
 });
 
@@ -91,7 +98,7 @@ describe('TWAB sequences through the reducer', () => {
     expect(() => h.back('a4', 'A', uA, close)).toThrow();
     expect(h.state.sides.A.unitSeconds).toBe(snapshot);
     // settle exactly at end: final accrual reaches end_ts and never beyond
-    h.settle({ A: 281n, B: TSLA_PRICE_Q8 }, c.endTs);
+    h.settle({ A: BONK_PRICE_Q10, B: TSLA_PRICE_Q10 }, c.endTs);
     const totalA = h.state.sides.A.effUnitSeconds;
     // recompute the reward denominator from positions: Σ eff_units_i × held_i
     let expected = 0n;

@@ -225,8 +225,8 @@ pub fn snapshot_start(ctx: Context<SnapshotStart>) -> Result<()> {
     eng::snapshot_start(arena, t, &inputs)?;
     emit!(ArenaStarted {
         arena: arena.key(),
-        price_a_q8: arena.start_prices[0].price_q8,
-        price_b_q8: arena.start_prices[1].price_q8,
+        price_a_q10: arena.start_prices[0].price_q10,
+        price_b_q10: arena.start_prices[1].price_q10,
     });
     Ok(())
 }

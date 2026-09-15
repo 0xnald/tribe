@@ -15,6 +15,15 @@ import { TooltipProvider } from '../ui/Tooltip';
 
 const NOW = 1_789_300_000;
 
+/** The sheet checks backability against the real clock, so live Arenas must be built for it. */
+function liveFixture(slug: string): ArenaView {
+  const def = FIXTURE_DEFS.find((d) => d.slug === slug);
+  if (!def) throw new Error(`unknown fixture ${slug}`);
+  const a = buildFixtureArena(def, Math.floor(Date.now() / 1000));
+  if (a.status !== 'live') throw new Error(`${slug} is not live right now (${a.status})`);
+  return a;
+}
+
 function fixture(slug: string): ArenaView {
   return buildFixtureArena(
     FIXTURE_DEFS.find((d) => d.slug === slug)!,
@@ -55,7 +64,7 @@ beforeEach(() => {
 describe('BackSheet (demo Arena)', () => {
   it('walks side → method → amount → preview → confirm → success without a wallet, and never sends a transaction', async () => {
     const user = userEvent.setup();
-    const a = fixture('sol-vs-spyx');
+    const a = liveFixture('sol-vs-spyx');
     wrap(<BackSheet open onOpenChange={() => undefined} arena={a} side="b" session={1} />);
 
     const sheet = await screen.findByTestId('back-sheet');
@@ -121,7 +130,7 @@ describe('BackSheet (demo Arena)', () => {
 
   it('blocks amounts below the minimum', async () => {
     const user = userEvent.setup();
-    const a = fixture('sol-vs-spyx');
+    const a = liveFixture('sol-vs-spyx');
     wrap(<BackSheet open onOpenChange={() => undefined} arena={a} side="a" session={1} />);
     const sheet = await screen.findByTestId('back-sheet');
     await user.click(within(sheet).getByTestId('back-next'));
@@ -145,7 +154,7 @@ describe('BackSheet (demo Arena)', () => {
 describe('BackSheet (devnet Arena)', () => {
   it('disables the USDC path, and asks for a wallet only at the confirm step', async () => {
     const user = userEvent.setup();
-    const base = fixture('sol-vs-spyx');
+    const base = liveFixture('sol-vs-spyx');
     const devnet: ArenaView = {
       ...base,
       provenance: 'onchain',

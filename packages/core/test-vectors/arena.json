@@ -80,16 +80,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "281",
-                "expo": -8,
+                "price": "28100",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
@@ -142,16 +142,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "300",
-                "expo": -8,
+                "price": "30000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "37317592500",
-                "expo": -8,
+                "price": "3731759250000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
@@ -167,15 +167,15 @@
         "backingCloseTs": "1760081360",
         "startPrices": {
           "A": {
-            "priceQ8": "281",
-            "oraclePriceQ8": "281",
+            "priceQ10": "28100",
+            "oraclePriceQ10": "28100",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "36525000000",
-            "oraclePriceQ8": "36525000000",
+            "priceQ10": "3652500000000",
+            "oraclePriceQ10": "3652500000000",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -183,15 +183,15 @@
         },
         "endPrices": {
           "A": {
-            "priceQ8": "300",
-            "oraclePriceQ8": "300",
+            "priceQ10": "30000",
+            "oraclePriceQ10": "30000",
             "publishTime": "1760090000",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "37317592500",
-            "oraclePriceQ8": "37317592500",
+            "priceQ10": "3731759250000",
+            "oraclePriceQ10": "3731759250000",
             "publishTime": "1760090000",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -290,15 +290,15 @@
                 "kind": "ArenaStarted",
                 "startPrices": {
                   "A": {
-                    "priceQ8": "281",
-                    "oraclePriceQ8": "281",
+                    "priceQ10": "28100",
+                    "oraclePriceQ10": "28100",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
                   },
                   "B": {
-                    "priceQ8": "36525000000",
-                    "oraclePriceQ8": "36525000000",
+                    "priceQ10": "3652500000000",
+                    "oraclePriceQ10": "3652500000000",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
@@ -494,16 +494,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "281",
-                "expo": -8,
+                "price": "28100",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
@@ -539,16 +539,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "281",
-                "expo": -8,
+                "price": "28100",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
@@ -573,15 +573,15 @@
         "backingCloseTs": "1760081360",
         "startPrices": {
           "A": {
-            "priceQ8": "281",
-            "oraclePriceQ8": "281",
+            "priceQ10": "28100",
+            "oraclePriceQ10": "28100",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "36525000000",
-            "oraclePriceQ8": "36525000000",
+            "priceQ10": "3652500000000",
+            "oraclePriceQ10": "3652500000000",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -589,15 +589,15 @@
         },
         "endPrices": {
           "A": {
-            "priceQ8": "281",
-            "oraclePriceQ8": "281",
+            "priceQ10": "28100",
+            "oraclePriceQ10": "28100",
             "publishTime": "1760090000",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "36525000000",
-            "oraclePriceQ8": "36525000000",
+            "priceQ10": "3652500000000",
+            "oraclePriceQ10": "3652500000000",
             "publishTime": "1760090000",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -674,15 +674,15 @@
                 "kind": "ArenaStarted",
                 "startPrices": {
                   "A": {
-                    "priceQ8": "281",
-                    "oraclePriceQ8": "281",
+                    "priceQ10": "28100",
+                    "oraclePriceQ10": "28100",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
                   },
                   "B": {
-                    "priceQ8": "36525000000",
-                    "oraclePriceQ8": "36525000000",
+                    "priceQ10": "3652500000000",
+                    "oraclePriceQ10": "3652500000000",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
@@ -859,16 +859,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "281",
-                "expo": -8,
+                "price": "28100",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
@@ -889,16 +889,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "281",
-                "expo": -8,
+                "price": "28100",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
@@ -952,16 +952,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "300",
-                "expo": -8,
+                "price": "30000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
@@ -975,16 +975,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "300",
-                "expo": -8,
+                "price": "30000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
@@ -998,16 +998,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "300",
-                "expo": -8,
+                "price": "30000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
@@ -1041,15 +1041,15 @@
         "backingCloseTs": "1760081360",
         "startPrices": {
           "A": {
-            "priceQ8": "281",
-            "oraclePriceQ8": "281",
+            "priceQ10": "28100",
+            "oraclePriceQ10": "28100",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "36525000000",
-            "oraclePriceQ8": "36525000000",
+            "priceQ10": "3652500000000",
+            "oraclePriceQ10": "3652500000000",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -1057,15 +1057,15 @@
         },
         "endPrices": {
           "A": {
-            "priceQ8": "300",
-            "oraclePriceQ8": "300",
+            "priceQ10": "30000",
+            "oraclePriceQ10": "30000",
             "publishTime": "1760090000",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "36525000000",
-            "oraclePriceQ8": "36525000000",
+            "priceQ10": "3652500000000",
+            "oraclePriceQ10": "3652500000000",
             "publishTime": "1760090000",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -1154,15 +1154,15 @@
                 "kind": "ArenaStarted",
                 "startPrices": {
                   "A": {
-                    "priceQ8": "281",
-                    "oraclePriceQ8": "281",
+                    "priceQ10": "28100",
+                    "oraclePriceQ10": "28100",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
                   },
                   "B": {
-                    "priceQ8": "36525000000",
-                    "oraclePriceQ8": "36525000000",
+                    "priceQ10": "3652500000000",
+                    "oraclePriceQ10": "3652500000000",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
@@ -1359,16 +1359,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "281",
-                "expo": -8,
+                "price": "28100",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
@@ -1418,15 +1418,15 @@
         "backingCloseTs": "1760081360",
         "startPrices": {
           "A": {
-            "priceQ8": "281",
-            "oraclePriceQ8": "281",
+            "priceQ10": "28100",
+            "oraclePriceQ10": "28100",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "36525000000",
-            "oraclePriceQ8": "36525000000",
+            "priceQ10": "3652500000000",
+            "oraclePriceQ10": "3652500000000",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -1483,15 +1483,15 @@
                 "kind": "ArenaStarted",
                 "startPrices": {
                   "A": {
-                    "priceQ8": "281",
-                    "oraclePriceQ8": "281",
+                    "priceQ10": "28100",
+                    "oraclePriceQ10": "28100",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
                   },
                   "B": {
-                    "priceQ8": "36525000000",
-                    "oraclePriceQ8": "36525000000",
+                    "priceQ10": "3652500000000",
+                    "oraclePriceQ10": "3652500000000",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
@@ -1654,16 +1654,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "281",
-                "expo": -8,
+                "price": "28100",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
@@ -1713,15 +1713,15 @@
         "backingCloseTs": "1760081360",
         "startPrices": {
           "A": {
-            "priceQ8": "281",
-            "oraclePriceQ8": "281",
+            "priceQ10": "28100",
+            "oraclePriceQ10": "28100",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "36525000000",
-            "oraclePriceQ8": "36525000000",
+            "priceQ10": "3652500000000",
+            "oraclePriceQ10": "3652500000000",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -1778,15 +1778,15 @@
                 "kind": "ArenaStarted",
                 "startPrices": {
                   "A": {
-                    "priceQ8": "281",
-                    "oraclePriceQ8": "281",
+                    "priceQ10": "28100",
+                    "oraclePriceQ10": "28100",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
                   },
                   "B": {
-                    "priceQ8": "36525000000",
-                    "oraclePriceQ8": "36525000000",
+                    "priceQ10": "3652500000000",
+                    "oraclePriceQ10": "3652500000000",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
@@ -1929,16 +1929,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "281",
-                "expo": -8,
+                "price": "28100",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
@@ -1991,16 +1991,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "281",
-                "expo": -8,
+                "price": "28100",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1762595600",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "37525000000",
-                "expo": -8,
+                "price": "3752500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1762595600",
                 "verificationLevel": "Full"
@@ -2016,15 +2016,15 @@
         "backingCloseTs": "1762336400",
         "startPrices": {
           "A": {
-            "priceQ8": "281",
-            "oraclePriceQ8": "281",
+            "priceQ10": "28100",
+            "oraclePriceQ10": "28100",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "36525000000",
-            "oraclePriceQ8": "36525000000",
+            "priceQ10": "3652500000000",
+            "oraclePriceQ10": "3652500000000",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -2032,15 +2032,15 @@
         },
         "endPrices": {
           "A": {
-            "priceQ8": "281",
-            "oraclePriceQ8": "281",
+            "priceQ10": "28100",
+            "oraclePriceQ10": "28100",
             "publishTime": "1762595600",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "37525000000",
-            "oraclePriceQ8": "37525000000",
+            "priceQ10": "3752500000000",
+            "oraclePriceQ10": "3752500000000",
             "publishTime": "1762595600",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -2139,15 +2139,15 @@
                 "kind": "ArenaStarted",
                 "startPrices": {
                   "A": {
-                    "priceQ8": "281",
-                    "oraclePriceQ8": "281",
+                    "priceQ10": "28100",
+                    "oraclePriceQ10": "28100",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
                   },
                   "B": {
-                    "priceQ8": "36525000000",
-                    "oraclePriceQ8": "36525000000",
+                    "priceQ10": "3652500000000",
+                    "oraclePriceQ10": "3652500000000",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
@@ -2343,16 +2343,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "281",
-                "expo": -8,
+                "price": "28100",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
@@ -2390,16 +2390,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "281",
-                "expo": -8,
+                "price": "28100",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "37525000000",
-                "expo": -8,
+                "price": "3752500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
@@ -2415,15 +2415,15 @@
         "backingCloseTs": "1760081360",
         "startPrices": {
           "A": {
-            "priceQ8": "281",
-            "oraclePriceQ8": "281",
+            "priceQ10": "28100",
+            "oraclePriceQ10": "28100",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "36525000000",
-            "oraclePriceQ8": "36525000000",
+            "priceQ10": "3652500000000",
+            "oraclePriceQ10": "3652500000000",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -2431,15 +2431,15 @@
         },
         "endPrices": {
           "A": {
-            "priceQ8": "281",
-            "oraclePriceQ8": "281",
+            "priceQ10": "28100",
+            "oraclePriceQ10": "28100",
             "publishTime": "1760090000",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "37525000000",
-            "oraclePriceQ8": "37525000000",
+            "priceQ10": "3752500000000",
+            "oraclePriceQ10": "3752500000000",
             "publishTime": "1760090000",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -2527,15 +2527,15 @@
                 "kind": "ArenaStarted",
                 "startPrices": {
                   "A": {
-                    "priceQ8": "281",
-                    "oraclePriceQ8": "281",
+                    "priceQ10": "28100",
+                    "oraclePriceQ10": "28100",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
                   },
                   "B": {
-                    "priceQ8": "36525000000",
-                    "oraclePriceQ8": "36525000000",
+                    "priceQ10": "3652500000000",
+                    "oraclePriceQ10": "3652500000000",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
@@ -2697,16 +2697,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "281",
-                "expo": -8,
+                "price": "28100",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
@@ -2744,16 +2744,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "300",
-                "expo": -8,
+                "price": "30000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
@@ -2769,15 +2769,15 @@
         "backingCloseTs": "1760081360",
         "startPrices": {
           "A": {
-            "priceQ8": "281",
-            "oraclePriceQ8": "281",
+            "priceQ10": "28100",
+            "oraclePriceQ10": "28100",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "36525000000",
-            "oraclePriceQ8": "36525000000",
+            "priceQ10": "3652500000000",
+            "oraclePriceQ10": "3652500000000",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -2785,15 +2785,15 @@
         },
         "endPrices": {
           "A": {
-            "priceQ8": "300",
-            "oraclePriceQ8": "300",
+            "priceQ10": "30000",
+            "oraclePriceQ10": "30000",
             "publishTime": "1760090000",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "36525000000",
-            "oraclePriceQ8": "36525000000",
+            "priceQ10": "3652500000000",
+            "oraclePriceQ10": "3652500000000",
             "publishTime": "1760090000",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -2881,15 +2881,15 @@
                 "kind": "ArenaStarted",
                 "startPrices": {
                   "A": {
-                    "priceQ8": "281",
-                    "oraclePriceQ8": "281",
+                    "priceQ10": "28100",
+                    "oraclePriceQ10": "28100",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
                   },
                   "B": {
-                    "priceQ8": "36525000000",
-                    "oraclePriceQ8": "36525000000",
+                    "priceQ10": "3652500000000",
+                    "oraclePriceQ10": "3652500000000",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
@@ -3051,16 +3051,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "281",
-                "expo": -8,
+                "price": "28100",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
@@ -3098,16 +3098,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "281",
-                "expo": -8,
+                "price": "28100",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760007200",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "37525000000",
-                "expo": -8,
+                "price": "3752500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760007200",
                 "verificationLevel": "Full"
@@ -3123,15 +3123,15 @@
         "backingCloseTs": "1760006300",
         "startPrices": {
           "A": {
-            "priceQ8": "281",
-            "oraclePriceQ8": "281",
+            "priceQ10": "28100",
+            "oraclePriceQ10": "28100",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "36525000000",
-            "oraclePriceQ8": "36525000000",
+            "priceQ10": "3652500000000",
+            "oraclePriceQ10": "3652500000000",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -3139,15 +3139,15 @@
         },
         "endPrices": {
           "A": {
-            "priceQ8": "281",
-            "oraclePriceQ8": "281",
+            "priceQ10": "28100",
+            "oraclePriceQ10": "28100",
             "publishTime": "1760007200",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "37525000000",
-            "oraclePriceQ8": "37525000000",
+            "priceQ10": "3752500000000",
+            "oraclePriceQ10": "3752500000000",
             "publishTime": "1760007200",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -3224,15 +3224,15 @@
                 "kind": "ArenaStarted",
                 "startPrices": {
                   "A": {
-                    "priceQ8": "281",
-                    "oraclePriceQ8": "281",
+                    "priceQ10": "28100",
+                    "oraclePriceQ10": "28100",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
                   },
                   "B": {
-                    "priceQ8": "36525000000",
-                    "oraclePriceQ8": "36525000000",
+                    "priceQ10": "3652500000000",
+                    "oraclePriceQ10": "3652500000000",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
@@ -3380,16 +3380,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "281",
-                "expo": -8,
+                "price": "28100",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
@@ -3443,16 +3443,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "300",
-                "expo": -8,
+                "price": "30000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
@@ -3468,15 +3468,15 @@
         "backingCloseTs": "1760081360",
         "startPrices": {
           "A": {
-            "priceQ8": "281",
-            "oraclePriceQ8": "281",
+            "priceQ10": "28100",
+            "oraclePriceQ10": "28100",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "36525000000",
-            "oraclePriceQ8": "36525000000",
+            "priceQ10": "3652500000000",
+            "oraclePriceQ10": "3652500000000",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -3484,15 +3484,15 @@
         },
         "endPrices": {
           "A": {
-            "priceQ8": "300",
-            "oraclePriceQ8": "300",
+            "priceQ10": "30000",
+            "oraclePriceQ10": "30000",
             "publishTime": "1760090000",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "36525000000",
-            "oraclePriceQ8": "36525000000",
+            "priceQ10": "3652500000000",
+            "oraclePriceQ10": "3652500000000",
             "publishTime": "1760090000",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -3602,15 +3602,15 @@
                 "kind": "ArenaStarted",
                 "startPrices": {
                   "A": {
-                    "priceQ8": "281",
-                    "oraclePriceQ8": "281",
+                    "priceQ10": "28100",
+                    "oraclePriceQ10": "28100",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
                   },
                   "B": {
-                    "priceQ8": "36525000000",
-                    "oraclePriceQ8": "36525000000",
+                    "priceQ10": "3652500000000",
+                    "oraclePriceQ10": "3652500000000",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
@@ -3812,16 +3812,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "281",
-                "expo": -8,
+                "price": "28100",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "36525000000",
-                "expo": -8,
+                "price": "3652500000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760003600",
                 "verificationLevel": "Full"
@@ -3851,16 +3851,16 @@
             "prices": {
               "A": {
                 "feedId": "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419",
-                "price": "278",
-                "expo": -8,
+                "price": "27800",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full"
               },
               "B": {
                 "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
-                "price": "9131250000",
-                "expo": -8,
+                "price": "913125000000",
+                "expo": -10,
                 "conf": "0",
                 "publishTime": "1760090000",
                 "verificationLevel": "Full",
@@ -3877,15 +3877,15 @@
         "backingCloseTs": "1760081360",
         "startPrices": {
           "A": {
-            "priceQ8": "281",
-            "oraclePriceQ8": "281",
+            "priceQ10": "28100",
+            "oraclePriceQ10": "28100",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "36525000000",
-            "oraclePriceQ8": "36525000000",
+            "priceQ10": "3652500000000",
+            "oraclePriceQ10": "3652500000000",
             "publishTime": "1760003600",
             "mode": "Exact",
             "multQ6": "1000000"
@@ -3893,15 +3893,15 @@
         },
         "endPrices": {
           "A": {
-            "priceQ8": "278",
-            "oraclePriceQ8": "278",
+            "priceQ10": "27800",
+            "oraclePriceQ10": "27800",
             "publishTime": "1760090000",
             "mode": "Exact",
             "multQ6": "1000000"
           },
           "B": {
-            "priceQ8": "36525000000",
-            "oraclePriceQ8": "9131250000",
+            "priceQ10": "3652500000000",
+            "oraclePriceQ10": "913125000000",
             "publishTime": "1760090000",
             "mode": "Exact",
             "multQ6": "4000000"
@@ -3978,15 +3978,15 @@
                 "kind": "ArenaStarted",
                 "startPrices": {
                   "A": {
-                    "priceQ8": "281",
-                    "oraclePriceQ8": "281",
+                    "priceQ10": "28100",
+                    "oraclePriceQ10": "28100",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
                   },
                   "B": {
-                    "priceQ8": "36525000000",
-                    "oraclePriceQ8": "36525000000",
+                    "priceQ10": "3652500000000",
+                    "oraclePriceQ10": "3652500000000",
                     "publishTime": "1760003600",
                     "mode": "Exact",
                     "multQ6": "1000000"
