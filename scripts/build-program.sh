@@ -8,6 +8,7 @@ cargo fmt --all --check
 cargo clippy -p tribe_arena --all-targets -- -D warnings
 cargo test -p tribe_arena
 (cd programs/tribe_arena && cargo build-sbf --arch v0)
+mkdir -p target/idl target/types
 anchor idl build -p tribe_arena -o target/idl/tribe_arena.json -t target/types/tribe_arena.ts
 # Keep the client's committed IDL in sync (prettier reformats it).
 cp target/idl/tribe_arena.json packages/program-client/src/idl/tribe_arena.json

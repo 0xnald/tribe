@@ -191,19 +191,45 @@ describe.skipIf(!process.env['MAINNET_SETUP'])('mainnet setup', () => {
         plan.push({ symbol, mint, tokenProgram, feed: reg.pythFeedId });
       }
 
-      // rent
+      // rent — exact account sizes from the IDL account coder; ATAs are legacy
+      // SPL token accounts (USDC, BONK, wSOL are all legacy mints)
+      const sizer = new TribeClient(readonlyProvider(c), TRIBE_ARENA_PROGRAM_ID).program.account;
       const rent = async (bytes: number) =>
         (await c.getMinimumBalanceForRentExemption(bytes)) / 1e9;
-      const cost = {
-        programData800k: await rent(45 + 800_000),
-        programDataExact: await rent(45 + 638_784),
-        config: await rent(8 + 320),
-        asset: await rent(8 + 160),
-        arena: await rent(8 + 820),
-        ata: await rent(165),
-        position: await rent(8 + 200),
+      const PROGRAM_SO_BYTES = Number(process.env['MAINNET_SO_BYTES'] ?? '639536');
+      const sizes = {
+        programAccount: 36,
+        programData800k: 45 + 800_000,
+        programDataExact: 45 + PROGRAM_SO_BYTES,
+        config: sizer.protocolConfig.size,
+        asset: sizer.assetEntry.size,
+        arena: sizer.arena.size,
+        sponsor: sizer.sponsor.size,
+        position: sizer.position.size,
+        ata: 165,
       };
-      log('rent (SOL):', JSON.stringify(cost));
+      const r: Record<string, number> = {};
+      for (const [k, v] of Object.entries(sizes)) r[k] = await rent(v);
+      log('account sizes (bytes):', JSON.stringify(sizes));
+      log('rent per account (SOL):', JSON.stringify(r));
+      const deploy = r['programAccount']! + r['programData800k']!;
+      const bootstrap = r['config']! + 2 * r['ata']! + 2 * r['asset']!; // config, reserve ATA, treasury ATA, BONK+SOL entries
+      const canaryCreate = r['arena']! + r['ata']!; // Arena + reward vault
+      const canarySponsor = r['sponsor']!;
+      const canaryBacks = 2 * r['position']! + 2 * r['ata']!; // two Positions + two vault ATAs
+      log(
+        'rent totals (SOL):',
+        JSON.stringify({
+          deploy,
+          bootstrap,
+          canaryCreate,
+          canarySponsor,
+          canaryBacks,
+          authorityTotal: deploy + bootstrap + canaryCreate,
+          canaryWalletTotal: canarySponsor + canaryBacks,
+          upgradeBufferTemporary: r['programDataExact'],
+        }),
+      );
 
       const client = new TribeClient(readonlyProvider(c), TRIBE_ARENA_PROGRAM_ID);
       const program = await c.getAccountInfo(TRIBE_ARENA_PROGRAM_ID);
@@ -278,6 +304,8 @@ describe.skipIf(!process.env['MAINNET_SETUP'])('mainnet setup', () => {
           }),
         ]);
         log('init_config', sig);
+        // stay paused until the registry has been written and read back
+        log('set_paused(true)', await send([await client.setPaused(authority.publicKey, true)]));
       }
       for (const p of plan) {
         const existing = await client.program.account.assetEntry.fetchNullable(
@@ -300,7 +328,42 @@ describe.skipIf(!process.env['MAINNET_SETUP'])('mainnet setup', () => {
         ]);
         log('set_asset', p.symbol, sig);
       }
+      // read everything back
+      const cfgBack = await client.fetchConfig();
+      log(
+        'config read-back:',
+        JSON.stringify({
+          authority: cfgBack.authority.toBase58(),
+          usdc: cfgBack.usdcMint.toBase58(),
+          treasury: cfgBack.treasury.toBase58(),
+          paused: cfgBack.paused,
+          feeBps: cfgBack.feePolicy.feeBps,
+        }),
+      );
+      for (const p of plan) {
+        const e = await client.program.account.assetEntry.fetch(client.asset(p.mint));
+        log(
+          'asset read-back:',
+          p.symbol,
+          JSON.stringify({
+            mint: e.mint.toBase58(),
+            feed: Buffer.from(e.feedId as number[]).toString('hex'),
+            tol: Number(e.toleranceSecs),
+            conf: e.maxConfBps,
+            status: e.status,
+          }),
+        );
+        expect(Buffer.from(e.feedId as number[]).toString('hex')).toBe(p.feed);
+      }
       const canary = process.env['MAINNET_CANARY'];
+      if (canary || process.env['MAINNET_UNPAUSE'] === '1') {
+        if (cfgBack.paused) {
+          log(
+            'set_paused(false)',
+            await send([await client.setPaused(authority.publicKey, false)]),
+          );
+        }
+      }
       if (canary) {
         const [sa, sb] = canary.split(',').map((s) => s.trim());
         const A = plan.find((p) => p.symbol === sa);

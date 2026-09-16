@@ -67,23 +67,43 @@ Route HumidiFi → Whirlpool, 45 accounts, 2 ALTs, 1 setup ix, 2 compute-budget 
 Versioned transaction sizes (measured): **swap only 1 034 B; swap + back > 1 232 B; swap + open_position + back > 1 232 B; open_position + back alone 870 B (legacy).**
 → The atomic swap+Back does **not** fit. Mainnet flow is two transactions, shown as two steps (Jupiter buy → Tribe Back), never described as atomic. A Tribe address-lookup table could make some routes fit later; not needed for the canary.
 
-### Rent / cost (mainnet `getMinimumBalanceForRentExemption`)
+Re-tested 2026-09-16 09:27 UTC+8 with the canary wallet as owner (unsigned): 10 USDC → 395 900.00000 BONK (min-out 393 920.5, 50 bps, impact 0 %), route Deriverse → Scorch, 721 B v0 transaction, priority fee 53 936 lamports; implied $2.5259e-6 vs Pyth $2.5248e-6 (4 bps apart).
 
-| Item                                                           | SOL                |
-| -------------------------------------------------------------- | ------------------ |
-| ProgramData, exact size (638 784 B, no upgrade headroom)       | 3.246              |
-| ProgramData with `--max-len 800000` (recommended)              | 4.065              |
-| Program account                                                | 0.001              |
-| ProtocolConfig + upset-reserve ATA + treasury ATA              | 0.005              |
-| AssetEntry ×2 (BONK, SOL)                                      | 0.003              |
-| Canary Arena + reward vault                                    | 0.006              |
-| Two positions + vaults (canary)                                | 0.007              |
-| Deploy/setup/canary transaction + priority fees                | ≈ 0.02             |
-| **Total to deploy + bootstrap + canary**                       | **≈ 4.1 SOL**      |
-| Upgrade reserve (a redeploy needs a temporary 3.25 SOL buffer) | 3.5                |
-| **Recommended funding of the upgrade authority**               | **8 SOL**          |
-| Crank wallet (fees only)                                       | 0.1 SOL            |
-| Canary wallet                                                  | 0.15 SOL + 20 USDC |
+### Rent / cost (mainnet `getMinimumBalanceForRentExemption`, re-read 2026-09-16 09:26 UTC+8 for the Q10 binary)
+
+Exact account sizes come from the IDL account coder (`mainnet-setup` dry run); ATAs are legacy SPL token accounts (USDC, BONK and wSOL are all legacy mints).
+
+| Account                                                             | Bytes   | SOL          | Paid by       |
+| ------------------------------------------------------------------- | ------- | ------------ | ------------- |
+| Program account                                                     | 36      | 0.00083312   | authority     |
+| ProgramData, `--max-len 800000`                                     | 800 045 | 4.06487884   | authority     |
+| _(ProgramData at exact size 639 536 B — not used)_                  | 639 581 | _3.24972172_ | —             |
+| ProtocolConfig                                                      | 305     | 0.00219964   | authority     |
+| Upset-reserve ATA (config PDA, USDC)                                | 165     | 0.00148844   | authority     |
+| Treasury ATA (authority, USDC)                                      | 165     | 0.00148844   | authority     |
+| AssetEntry × 2 (SOL, BONK)                                          | 159 × 2 | 0.00291592   | authority     |
+| Canary Arena                                                        | 896     | 0.00520192   | authority     |
+| Reward vault ATA (Arena PDA, USDC)                                  | 165     | 0.00148844   | authority     |
+| Sponsor record                                                      | 82      | 0.0010668    | canary wallet |
+| Position × 2                                                        | 192 × 2 | 0.0032512    | canary wallet |
+| Position vault ATA × 2 (wSOL, BONK)                                 | 165 × 2 | 0.00297688   | canary wallet |
+| Backer's own wSOL ATA (wrap step)                                   | 165     | 0.00148844   | canary wallet |
+| **Deploy (program + ProgramData)**                                  |         | **4.0657**   | authority     |
+| **Bootstrap (config, reserve, treasury, two assets)**               |         | **0.0081**   | authority     |
+| **Canary Arena + reward vault**                                     |         | **0.0067**   | authority     |
+| **Authority rent total**                                            |         | **4.0805**   |               |
+| **Canary wallet rent total (sponsor, positions, vaults, wSOL ATA)** |         | **0.0088**   |               |
+| Temporary upgrade buffer (refunded on success)                      | 639 581 | 3.2497       | authority     |
+
+Fees: ≈ 640 buffer-write transactions at 5 000 lamports plus a 20 000 µlamport/CU priority fee ≈ 0.01 SOL; bootstrap + canary ≈ 20 transactions ≈ 0.002 SOL; Jupiter swap priority fee ≈ 0.00005 SOL.
+
+Recommended funding (the earlier estimate, now backed by exact figures):
+
+| Wallet                                  | SOL      | USDC   | Why                                                                                                                                  |
+| --------------------------------------- | -------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Upgrade / protocol authority `DWD51Yp…` | **8**    | —      | 4.08 rent + fees, plus a 3.25 SOL reserve so one upgrade can be performed without waiting for a buffer refund                        |
+| Crank `Df99dap…`                        | **0.1**  | —      | fees only (snapshot_start, settle, cancel_expired, sweep)                                                                            |
+| Canary wallet `FPmuksz…`                | **0.25** | **25** | 0.0088 rent + ≈ 0.1 SOL wrapped for the SOL-side Back + fees; 5 USDC sponsor + ≈ 10 USDC BONK buy + 0.50 % fee on each Back + margin |
 
 ## 3. Identities (public keys only; private keys stay in `~/tribe-keys/`, never in the repo, Vercel, Neon or CI)
 
@@ -92,7 +112,7 @@ Versioned transaction sizes (measured): **swap only 1 034 B; swap + back > 1 232
 | Program                                | `shzfcWWZtWWTMfRuEvdBAsJZUe3mYork3wug5z5U5w4`  | **Reuse the existing program keypair**: same address on devnet and mainnet, deterministic, already in docs/registry/frontend. The keypair only authorises the initial deploy; the upgrade authority controls everything after. |
 | Upgrade authority / protocol authority | `DWD51YpXjfWLxEKQTBkLZY9Gtx6gWnfXz6cz4wqbm8HZ` | new mainnet key; fund with 8 SOL; treasury = its USDC ATA for the hackathon                                                                                                                                                    |
 | Crank                                  | `Df99dapLJ7D18aacKFdLwLj2DBEn1xSm7CHtTSC73TH9` | new low-value key; only snapshot_start / settle / cancel_expired / sweep                                                                                                                                                       |
-| Canary wallet                          | `FPmukszezHUpfqu3QfExiEEq8qunWHczYpsWF7FTgr2x` | plays the judge path with tiny value                                                                                                                                                                                           |
+| Canary wallet                          | `FPmukszezHUpfqu3QfExiEEq8qunWHczYpsWF7FTgr2x` | plays the judge path with tiny value (0.25 SOL + 25 USDC)                                                                                                                                                                      |
 | USDC                                   | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` |                                                                                                                                                                                                                                |
 
 ## 4. First canary
@@ -107,16 +127,61 @@ Canary parameters: start +5 min, duration 2 h (limits allow ≥ 1 h), sponsor 5 
 
 Frontend (done in code, config-driven): `NEXT_PUBLIC_TRIBE_PROTOCOL_CLUSTER=mainnet-beta`, `NEXT_PUBLIC_TRIBE_PROTOCOL_RPC_URL=<paid RPC>`, `NEXT_PUBLIC_MARKET_CLUSTER=mainnet-beta`, program id unchanged; the status pill becomes `LIVE MARKETS · SOLANA MAINNET`, on-chain badges read `MAINNET`; devnet faucet and stand-in copy disable themselves. Crank: `CRANK_RPC_URL`, `CRANK_KEYPAIR` (secret), `TRIBE_PROGRAM_ID`. Bootstrap: `packages/program-client/tests/mainnet-setup.test.ts` (dry run by default; `MAINNET_SETUP_WRITE=1` + `MAINNET_AUTHORITY_KEYPAIR` to execute; `MAINNET_ASSETS`, `MAINNET_CANARY`).
 
-## 6. Cutover checklist (not executed)
+## 6. Mainnet execution plan (prepared 2026-09-16, NOT executed)
 
-1. ~~Decide M1 (Q10)~~ Done except the devnet redeploy: Q10 implemented, vectors regenerated, bankrun suite green, IDL/client/web updated; devnet upgrade pending faucet SOL (DEPLOYMENTS.md).
-2. Fund `DWD51Yp…` (8 SOL), `Df99dap…` (0.1 SOL), `FPmuksz…` (0.15 SOL + 20 USDC).
-3. `scripts/build-program.sh` (fmt, clippy, vectors, SBF v0, IDL) at the release commit; record sha256.
-4. `solana program deploy --max-len 800000 --program-id tribe_arena-keypair.json --upgrade-authority DWD51Yp… -u mainnet-beta` with a paid RPC; verify `solana program show` and dump-hash equality.
-5. `mainnet-setup` dry run → `MAINNET_SETUP_WRITE=1` with `MAINNET_ASSETS=BONK,SOL` (tolerance 120 s, conf ≤ 100 bps, staleness 0).
-6. Start the crank worker (hosted, 30 s loop) with the crank key.
-7. Create the canary Arena (2 h), sponsor 5 USDC, back both sides from the canary wallet through the app (two-step Jupiter → Back), verify Position + vault balances on Explorer.
-8. Partial Exit from one side (forfeit copy shown), verify vault and wallet deltas.
-9. Wait for end → crank settles (Exact window) → winner claims → loser claim rejected → full withdraw; record every signature and the settlement record (start/end snapshots, publish times, perf bps, W_total, pool, payout).
-10. Only then: Hermes key + receiver post flow in the crank → register TSLAx → BONK vs TSLAx showcase.
-11. Ongoing: pause available via `set_paused`; monitoring (`/api/health`, crank log); risk disclosure in the app; upgrade-authority multisig post-hackathon.
+Release: the commit at `origin/main` HEAD (program sources unchanged since `04d16d5`); `target/deploy/tribe_arena.so` **639 536 B**, sha256 `2588ad7e8d106c53a5ec1a4ae6a9c879724737d5e77001d7404c139afef1ef5e`, produced from `cargo clean` twice with identical output; committed IDL sha256 `a5d8598d8d42eb2b11704404eb1c7ac9f36d80f9bc33dbf5975ca90db31918bc`. Every command below runs in WSL from `~/tribe` at that commit with `MAINNET_RPC` set to a paid mainnet-beta endpoint. Nothing here runs until explicitly authorised.
+
+### 6.1 Deploy (the upgrade authority pays)
+
+```bash
+MAINNET_RPC=<paid rpc> scripts/deploy-mainnet.sh                     # prints the plan and stops
+MAINNET_RPC=<paid rpc> CONFIRM_MAINNET=yes scripts/deploy-mainnet.sh  # deploys, then show + dump + sha256 compare
+```
+
+Underlying command (max-len 800000, upgrade authority = payer):
+
+```bash
+solana program deploy target/deploy/tribe_arena.so \
+  --program-id ~/tribe-keys/tribe_arena-keypair.json \
+  --buffer ~/tribe-keys/mainnet-buffer.json \
+  --keypair ~/tribe-keys/mainnet-upgrade-authority.json \
+  --upgrade-authority ~/tribe-keys/mainnet-upgrade-authority.json \
+  --max-len 800000 --url $MAINNET_RPC --with-compute-unit-price 20000 --max-sign-attempts 100 --use-rpc
+```
+
+Who pays: `--keypair` (the upgrade authority `DWD51Yp…`) funds the temporary buffer (3.2497 SOL, moved into ProgramData on finalisation), tops ProgramData up to its 4.0649 SOL rent, pays the 0.0008 SOL program account and every fee. The program keypair signs only the creation of the program account and holds no funds.
+
+Verification (steps 2–4): `solana program show shzfc…` → executable, owner `BPFLoaderUpgradeab1e…`, authority `DWD51Yp…`, data length 800 000; `solana program dump` → first 639 536 bytes sha256 == release hash. **Stop on mismatch.**
+
+### 6.2 Bootstrap (steps 5–11, authority signs; idempotent)
+
+```bash
+MAINNET_SETUP=1 MAINNET_RPC=<paid rpc> pnpm --filter @tribe/program-client exec vitest run --config vitest.program.config.ts tests/mainnet-setup.test.ts
+# dry run: USDC, mints, Pyth freshness/confidence, exact rent, program/config state — nothing signed
+MAINNET_SETUP=1 MAINNET_SETUP_WRITE=1 MAINNET_ASSETS=SOL,BONK MAINNET_RPC=<paid rpc> \
+  MAINNET_AUTHORITY_KEYPAIR=$HOME/tribe-keys/mainnet-upgrade-authority.json \
+  pnpm --filter @tribe/program-client exec vitest run --config vitest.program.config.ts tests/mainnet-setup.test.ts
+```
+
+Order inside the armed run: `init_config` (USDC `EPjFWdd5…`, treasury = authority USDC ATA created idempotently, upset reserve = config-PDA USDC ATA, fee 50 bps split 40/40/20, limits and default params as reviewed in §1) → **`set_paused(true)` immediately** → `set_asset` SOL (`So111…112`, class Crypto, tolerance 120 s, conf ≤ 100 bps, staleness 0) → `set_asset` BONK (`DezXAZ…B263`, same policy) → read back the config and both AssetEntry accounts and assert feed ids `ef0d8b6f…` (SOL) and `72b02121…` (BONK). The protocol ends this run **paused**: `create_arena` and `back` are gated, everything else works. The crank is not started yet (nothing to crank).
+
+### 6.3 Canary Arena (step 12 onwards)
+
+Pre-flight in the same session: re-run the dry run and require SOL and BONK feed age < 120 s, conf ≤ 100 bps, `Full`; compare the Pyth price with Jupiter Price v3 (within 1 %).
+
+```bash
+MAINNET_SETUP=1 MAINNET_SETUP_WRITE=1 MAINNET_ASSETS=SOL,BONK MAINNET_CANARY=SOL,BONK \
+  MAINNET_CANARY_START_IN_SECS=300 MAINNET_CANARY_DURATION_SECS=7200 MAINNET_RPC=<paid rpc> \
+  MAINNET_AUTHORITY_KEYPAIR=$HOME/tribe-keys/mainnet-upgrade-authority.json \
+  pnpm --filter @tribe/program-client exec vitest run --config vitest.program.config.ts tests/mainnet-setup.test.ts
+```
+
+This run finds the config and assets already present, `set_paused(false)`, then `create_arena` (SOL vs BONK, start +5 min, 2 h, sponsorOpen, firstParty, creator = authority). Then start the crank (`CRANK_RPC_URL`, `CRANK_KEYPAIR=~/tribe-keys/mainnet-crank.json`, 30 s loop) so `snapshot_start` lands inside the 120 s window.
+
+Canary safety gate before the first Back — all read from chain and compared with the values above: binary hash, config authority / treasury / USDC / `paused = false`, asset mints and feed ids, Arena parameters (start, end, tie 1 bps, fee 50 bps), reward vault holding the 5 USDC sponsor, feeds fresh. **Any difference → stop; no workaround with real funds.**
+
+Lifecycle, every signature recorded in DEPLOYMENTS.md: sponsor 5 USDC (canary wallet) → crank `snapshot_start` (record both Q10 prices) → **Back SOL** through the wSOL path (record SOL before, lamports wrapped, units backed, Position Vault balance) → **Back BONK** as two transactions (tx1 Jupiter USDC → BONK: record quote, min-out, received delta; tx2 `open_position + back` with exactly that delta) → inspect both Position Vault ATAs → partial Exit on one side (forfeit copy shown; record vault and wallet deltas) → hold → end → crank `settle` (record end prices, perf bps, winner, W_total, pool) → winner `claim` → loser `claim` rejected (record the error) → full `exit` withdrawals → SOL side unwrap (record final SOL / wSOL). Network fees are recorded separately, never as PnL.
+
+### 6.4 After the canary
+
+Hermes posting (`HERMES_POSTING.md`) → register TSLAx → BONK vs TSLAx showcase. Not before.
