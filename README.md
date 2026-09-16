@@ -167,7 +167,7 @@ pnpm --filter @tribe/program-client test:program  # 24 bankrun integration tests
 ```bash
 pnpm lint          # ESLint + Prettier check
 pnpm typecheck     # tsc --noEmit across the workspace
-pnpm test          # Vitest: core engine (274) + web lib/components (38) + client (4)
+pnpm test          # Vitest: core engine (308) + web lib/components (56) + client (10)
 pnpm --filter @tribe/web test:e2e   # Playwright core paths, desktop + mobile (builds and serves on :3100)
 pnpm --filter @tribe/web shots      # screenshots of every page at 360/390/430/768/1280/1600
 cargo test -p tribe_arena                         # Rust engine replays the shared vectors
@@ -212,7 +212,11 @@ Phase 0 (architecture and product lock), Phase 1 (core economic engine:
 `packages/core`, 308 tests, 114 shared test vectors), Phase 2 (Anchor
 program with Rust engine parity, 24 integration tests, typed client, devnet
 deployment) and Phase 3 (consumer app: Explore, Arena, Back flow, My
-Arenas; live mainnet market data; a live devnet Arena) complete. See
+Arenas; live mainnet market data; a live devnet Arena) complete. Phase 4
+(mainnet readiness): Arena reference prices moved to Q10, wSOL Backs and the
+two-step Jupiter → Back flow implemented; the Q10 program build awaits its
+devnet regression redeploy, and mainnet deployment is gated on review
+([MAINNET_CUTOVER](docs/MAINNET_CUTOVER.md)). See
 [STOCKLANA_PLAN](docs/STOCKLANA_PLAN.md) for phases, the demo script, and
 open decisions. Known limitations are listed in
 [SECURITY §6](docs/SECURITY.md#6-known-limitations-documented-in-readme).

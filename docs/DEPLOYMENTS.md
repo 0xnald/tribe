@@ -1,8 +1,45 @@
 # Deployments
 
-Mainnet is intentionally **not** deployed during Phase 2. Devnet only.
+Mainnet is intentionally **not** deployed. Devnet only. Mainnet deployment is
+gated on the review in `MAINNET_CUTOVER.md`.
 
-## `tribe_arena`
+## Pending: Q10 upgrade of the devnet program (not yet executed)
+
+The program on devnet is still the **Q8 build** below (`bd7da498…`). The Q10
+release build is ready and reproducible, but the upgrade is blocked on
+devnet SOL: the upgrade buffer needs 3.249 SOL of rent (refunded when the
+buffer is consumed) plus the `extend` of the ProgramData account by
+752 bytes, and the deployer `GrUT28…` holds 1.724 SOL. The public devnet
+faucet answered "airdrop limit today" for every request on 2026-09-15/16.
+
+| Field          | Value                                                                                                                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Release commit | `9e84e53` (program sources unchanged since `04d16d5`, the Q10 migration)                                                                                |
+| Build          | `scripts/build-program.sh` in WSL Ubuntu-24.04: `cargo build-sbf --arch v0`, Anchor 1.2.0, Agave 4.2.2                                                  |
+| Binary         | `target/deploy/tribe_arena.so`, **639 536 bytes**, sha256 `2588ad7e8d106c53a5ec1a4ae6a9c879724737d5e77001d7404c139afef1ef5e` (rebuilt twice, identical) |
+| IDL            | `target/idl/tribe_arena.json` == `packages/program-client/src/idl/tribe_arena.json` (price fields `priceQ10`)                                           |
+| Program id     | `shzfcWWZtWWTMfRuEvdBAsJZUe3mYork3wug5z5U5w4` (unchanged; same keypair is planned for mainnet)                                                          |
+| Needed to run  | ≈ 1.6 SOL more on `GrUT28TocKAAo5BDfV9wQejZ1aQsVTNpynYGjLjzwykf` (devnet)                                                                               |
+
+Resume procedure once funded (WSL, `~/tribe` mirror at the release commit):
+
+```bash
+solana program extend shzfcWWZtWWTMfRuEvdBAsJZUe3mYork3wug5z5U5w4 800 -u devnet -k ~/tribe-keys/devnet-deployer.json
+scripts/deploy-devnet.sh                      # upgrade; same buffer keypair, resumable
+solana program dump shzfcWWZtWWTMfRuEvdBAsJZUe3mYork3wug5z5U5w4 /tmp/onchain.so -u devnet
+head -c 639536 /tmp/onchain.so | sha256sum   # must equal 2588ad7e…
+DEVNET_SMOKE=1 DEVNET_AUTHORITY_KEYPAIR=$HOME/tribe-keys/devnet-deployer.json pnpm --filter @tribe/program-client smoke:devnet
+DEVNET_SETUP=1 DEVNET_ARENA_SECS=3600 DEVNET_TBONK=FhvxjAUEQ5W1zrfXGnd6QuzLaTaiDkbEY2aEWvjLCSuT DEVNET_TSOL=348Kk3CBtzwTHvLMN3wd9yipsqvzJ1u4ST6E7mBNKZe3   DEVNET_AUTHORITY_KEYPAIR=$HOME/tribe-keys/devnet-deployer.json   pnpm --filter @tribe/program-client exec vitest run --config vitest.program.config.ts tests/devnet-setup.test.ts
+```
+
+Expected Q10 start snapshot: BONK `priceQ10` ≈ 27 000–28 000 (USD × 1e10),
+SOL ≈ 2.1 × 10¹² for a $210 price. The existing live devnet Arena
+`9c4aWKn3d4vCfMs7zoW4XBBCLrfegWfEABh2K7U2m5KR` was created by the Q8 build
+and keeps Q8 snapshots; the web app reads on-chain snapshots as Q10, so that
+Arena will display wrong prices until it is replaced (it ends 2026-09-14 +
+24 h and is being left to expire).
+
+## `tribe_arena` (current devnet deployment — Q8 build)
 
 | Field                | Value                                                                                                                                                                                                                                                           |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

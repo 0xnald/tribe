@@ -13,7 +13,9 @@
  *
  * Prints the JSON for NEXT_PUBLIC_DEVNET_ASSETS. Idempotent per run: every
  * run creates a fresh Arena (nonce = unix time); mints are reused when
- * DEVNET_TBONK / DEVNET_TSOL are set.
+ * DEVNET_TBONK / DEVNET_TSOL are set. DEVNET_ARENA_SECS (default 24 h,
+ * minimum the config's 1 h) sets the Arena length — a 1 h Arena lets the
+ * crank settle it in the same session for a full start→end regression.
  */
 import { readFileSync } from 'node:fs';
 
@@ -127,7 +129,7 @@ async function main(): Promise<void> {
   const cfg = await client.fetchConfig();
   const now = Math.floor(Date.now() / 1000);
   const startTs = BigInt(now + 150);
-  const endTs = startTs + 24n * 3600n;
+  const endTs = startTs + BigInt(process.env['DEVNET_ARENA_SECS'] ?? 24 * 3600);
   const nonce = BigInt(now);
   const { arena, instruction } = await client.createArena(
     authority.publicKey,
