@@ -24,8 +24,12 @@ target/
 !.env.example
 *.pem
 keys/
-*.keypair.json
+tribe-keys/
+*keypair*.json
+mainnet-*.json
+devnet-*.json
 wallet*.json
+mainnet-setup.log
 
 # os / editor
 .DS_Store
